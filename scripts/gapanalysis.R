@@ -1,10 +1,4 @@
-
-##########################################################
-#CREATE VARIABILITY LAYER#
-##########################################################
-
-# Load packages ----
-
+# load packages ----
 install.packages("rlang")
 install.packages("here")
 install.packages("tibble")
@@ -16,9 +10,7 @@ library(tibble)
 library(tidyverse)
 library(here)
 
-######### Package and Layers exploration
-
-# Explore datasets in the package
+# explore datasets in the package
 list_datasets()
 
 # Explore layers in a dataset
