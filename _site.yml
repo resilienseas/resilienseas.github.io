@@ -1,0 +1,20 @@
+name: "ResilinSeas Data-Driven Products"
+navbar:
+  title: "ResilinSeas"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: about.html
+    - text: "Analysis"
+      icon: fa-flask
+      href: about.html
+      menu:
+        - text: "Gaps"
+          href: gaps.html
+        - text: "Hotspots"
+          href: hotspots.html
+    - text: "Tools"
+      icon: fa-wrench
+      href: tools.html
+output_dir: "."

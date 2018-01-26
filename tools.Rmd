@@ -1,0 +1,19 @@
+---
+title: "Software Tools"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R package: `oatools`
+
+[oatools](https://github.com/resilienseas/oatools)
+
+## Install
+
+```r
+# install.packages("devtools")
+devtools::install_package("resilienseas/oatools")
+```
