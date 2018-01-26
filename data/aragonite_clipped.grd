@@ -1,0 +1,26 @@
+[general]
+creator=R package 'raster'
+created=2018-01-26 11:25:22
+[georeference]
+nrows=1022
+ncols=473
+xmin=-697975.333266062
+ymin=-284526.572556743
+xmax=-125645.333266062
+ymax=1442653.42744326
+projection=+init=EPSG:6414 +proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +units=m +no_defs
+[data]
+datatype=FLT4S
+byteorder=little
+nbands=1
+bandorder=BIL
+categorical=FALSE
+minvalue=0.909388701537086
+maxvalue=2.86937982365534
+nodatavalue=-3.4e+38
+[legend]
+legendtype=
+values=
+color=
+[description]
+layername=var1.pred
