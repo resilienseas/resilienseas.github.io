@@ -1,4 +1,4 @@
-#gap analysis
+# gap analysis
 
 # load packages ----
 install.packages("rlang")
@@ -10,11 +10,6 @@ install.packages("dismo")
 install.packages("deldir")
 install.packages("mapview")
 
-
-# install.packages("rlang")
-# install.packages("here")
-# install.packages("tibble")
-# install.packages("sdmpredictors")
 library(sdmpredictors) 
 library(rlang)
 library(tibble)
@@ -38,18 +33,12 @@ list_layers("MARSPEC") %>% View()
 list_layers("WorldClim") %>% View()
 
 
-# Explore names of layers in dataset
+# explore names of layers in dataset
 list<- list_layers("Bio-ORACLE")
 
-
-
-
-# sst ----
-
-#layer manipulation ----
+# layer manipulation ----
 
 # sea surface temperature
-
 
 # setup datadir for sdmpredictors
 dir_sdmdata <- here("data/sdmpredictors")
@@ -74,7 +63,7 @@ plot(SSTcrop,col=my.colors(1000),axes=FALSE, box=FALSE)
 plot(inventorycoords, add=TRUE)
 title(cex.sub = 1.25, sub = "SST (C)")
 
-#sst range
+# sst range
 
 # load mean SST layer w/o projection
 SSTrange <- load_layers("BO_sstrange", equalarea = F, datadir=dir_sdmdata)
@@ -94,7 +83,7 @@ my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
 plot(SSTrangecrop,col=my.colors(1000),axes=FALSE, box=FALSE)
 title(cex.sub = 1.25, sub = "SST range (C)")
 
-#dissolved oxygen
+# dissolved oxygen
 
 DO <- load_layers("BO_dissox", equalarea = F, datadir=dir_sdmdata)
 # load Dissolved Oxygen Data W/O projection
@@ -110,7 +99,7 @@ my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
 plot(DOcrop,col=my.colors(1000),axes=FALSE, box=FALSE)
 title(cex.sub = 1.25, sub = "DO (C)")
 
-#dissolved oxygen range
+# dissolved oxygen range
 
 # load mean SST layer w/o projection
 DOrange <- load_layers("BO2_dissoxrange_bdmin", equalarea = F, datadir=dir_sdmdata)
@@ -126,98 +115,98 @@ my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
 plot(DOrangecrop,col=my.colors(1000),axes=FALSE, box=FALSE)
 title(cex.sub = 1.25, sub = "DO range")
 
-#prep inventory----
+# prep inventory----
 
-#import inventory
+# import inventory
 oahfocus <- read_csv(here("oahfocus.csv"))
 
-#isolate coordinate columns
+# isolate coordinate columns
 coords<-cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
 
-#remove duplicate locations
+# remove duplicate locations
 deduped.coords<-unique(coords)
 
-#create spatial points objects
+# create spatial points objects
 inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
 inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:6414'))
 
-#check to make sure projections match
+# check to make sure projections match
 plot(SSTcrop,col=my.colors(1000),axes=FALSE, box=FALSE)
 plot(inventorycoords, add=TRUE)
 title(cex.sub = 1.25, sub = "inventory")
 
-#create voronoi polygons
+# create voronoi polygons
 vor<-voronoi(inventorycoords)
 
-#plot polygons by id number
+# plot polygons by id number
 spplot(vor, "id")
 
-#rasterize polygons
+# rasterize polygons
 vorraster<- rasterize(vor, SSTcrop, "id")
 
-#plot rasterized polygons
+# plot rasterized polygons
 plot(vorraster, col=my.colors(1000))
 
-#substitution process ----
+# substitution process ----
 
-#sst
+# sst
 
-#extract sst value for each monitoring site cell
+# extract sst value for each monitoring site cell
 sitesst<- raster::extract(SSTcrop, inventorycoords, method='simple', df=TRUE)
 
-#rename column names of sitesst
+# rename column names of sitesst
 colnames(sitesst)<-c("id", "SST")
 
-#make sure inventory points and polygons are in same order?
+# make sure inventory points and polygons are in same order?
 
-#substitute polygon id for monitoring site sea surface temerature of that polygon
+# substitute polygon id for monitoring site sea surface temerature of that polygon
 polygonsst<-subs(vorraster@data@values, sitesst, by=sitesst$id, which=sitesst$SST)
 
-#sst range
+# sst range
 
-#extract sst range value for each monitoring site cell
+# extract sst range value for each monitoring site cell
 sitesstrange<- raster::extract(SSTrangecrop, inventorycoords, method='simple', df=TRUE)
 
-#rename column names of sitesst
+# rename column names of sitesstrange
 colnames(sitesstrange)<-c("id", "SSTrange")
 
-#make sure inventory points and polygons are in same order?
+# make sure inventory points and polygons are in same order?
 
-#substitute polygon id for monitoring site sea surface temerature of that polygon
+# substitute polygon id for monitoring site sea surface temerature of that polygon
 polygonsstrange<-subs(vorraster@data@values, sitesstrange, by=sitesstrange$id, which=sitesstrange$SSTrange)
 
-#do
+# do
 
-#extract do value for each monitoring site cell
+# extract do value for each monitoring site cell
 sitedo<- raster::extract(DOcrop, inventorycoords, method='simple', df=TRUE)
 
-#rename column names of sitesst
+# rename column names of sitedo
 colnames(sitedo)<-c("id", "DO")
 
-#make sure inventory points and polygons are in same order?
+# make sure inventory points and polygons are in same order?
 
-#substitute polygon id for monitoring site sea surface temerature of that polygon
+# substitute polygon id for monitoring site sea surface temerature of that polygon
 polygondo<-subs(vorraster@data@values, sitedo, by=sitedo$id, which=sitedo$DO)
 
-#do range
+# do range
 
-#extract do range value for each monitoring site cell
+# extract do range value for each monitoring site cell
 sitedorange<- raster::extract(DOrangecrop, inventorycoords, method='simple', df=TRUE)
 
-#rename column names of sitedorange
+# rename column names of sitedorange
 colnames(sitedorange)<-c("id", "DOrange")
 
-#make sure inventory points and polygons are in same order?
+# make sure inventory points and polygons are in same order?
 
-#substitute polygon id for monitoring site sea surface temerature of that polygon
+# substitute polygon id for monitoring site sea surface temerature of that polygon
 polygondorange<-subs(vorraster@data@values, sitedorange, by=sitedorange$id, which=sitedorange$DOrange)
 
 # gap analysis ----
 
-#get distance to nearest monitoring site
+# get distance to nearest monitoring site
 distance<-distanceFromPoints(variability,inventorycoords)
 
-#plot distance
+# plot distance
 plot(distance)
 
 #define gaps = distance * ((diffmeans)+(diffranges*diffmeans))
