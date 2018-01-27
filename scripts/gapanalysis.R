@@ -1,23 +1,27 @@
 # load packages ----
-install.packages("rlang")
-install.packages("here")
-install.packages("tibble")
-install.packages("sdmpredictors")
 
+# install.packages("rlang")
+# install.packages("here")
+# install.packages("tibble")
+# install.packages("sdmpredictors")
 library(sdmpredictors) 
 library(rlang)
 library(tibble)
 library(tidyverse)
 library(here)
 
-# explore datasets in the package
-list_datasets()
+# explore sdmpredictors ----
+list_datasets() %>% View()
 
-# Explore layers in a dataset
+# explore layers in a dataset
 list_layers()
 
-# Explore names of layers in dataset
-list_layers("Bio-ORACLE")
+# explore names of layers in dataset
+list_layers("Bio-ORACLE") %>% View()
+
+list_layers("MARSPEC") %>% View()
+list_layers("WorldClim") %>% View()
+
 
 # BO_chlomean
 # BO_dissox
@@ -25,9 +29,7 @@ list_layers("Bio-ORACLE")
 # BO_salinity
 # BO2_chlomean_bdmin
 
-######### Layer manipulation
-
-# SEA SURFACE TEMPERATURE ----
+# sst ----
 
 # setup datadir for sdmpredictors
 dir_sdmdata <- here("data/sdmpredictors")

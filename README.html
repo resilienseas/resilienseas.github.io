@@ -226,9 +226,23 @@ $(document).ready(function () {
 <div id="westcoastseas-gp" class="section level1">
 <h1>westcoastseas-gp</h1>
 <p>West Coast ResilienSeas Group Project</p>
+<div id="build-website" class="section level2">
+<h2>Build website</h2>
+<p>Using <a href="http://rmarkdown.rstudio.com/rmarkdown_websites.html">Rmarkdown websites</a> framework, website can be knitted from individual files and if menu changed in <code>_site.yml</code>, then go to Build tab in RStudio and “Build Website”.</p>
 </div>
-<div id="this-is-the-read.me-file-for-our-new-repository." class="section level1">
-<h1>This is the read.me file for our new repository.</h1>
+<div id="process" class="section level2">
+<h2>Process</h2>
+<div id="analysis" class="section level3">
+<h3>Analysis</h3>
+<p><strong>Paths</strong>. Work in<code>scripts/*.R</code> files and reference paths using the <code>here</code> R package with the <code>here()</code> function.</p>
+<p><strong>Functions</strong>. You can pull in functions from your <code>oatools</code> library locally, using:</p>
+<pre class="r"><code>devtools::load_all(here(&quot;../oatools&quot;))</code></pre>
+</div>
+<div id="publish" class="section level3">
+<h3>Publish</h3>
+<p>Then visualize outputs in your website <code>./*.Rmd</code></p>
+</div>
+</div>
 </div>
 
 
