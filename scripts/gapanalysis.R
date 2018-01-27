@@ -23,7 +23,7 @@ list_datasets()
 list_layers()
 
 # Explore names of layers in dataset
-list_layers("Bio-ORACLE")
+list<- list_layers("Bio-ORACLE")
 
 # BO_chlomean
 # BO_dissox
@@ -31,7 +31,7 @@ list_layers("Bio-ORACLE")
 # BO_salinity
 # BO2_chlomean_bdmin
 
-######### Layer manipulation
+######### layer manipulation
 
 # SEA SURFACE TEMPERATURE ----
 
@@ -46,36 +46,44 @@ SST <- load_layers("BO_sstmean", equalarea = F, datadir=dir_sdmdata)
 # NOTE: should setup a single raster to snap all other rasters to and feed into "to" argument projectRaster(from, to)
 SST <- projectRaster(SST, crs=CRS('+init=EPSG:6414'), res=10000, method="ngb")
 
-# Crop raster to fit the Eastern Pacific
+# crop raster to fit the Eastern Pacific
 NEpacific <- extent(-670000, 350000, -885000, 1400000) 
 # names the extent - this is just an estimate ***need to coordinate extent with Rae based on Gap analysis feedback!
 
 SSTcrop <- crop(SST, NEpacific) # crops SST layer according to NEpacific extent
 
-# Generate a nice color ramp and plot the map
+# generate a nice color ramp and plot the map
 my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
 plot(SSTcrop,col=my.colors(1000),axes=FALSE, box=FALSE)
+plot(inventorycoords, add=TRUE)
 title(cex.sub = 1.25, sub = "SST (C)")
 
+###SST RANGE
 
-### SST variability
+# load mean SST layer w/o projection
+SSTrange <- load_layers("BO_sstrange", equalarea = F, datadir=dir_sdmdata)
 
-sstvar=terrain(SSTcrop, opt='slope', neighbors = 8)
-#get slope of SST
+# project to CA Albers NAD 83 EPSG 6414, 10 kilometers
+# NOTE: should setup a single raster to snap all other rasters to and feed into "to" argument projectRaster(from, to)
+SSTrange <- projectRaster(SSTrange, crs=CRS('+init=EPSG:6414'), res=10000, method="ngb")
 
-# Generate a nice color ramp and plot the map
+# crop raster to fit the Eastern Pacific
+NEpacific <- extent(-670000, 350000, -885000, 1400000) 
+# names the extent - this is just an estimate ***need to coordinate extent with Rae based on Gap analysis feedback!
+
+SSTrangecrop <- crop(SSTrange, NEpacific) # crops SST layer according to NEpacific extent
+
+# generate a nice color ramp and plot the map
 my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
-plot(sstvar,col=my.colors(1000),axes=FALSE, box=FALSE)
-title(cex.sub = 1.25, sub = "SST variability(C)")
-
-# Trying using unstack() function to isolate individual layers in variability rasterstacks
+plot(SSTrangecrop,col=my.colors(1000),axes=FALSE, box=FALSE)
+title(cex.sub = 1.25, sub = "SST range (C)")
 
 ################################################################
 
 ## DISSOLVED OXYGEN
 
 DO <- load_layers("BO_dissox", equalarea = F, datadir=dir_sdmdata)
-# Load Dissolved Oxygen Data W/O projection
+# load Dissolved Oxygen Data W/O projection
 
 # project to CA Albers NAD 83 EPSG 6414, 10 kilometers
 # NOTE: should setup a single raster to snap all other rasters to and feed into "to" argument projectRaster(from, to)
@@ -83,35 +91,28 @@ DO <- projectRaster(DO, crs=CRS('+init=EPSG:6414'), res=10000, method="ngb")
 
 DOcrop <- crop(DO, NEpacific) # crops DO layer according to NEpacific extent
 
-# Generate a nice color ramp and plot the map
+# generate a nice color ramp and plot the map
 my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
 plot(DOcrop,col=my.colors(1000),axes=FALSE, box=FALSE)
 title(cex.sub = 1.25, sub = "DO (C)")
 
-### DO variability
+####DO RANGE
 
-dovar=terrain(DOcrop, opt='slope')
-#get slope of DO
+# load mean SST layer w/o projection
+DOrange <- load_layers("BO2_dissoxrange_bdmin", equalarea = F, datadir=dir_sdmdata)
 
-# Generate a nice color ramp and plot the map
+# project to CA Albers NAD 83 EPSG 6414, 10 kilometers
+# NOTE: should setup a single raster to snap all other rasters to and feed into "to" argument projectRaster(from, to)
+DOrange <- projectRaster(DOrange, crs=CRS('+init=EPSG:6414'), res=10000, method="ngb")
+
+
+DOrangecrop <- crop(DOrange, NEpacific) # crops SST layer according to NEpacific extent
+
+# generate a nice color ramp and plot the map
 my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
-plot(dovar,col=my.colors(1000),axes=FALSE, box=FALSE)
-title(cex.sub = 1.25, sub = "SST variability(C)")
+plot(DOrangecrop,col=my.colors(1000),axes=FALSE, box=FALSE)
+title(cex.sub = 1.25, sub = "DO range")
 
-###############################################################
-
-#combine sst variability and do variability
-
-donorm = dovar/maxValue(dovar)
-
-sstnorm = sstvar/maxValue(sstvar)
-
-variability = donorm+sstnorm
-
-# Generate a nice color ramp and plot the map
-my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
-plot(variability,col=my.colors(1000),axes=FALSE, box=FALSE)
-title(cex.sub = 1.25, sub = "normalized variability")
 
 ###############################################################
 #GAP ANALYSIS#
@@ -130,15 +131,35 @@ deduped.coords<-unique(coords)
 inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
 inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:6414'))
 
+#check to make sure projections match
+plot(SSTcrop,col=my.colors(1000),axes=FALSE, box=FALSE)
+plot(inventorycoords, add=TRUE)
+title(cex.sub = 1.25, sub = "inventory")
+
+#create voronoi polygons
 vor<-voronoi(inventorycoords)
 
+#plot polygons by id number
 spplot(vor, "id")
 
-vorpoly<-as.SpatialPolygons.PolygonsList(vor)
-
+#rasterize polygons
 vorraster<- rasterize(vor, SSTcrop, "id")
 
-plot(vorraster)
+#plot rasterized polygons
+plot(vorraster, col=my.colors(1000))
+
+#extract sst value for each monitoring site cell
+sitesst<- raster::extract(SSTcrop, inventorycoords, method='simple', df=TRUE)
+
+#rename column names of sitesst
+colnames(sitesst)<-c("id", "SST")
+
+#make sure inventory points and polygons are in same order?
+
+#substitute polygon id for monitoring site sea surface temerature of that polygon
+polygonsst<-subs(vorraster@data@values, sitesst, by=sitesst$id, which=sitesst$SST)
+
+
 
 ####################GAP ANALYSIS#################
 distance<-distanceFromPoints(variability,inventorycoords)
