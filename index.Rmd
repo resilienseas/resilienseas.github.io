@@ -17,8 +17,8 @@ Welcome to our website!
 library(leaflet)
 leaflet() %>% 
   addTiles() %>% 
-  fitBounds(0, 40, 10, 50) %>% 
-  setView(-93.65, 42.0285, zoom = 17)
+  fitBounds(-119, 34, -199.5, 34.5) %>% 
+  setView(-119.8422, 34.4132, zoom = 17)
 ```
 
 
