@@ -209,17 +209,17 @@ distance<-distanceFromPoints(variability,inventorycoords)
 # plot distance
 plot(distance)
 
-#define gaps = distance * ((diffmeans)+(diffranges*diffmeans))
-#gaps <- setValues(distance, (getValues(distance)*getValues(variability)))
+# define gaps = distance * ((diffmeans)+(diffranges*diffmeans))
+# gaps <- setValues(distance, (getValues(distance)*getValues(variability)))
 
-#plot gaps
-#plot(gaps)
+# plot gaps
+# plot(gaps)
 
-#create binary gaps
-#binarygaps <- setValues(gaps, (getValues(distance)*getValues(variability)) > 6000)
+# create binary gaps
+# binarygaps <- setValues(gaps, (getValues(distance)*getValues(variability)) > 6000)
 
-#plot binary gaps
-#plot(binarygaps)
+# plot binary gaps
+# plot(binarygaps)
 
-#mapview
-#mapview(gaps)
+# mapview
+# mapview(gaps)
