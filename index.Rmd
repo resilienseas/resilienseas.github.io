@@ -13,14 +13,8 @@ Welcome to our website!
 
 ## Add Interactive Map
 
-```{r}
-leaflet() %>% 
-  addTiles() %>%
-  addProviderTiles('Esri.OceanBasemap') %>% 
-  addRasterImage(aragonite_clipped, colors = binpal) %>% 
-  addLegend(
-    pal = binpal, values = seq(1,3),
-    title = "Aragonite Saturation State")
+```{r echo=FALSE}
+
 ```
 
 
