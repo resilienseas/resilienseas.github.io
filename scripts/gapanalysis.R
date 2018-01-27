@@ -1,23 +1,14 @@
 # gap analysis
 
 # load packages ----
-install.packages("rlang")
-install.packages("here")
-install.packages("tibble")
-install.packages("sdmpredictors")
-install.packages("tidyverse")
-install.packages("dismo")
-install.packages("deldir")
-install.packages("mapview")
-
-library(sdmpredictors) 
-library(rlang)
-library(tibble)
-library(tidyverse)
-library(here)
-library(dismo)
-library(deldir)
-library(mapview)
+if (!require(pacman)) install.package(pacman)
+library(pacman)
+p_load(
+  tidyverse, here, 
+  raster,
+  sdmpredictors, dismo, 
+  deldir, 
+  mapview)
 
 # explore sdmpredictors ----
 list_datasets() %>% View()
@@ -118,7 +109,7 @@ title(cex.sub = 1.25, sub = "DO range")
 # prep inventory----
 
 # import inventory
-oahfocus <- read_csv(here("oahfocus.csv"))
+oahfocus <- read_csv(here("data/oahfocus.csv"))
 
 # isolate coordinate columns
 coords<-cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
@@ -160,7 +151,8 @@ colnames(sitesst)<-c("id", "SST")
 # make sure inventory points and polygons are in same order?
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
-polygonsst<-subs(vorraster@data@values, sitesst, by=sitesst$id, which=sitesst$SST)
+polygonsst <- subs(vorraster, sitesst, by="id", which="SST")
+plot(polygonsst, col=my.colors(1000))
 
 # sst range
 
