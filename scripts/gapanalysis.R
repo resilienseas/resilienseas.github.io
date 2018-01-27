@@ -3,12 +3,18 @@ install.packages("rlang")
 install.packages("here")
 install.packages("tibble")
 install.packages("sdmpredictors")
+install.packages("tidyverse")
+install.packages("dismo")
+install.packages("deldir")
+
 
 library(sdmpredictors) 
 library(rlang)
 library(tibble)
 library(tidyverse)
 library(here)
+library(dismo)
+library(deldir)
 
 # explore datasets in the package
 list_datasets()
@@ -123,6 +129,16 @@ deduped.coords<-unique(coords)
 #create spatial points objects
 inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
 inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:6414'))
+
+vor<-voronoi(inventorycoords)
+
+spplot(vor, "id")
+
+vorpoly<-as.SpatialPolygons.PolygonsList(vor)
+
+vorraster<- rasterize(vor, SSTcrop, "id")
+
+plot(vorraster)
 
 ####################GAP ANALYSIS#################
 distance<-distanceFromPoints(variability,inventorycoords)
