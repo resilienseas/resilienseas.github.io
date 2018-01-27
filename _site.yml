@@ -10,9 +10,9 @@ navbar:
       icon: fa-flask
       href: about.html
       menu:
-        - text: "Gaps"
+        - text: "Monitoring Inventory Gap Analysis"
           href: gaps.html
-        - text: "Hotspots"
+        - text: "Ocean Acidfication Hotspot and MPA Analysis"
           href: hotspots.html
     - text: "Tools"
       icon: fa-wrench
