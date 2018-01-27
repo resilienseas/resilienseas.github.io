@@ -9,4 +9,5 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## About Us
 
+We are a group of masters students at the Bren School of Environmental Science & Management at University of California, Santa Barbara.
 ...

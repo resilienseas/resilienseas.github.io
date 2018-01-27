@@ -10,6 +10,11 @@ install.packages("dismo")
 install.packages("deldir")
 install.packages("mapview")
 
+
+# install.packages("rlang")
+# install.packages("here")
+# install.packages("tibble")
+# install.packages("sdmpredictors")
 library(sdmpredictors) 
 library(rlang)
 library(tibble)
@@ -19,19 +24,32 @@ library(dismo)
 library(deldir)
 library(mapview)
 
-# explore datasets in the package
-list_datasets()
+# explore sdmpredictors ----
+list_datasets() %>% View()
 
-# Explore layers in a dataset
+# explore layers in a dataset
 list_layers()
+
+
+# explore names of layers in dataset
+list_layers("Bio-ORACLE") %>% View()
+
+list_layers("MARSPEC") %>% View()
+list_layers("WorldClim") %>% View()
+
 
 # Explore names of layers in dataset
 list<- list_layers("Bio-ORACLE")
 
 
+
+
+# sst ----
+
 #layer manipulation ----
 
 # sea surface temperature
+
 
 # setup datadir for sdmpredictors
 dir_sdmdata <- here("data/sdmpredictors")
