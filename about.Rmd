@@ -1,5 +1,5 @@
 ---
-title: "About Resilinseas"
+title: "About Resilienseas"
 output: html_document
 ---
 
