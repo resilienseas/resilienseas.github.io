@@ -1,6 +1,6 @@
-name: "ResilinSeas Data-Driven Products"
+name: "ResilienSeas Data-Driven Products"
 navbar:
-  title: "ResilinSeas"
+  title: "ResilienSeas"
   left:
     - text: "Home"
       href: index.html
