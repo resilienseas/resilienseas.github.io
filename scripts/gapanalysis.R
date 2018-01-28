@@ -70,6 +70,7 @@ NEpacific <- extent(-670000, 350000, -885000, 1400000)
 SSTrangecrop <- crop(SSTrange, NEpacific) # crops SST layer according to NEpacific extent
 
 # generate a nice color ramp and plot the map
+
 my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
 plot(SSTrangecrop,col=my.colors(1000),axes=FALSE, box=FALSE)
 title(cex.sub = 1.25, sub = "SST range (C)")
@@ -159,7 +160,7 @@ colnames(sitesst)<-c("id", "SST")
 # make sure inventory points and polygons are in same order?
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
-polygonsst <- subs(vorraster, sitesst, by="id", which="SST")
+polygonsst <- subs(vorraster, sitesst, by="id", which="SST", subsWithNA=FALSE)
 plot(polygonsst, col=my.colors(1000))
 
 # sst range
@@ -232,6 +233,7 @@ mapview(SSTrangecrop)
 # sst combine
 sstvariation <- sstmeandiff+(sstmeandiff*sstrangediff)
 plot(sstvariation)
+mapview(sstvariation)
 
 # do variation
 
@@ -246,6 +248,7 @@ plot(dorangediff)
 # do combine
 dovariation <- domeandiff + (domeandiff*dorangediff)
 plot(dovariation)
+mapview(dovariation)
 
 #total variation
 variation <- (sstvariation*dovariation)
