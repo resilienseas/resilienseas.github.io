@@ -110,6 +110,13 @@ title(cex.sub = 1.25, sub = "DO range")
 # import inventory
 oahfocus <- read_csv(here("data/oahfocus.csv"))
 
+#oahfocus<-subset(oahfocus, DiscCarbPmtr>1 | ISCarbPmtr > 1)
+
+measperyr<-oahfocus$`Meas/Yr`
+
+oahfocus<-subset(oahfocus, measperyr > 365)
+
+
 # isolate coordinate columns
 coords<-cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
 
@@ -130,6 +137,7 @@ vor<-voronoi(inventorycoords)
 
 # plot polygons by id number
 spplot(vor, "id")
+mapview(vor)
 
 # rasterize polygons
 vorraster<- rasterize(vor, SSTcrop, "id")
@@ -253,7 +261,7 @@ distance<-distanceFromPoints(variation,inventorycoords)
 plot(distance)
 
 # define gaps = distance * ((diffmeans)+(diffranges*diffmeans))
-gaps <- setValues(distance, (getValues(distance)*(getValues(variation))))
+gaps <- setValues(distance, (getValues(distance)*sqrt(getValues(variation))))
 
 # plot gaps
 plot(gaps)
