@@ -1,7 +1,7 @@
-# gap analysis
+# gap analysis!
 
 # load packages ----
-if (!require(pacman)) install.package(pacman)
+if (!require(pacman)) install.packages("pacman")
 library(pacman)
 p_load(
   tidyverse, here, 
@@ -51,7 +51,6 @@ SSTcrop <- crop(SST, NEpacific) # crops SST layer according to NEpacific extent
 # generate a nice color ramp and plot the map
 my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
 plot(SSTcrop,col=my.colors(1000),axes=FALSE, box=FALSE)
-plot(inventorycoords, add=TRUE)
 title(cex.sub = 1.25, sub = "SST (C)")
 
 # sst range
@@ -165,7 +164,8 @@ colnames(sitesstrange)<-c("id", "SSTrange")
 # make sure inventory points and polygons are in same order?
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
-polygonsstrange<-subs(vorraster@data@values, sitesstrange, by=sitesstrange$id, which=sitesstrange$SSTrange)
+polygonsstrange<-subs(vorraster, sitesstrange, by="id", which="SSTrange")
+plot(polygonsstrange, col=my.colors(1000))
 
 # do
 
@@ -178,7 +178,8 @@ colnames(sitedo)<-c("id", "DO")
 # make sure inventory points and polygons are in same order?
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
-polygondo<-subs(vorraster@data@values, sitedo, by=sitedo$id, which=sitedo$DO)
+polygondo<-subs(vorraster, sitedo, by="id", which="DO")
+plot(polygondo, col=my.colors(1000))
 
 # do range
 
@@ -191,27 +192,82 @@ colnames(sitedorange)<-c("id", "DOrange")
 # make sure inventory points and polygons are in same order?
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
-polygondorange<-subs(vorraster@data@values, sitedorange, by=sitedorange$id, which=sitedorange$DOrange)
+polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
+plot(polygondorange, col=my.colors(1000))
+
+# spatial + temporal variation ----
+
+# variation = (imean - amean) + (imean - amean)*(irange - arange)
+# where i = cell in raster of study area and a = cell containing nearest monitoring site
+
+# sst variation
+
+# sst mean
+sstmeandiff <- abs(SSTcrop - polygonsst)
+plot(SSTcrop)
+
+plot(polygonsst)
+plot(inventorycoords, add = TRUE)
+
+mapview(polygonsst)
+mapview(inventorycoords)
+plot(sstmeandiff)
+mapview(sstmeandiff)
+
+# sst range
+sstrangediff <- abs(SSTrangecrop - polygonsstrange)
+plot(sstrangediff)
+mapview(sstrangediff)
+mapview(SSTrangecrop)
+
+# sst combine
+sstvariation <- sstmeandiff+(sstmeandiff*sstrangediff)
+plot(sstvariation)
+
+# do variation
+
+# do mean
+domeandiff <- abs(DOcrop - polygondo)
+plot(domeandiff)
+
+# do range
+dorangediff <- abs(DOrangecrop - polygondorange)
+plot(dorangediff)
+
+# do combine
+dovariation <- domeandiff + (domeandiff*dorangediff)
+plot(dovariation)
+
+#total variation
+variation <- (sstvariation*dovariation)
+plot(variation)
+
+mapview(variation)
 
 # gap analysis ----
 
 # get distance to nearest monitoring site
-distance<-distanceFromPoints(variability,inventorycoords)
+distance<-distanceFromPoints(variation,inventorycoords)
 
 # plot distance
 plot(distance)
 
 # define gaps = distance * ((diffmeans)+(diffranges*diffmeans))
-# gaps <- setValues(distance, (getValues(distance)*getValues(variability)))
+gaps <- setValues(distance, (getValues(distance)*(getValues(variation))))
 
 # plot gaps
-# plot(gaps)
+plot(gaps)
 
 # create binary gaps
-# binarygaps <- setValues(gaps, (getValues(distance)*getValues(variability)) > 6000)
+binarygaps <- setValues(gaps, (getValues(distance)*getValues(variation)) > 6000)
 
 # plot binary gaps
-# plot(binarygaps)
+plot(binarygaps)
 
 # mapview
-# mapview(gaps)
+mapview(gaps)
+
+mapview(SSTcrop)
+
+
+
