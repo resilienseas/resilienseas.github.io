@@ -261,6 +261,8 @@ mapview(variation)
 # get distance to nearest monitoring site
 distance<-distanceFromPoints(variation,inventorycoords)
 
+## investigate capability of this function to pull measurements from nearest monitoring site as well....
+
 # plot distance
 plot(distance)
 
