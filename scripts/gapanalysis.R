@@ -1,6 +1,5 @@
 # gap analysis!
 
-#test
 # load packages ----
 if (!require(pacman)) install.packages("pacman")
 library(pacman)
