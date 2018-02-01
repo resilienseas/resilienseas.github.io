@@ -76,9 +76,9 @@ oahfocus <- read_csv(here("data/oahfocus.csv"))
 
 #oahfocus<-subset(oahfocus, DiscCarbPmtr>1 | ISCarbPmtr > 1)
 
-#measperyr<-oahfocus$`Meas/Yr`
+measperyr<-oahfocus$`Meas/Yr`
 
-#oahfocus<-subset(oahfocus, measperyr > 365)
+oahfocus<-subset(oahfocus, measperyr > 365)
 
 # isolate coordinate columns
 coords<-cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
@@ -96,6 +96,8 @@ vor<-voronoi(inventorycoords)
 # rasterize polygons
 vorraster<- rasterize(vor, SSTcrop, "id")
 
+mapview(vorraster)
+
 # substitution process ----
 
 # sst
@@ -110,6 +112,19 @@ colnames(sitesst)<-c("id", "SST")
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygonsst <- subs(vorraster, sitesst, by="id", which="SST", subsWithNA=FALSE)
+
+fill.na<- function(polygonsst){
+  if(is.na(polygonsst)){
+    return(round(mean(x, na.rm=TRUE),0))
+  }else{
+    return(round(polygonsst),0)
+  }
+}
+
+polygonsst<-focal(polygonsst, w = matrix(1, 228, 102), fun = fill.na, pad = TRUE, na.rm = FALSE)
+
+
+mapview(polygonsst)
 
 # sst range
 
@@ -159,6 +174,7 @@ polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
 
 # sst mean
 sstmeandiff <- abs(SSTcrop - polygonsst)
+mapview(sstmeandiff)
 
 # sst range
 sstrangediff <- abs(SSTrangecrop - polygonsstrange)
@@ -204,15 +220,15 @@ mapview(gaps)
 
 my.colors = colorRampPalette(c("#5E85B8","#C13127"))
 
-#pal <- colorBin(my.colors, values(gaps), pretty = FALSE, na.color = "transparent")
+pal <- colorBin(my.colors, values(gaps), pretty = FALSE, na.color = "transparent")
 
-#leaflet() %>% 
-#  addTiles() %>%
-#  addProviderTiles('Esri.OceanBasemap') %>% 
-#  addRasterImage(gaps, colors = pal) %>% 
-#  addLegend(
-#    pal = binpal, values = values(gaps),
-#    title = "Monitoring Gaps")
+leaflet() %>% 
+  addTiles() %>%
+  addProviderTiles('Esri.OceanBasemap') %>% 
+  addRasterImage(gaps, colors = pal) %>% 
+  addLegend(
+    pal = binpal, values = values(gaps),
+    title = "Monitoring Gaps")
 
 
 
