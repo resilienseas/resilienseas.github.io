@@ -11,30 +11,13 @@ p_load(
   deldir, 
   mapview)
 
-# explore sdmpredictors ----
-list_datasets() %>% View()
-
-# explore layers in a dataset
-list_layers()
-
-
-# explore names of layers in dataset
-list_layers("Bio-ORACLE") %>% View()
-
-list_layers("MARSPEC") %>% View()
-list_layers("WorldClim") %>% View()
-
-
-# explore names of layers in dataset
-list<- list_layers("Bio-ORACLE")
-
 # layer manipulation ----
-
-# sea surface temperature
 
 # setup datadir for sdmpredictors
 dir_sdmdata <- here("data/sdmpredictors")
 if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata, recursive = T)
+
+# sst
 
 # load mean SST layer w/o projection
 SST <- load_layers("BO_sstmean", equalarea = F, datadir=dir_sdmdata)
@@ -49,11 +32,7 @@ NEpacific <- extent(-670000, 350000, -885000, 1400000)
 
 SSTcrop <- crop(SST, NEpacific) # crops SST layer according to NEpacific extent
 
-# generate a nice color ramp and plot the map
-my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
-plot(SSTcrop,col=my.colors(1000),axes=FALSE, box=FALSE)
-title(cex.sub = 1.25, sub = "SST (C)")
-
+plot(SSTcrop)
 # sst range
 
 # load mean SST layer w/o projection
@@ -69,12 +48,6 @@ NEpacific <- extent(-670000, 350000, -885000, 1400000)
 
 SSTrangecrop <- crop(SSTrange, NEpacific) # crops SST layer according to NEpacific extent
 
-# generate a nice color ramp and plot the map
-
-my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
-plot(SSTrangecrop,col=my.colors(1000),axes=FALSE, box=FALSE)
-title(cex.sub = 1.25, sub = "SST range (C)")
-
 # dissolved oxygen
 
 DO <- load_layers("BO_dissox", equalarea = F, datadir=dir_sdmdata)
@@ -85,11 +58,6 @@ DO <- load_layers("BO_dissox", equalarea = F, datadir=dir_sdmdata)
 DO <- projectRaster(DO, crs=CRS('+init=EPSG:6414'), res=10000, method="ngb")
 
 DOcrop <- crop(DO, NEpacific) # crops DO layer according to NEpacific extent
-
-# generate a nice color ramp and plot the map
-my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
-plot(DOcrop,col=my.colors(1000),axes=FALSE, box=FALSE)
-title(cex.sub = 1.25, sub = "DO (C)")
 
 # dissolved oxygen range
 
@@ -102,11 +70,6 @@ DOrange <- projectRaster(DOrange, crs=CRS('+init=EPSG:6414'), res=10000, method=
 
 DOrangecrop <- crop(DOrange, NEpacific) # crops SST layer according to NEpacific extent
 
-# generate a nice color ramp and plot the map
-my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
-plot(DOrangecrop,col=my.colors(1000),axes=FALSE, box=FALSE)
-title(cex.sub = 1.25, sub = "DO range")
-
 # prep inventory----
 
 # import inventory
@@ -114,10 +77,9 @@ oahfocus <- read_csv(here("data/oahfocus.csv"))
 
 #oahfocus<-subset(oahfocus, DiscCarbPmtr>1 | ISCarbPmtr > 1)
 
-measperyr<-oahfocus$`Meas/Yr`
+#measperyr<-oahfocus$`Meas/Yr`
 
-oahfocus<-subset(oahfocus, measperyr > 365)
-
+#oahfocus<-subset(oahfocus, measperyr > 365)
 
 # isolate coordinate columns
 coords<-cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
@@ -129,23 +91,11 @@ deduped.coords<-unique(coords)
 inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
 inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:6414'))
 
-# check to make sure projections match
-plot(SSTcrop,col=my.colors(1000),axes=FALSE, box=FALSE)
-plot(inventorycoords, add=TRUE)
-title(cex.sub = 1.25, sub = "inventory")
-
 # create voronoi polygons
 vor<-voronoi(inventorycoords)
 
-# plot polygons by id number
-spplot(vor, "id")
-mapview(vor)
-
 # rasterize polygons
 vorraster<- rasterize(vor, SSTcrop, "id")
-
-# plot rasterized polygons
-plot(vorraster, col=my.colors(1000))
 
 # substitution process ----
 
@@ -161,7 +111,6 @@ colnames(sitesst)<-c("id", "SST")
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygonsst <- subs(vorraster, sitesst, by="id", which="SST", subsWithNA=FALSE)
-plot(polygonsst, col=my.colors(1000))
 
 # sst range
 
@@ -175,7 +124,6 @@ colnames(sitesstrange)<-c("id", "SSTrange")
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygonsstrange<-subs(vorraster, sitesstrange, by="id", which="SSTrange")
-plot(polygonsstrange, col=my.colors(1000))
 
 # do
 
@@ -189,7 +137,6 @@ colnames(sitedo)<-c("id", "DO")
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygondo<-subs(vorraster, sitedo, by="id", which="DO")
-plot(polygondo, col=my.colors(1000))
 
 # do range
 
@@ -203,7 +150,6 @@ colnames(sitedorange)<-c("id", "DOrange")
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
-plot(polygondorange, col=my.colors(1000))
 
 # spatial + temporal variation ----
 
@@ -214,47 +160,26 @@ plot(polygondorange, col=my.colors(1000))
 
 # sst mean
 sstmeandiff <- abs(SSTcrop - polygonsst)
-plot(SSTcrop)
-
-plot(polygonsst)
-plot(inventorycoords, add = TRUE)
-
-mapview(polygonsst)
-mapview(inventorycoords)
-plot(sstmeandiff)
-mapview(sstmeandiff)
 
 # sst range
 sstrangediff <- abs(SSTrangecrop - polygonsstrange)
-plot(sstrangediff)
-mapview(sstrangediff)
-mapview(SSTrangecrop)
 
 # sst combine
 sstvariation <- sstmeandiff+(sstmeandiff*sstrangediff)
-plot(sstvariation)
-mapview(sstvariation)
 
 # do variation
 
 # do mean
 domeandiff <- abs(DOcrop - polygondo)
-plot(domeandiff)
 
 # do range
 dorangediff <- abs(DOrangecrop - polygondorange)
-plot(dorangediff)
 
 # do combine
 dovariation <- domeandiff + (domeandiff*dorangediff)
-plot(dovariation)
-mapview(dovariation)
 
 #total variation
 variation <- (sstvariation*dovariation)
-plot(variation)
-
-mapview(variation)
 
 # gap analysis ----
 
@@ -267,10 +192,7 @@ distance<-distanceFromPoints(variation,inventorycoords)
 plot(distance)
 
 # define gaps = distance * ((diffmeans)+(diffranges*diffmeans))
-gaps <- setValues(distance, (getValues(distance)*sqrt(getValues(variation))))
-
-# plot gaps
-plot(gaps)
+gaps <- setValues(distance, (getValues(distance)*(getValues(variation))))
 
 # create binary gaps
 binarygaps <- setValues(gaps, (getValues(distance)*getValues(variation)) > 6000)
@@ -281,7 +203,17 @@ plot(binarygaps)
 # mapview
 mapview(gaps)
 
-mapview(SSTcrop)
+my.colors = colorRampPalette(c("#5E85B8","#C13127"))
+
+#pal <- colorBin(my.colors, values(gaps), pretty = FALSE, na.color = "transparent")
+
+#leaflet() %>% 
+#  addTiles() %>%
+#  addProviderTiles('Esri.OceanBasemap') %>% 
+#  addRasterImage(gaps, colors = pal) %>% 
+#  addLegend(
+#    pal = binpal, values = values(gaps),
+#    title = "Monitoring Gaps")
 
 
 
