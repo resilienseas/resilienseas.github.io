@@ -10,101 +10,83 @@ p_load(
   deldir, 
   mapview)
 
+# custom R package: oatools
+devtools::load_all(here("../oatools")) # for use while developing
+# library(oatools) # devtools::install_github("resilinseas/oatools")
+
+# paths & variables ----
+dir_data        <- here("data")
+dir_sdmdata_old <- here("data/sdmpredictors")
+dir_cache       <- here("cache")
+dir_sdmdata     <- here("cache/sdmpredictors")
+
+SST_tif <- here("data/sst_mean.tif")
+DO_tif  <- here("data/do_mean.tif")
+
+# reorganize dirs so "cache" is always local and ignored by git, vs all in "data" tracked by git & pushed to github
+if (!dir.exists(dir_data))    dir.create(dir_data)
+if (!dir.exists(dir_cache))   dir.create(dir_cache)
+if (!dir.exists(dir_sdmdata) & dir.exists(dir_sdmdata_old))
+  file.rename(dir_sdmdata_old, dir_sdmdata)
+if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
+
 # explore sdmpredictors ----
-list_datasets() %>% View()
-
-# explore layers in a dataset
-list_layers()
-
-
-# explore names of layers in dataset
-list_layers("Bio-ORACLE") %>% View()
-
-list_layers("MARSPEC") %>% View()
-list_layers("WorldClim") %>% View()
-
-
-# explore names of layers in dataset
-list<- list_layers("Bio-ORACLE")
+# commenting out unused exploratory commands
+# list_datasets() %>% View()
+# list_layers()
+# list_layers("Bio-ORACLE") %>% View()
+# list_layers("MARSPEC") %>% View()
+# list_layers("WorldClim") %>% View()
+# list<- list_layers("Bio-ORACLE")
 
 # layer manipulation ----
 
+# extent of NE Pacific study area, for cropping rasters
+ext_study <- extent(-670000, 350000, -885000, 1400000)
+crs_study <- '+init=EPSG:6414'
+
 # sea surface temperature
+# devtools::load_all(here("../oatools")) # for use while developing
+r_sst_mean <- lyr_to_tif(
+  lyr = "BO_sstmean", 
+  tif = here("data/sst_mean.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study) #, redo=T)
+plot_raster(r_sst_mean, "SST (C)")
 
-# setup datadir for sdmpredictors
-dir_sdmdata <- here("data/sdmpredictors")
-if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata, recursive = T)
-
-# load mean SST layer w/o projection
-SST <- load_layers("BO_sstmean", equalarea = F, datadir=dir_sdmdata)
-
-# project to CA Albers NAD 83 EPSG 6414, 10 kilometers
-# NOTE: should setup a single raster to snap all other rasters to and feed into "to" argument projectRaster(from, to)
-SST <- projectRaster(SST, crs=CRS('+init=EPSG:6414'), res=10000, method="ngb")
-
-# crop raster to fit the Eastern Pacific
-NEpacific <- extent(-670000, 350000, -885000, 1400000) 
-# names the extent - this is just an estimate ***need to coordinate extent with Rae based on Gap analysis feedback!
-
-SSTcrop <- crop(SST, NEpacific) # crops SST layer according to NEpacific extent
-
-# generate a nice color ramp and plot the map
-my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
-plot(SSTcrop,col=my.colors(1000),axes=FALSE, box=FALSE)
-plot(inventorycoords, add=TRUE)
-title(cex.sub = 1.25, sub = "SST (C)")
+# test gap filling before/after:
+# sum(is.na(raster::getValues(r_sst_mean))) # n before: 11,835
+# "                                         # n  after: 11,250
 
 # sst range
-
-# load mean SST layer w/o projection
-SSTrange <- load_layers("BO_sstrange", equalarea = F, datadir=dir_sdmdata)
-
-# project to CA Albers NAD 83 EPSG 6414, 10 kilometers
-# NOTE: should setup a single raster to snap all other rasters to and feed into "to" argument projectRaster(from, to)
-SSTrange <- projectRaster(SSTrange, crs=CRS('+init=EPSG:6414'), res=10000, method="ngb")
-
-# crop raster to fit the Eastern Pacific
-NEpacific <- extent(-670000, 350000, -885000, 1400000) 
-# names the extent - this is just an estimate ***need to coordinate extent with Rae based on Gap analysis feedback!
-
-SSTrangecrop <- crop(SSTrange, NEpacific) # crops SST layer according to NEpacific extent
-
-# generate a nice color ramp and plot the map
-my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
-plot(SSTrangecrop,col=my.colors(1000),axes=FALSE, box=FALSE)
-title(cex.sub = 1.25, sub = "SST range (C)")
+r_sst_range <- lyr_to_tif(
+  lyr = "BO_sstrange", 
+  tif = here("data/sst_range.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study)
+plot_raster(r_sst_range, "SST range (C)")
 
 # dissolved oxygen
-
-DO <- load_layers("BO_dissox", equalarea = F, datadir=dir_sdmdata)
-# load Dissolved Oxygen Data W/O projection
-
-# project to CA Albers NAD 83 EPSG 6414, 10 kilometers
-# NOTE: should setup a single raster to snap all other rasters to and feed into "to" argument projectRaster(from, to)
-DO <- projectRaster(DO, crs=CRS('+init=EPSG:6414'), res=10000, method="ngb")
-
-DOcrop <- crop(DO, NEpacific) # crops DO layer according to NEpacific extent
-
-# generate a nice color ramp and plot the map
-my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
-plot(DOcrop,col=my.colors(1000),axes=FALSE, box=FALSE)
-title(cex.sub = 1.25, sub = "DO (C)")
-
-# dissolved oxygen range
+r_do_mean <- lyr_to_tif(
+  lyr = "BO_dissox", 
+  tif = here("data/do_mean.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study)
+plot_raster(r_dissox, "DO (C)") # TODO: DO units? not Celsius (C), usually (mg/L), or parts per million (ppm) or in micromoles (umol)
 
 # load mean SST layer w/o projection
-DOrange <- load_layers("BO2_dissoxrange_bdmin", equalarea = F, datadir=dir_sdmdata)
+r_do_range <- lyr_to_tif(
+  lyr = "BO2_dissoxrange_bdmin", 
+  tif = here("data/do_range.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study)
+plot_raster(r_dissox, "DO range")
 
-# project to CA Albers NAD 83 EPSG 6414, 10 kilometers
-# NOTE: should setup a single raster to snap all other rasters to and feed into "to" argument projectRaster(from, to)
-DOrange <- projectRaster(DOrange, crs=CRS('+init=EPSG:6414'), res=10000, method="ngb")
-
-DOrangecrop <- crop(DOrange, NEpacific) # crops SST layer according to NEpacific extent
-
-# generate a nice color ramp and plot the map
-my.colors = colorRampPalette(c("#5E85B8","#EDF0C0","#C13127"))
-plot(DOrangecrop,col=my.colors(1000),axes=FALSE, box=FALSE)
-title(cex.sub = 1.25, sub = "DO range")
+# TODO: convert above into loop over layers, loading into a raster stack and outputting plots
 
 # prep inventory----
 
@@ -112,7 +94,7 @@ title(cex.sub = 1.25, sub = "DO range")
 oahfocus <- read_csv(here("data/oahfocus.csv"))
 
 # isolate coordinate columns
-coords<-cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
+coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
 
 # remove duplicate locations
 deduped.coords<-unique(coords)
@@ -122,28 +104,28 @@ inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84
 inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:6414'))
 
 # check to make sure projections match
-plot(SSTcrop,col=my.colors(1000),axes=FALSE, box=FALSE)
+# devtools::load_all(here("../oatools")) # for use while developing
+plot_raster(r_sst_mean, "SST (C) + inventory")
 plot(inventorycoords, add=TRUE)
-title(cex.sub = 1.25, sub = "inventory")
 
 # create voronoi polygons
-vor<-voronoi(inventorycoords)
+vor <-voronoi(inventorycoords)
 
 # plot polygons by id number
 spplot(vor, "id")
 
 # rasterize polygons
-vorraster<- rasterize(vor, SSTcrop, "id")
+vorraster<- rasterize(vor, r_sst_mean, "id")
 
 # plot rasterized polygons
-plot(vorraster, col=my.colors(1000))
+plot_raster(vorraster, "vorraster")
 
 # substitution process ----
 
 # sst
 
 # extract sst value for each monitoring site cell
-sitesst<- raster::extract(SSTcrop, inventorycoords, method='simple', df=TRUE)
+sitesst<- raster::extract(r_sst_mean, inventorycoords, method='simple', df=TRUE)
 
 # rename column names of sitesst
 colnames(sitesst)<-c("id", "SST")
@@ -157,7 +139,7 @@ plot(polygonsst, col=my.colors(1000))
 # sst range
 
 # extract sst range value for each monitoring site cell
-sitesstrange<- raster::extract(SSTrangecrop, inventorycoords, method='simple', df=TRUE)
+sitesstrange<- raster::extract(r_sst_range, inventorycoords, method='simple', df=TRUE)
 
 # rename column names of sitesstrange
 colnames(sitesstrange)<-c("id", "SSTrange")
@@ -170,7 +152,7 @@ polygonsstrange<-subs(vorraster@data@values, sitesstrange, by=sitesstrange$id, w
 # do
 
 # extract do value for each monitoring site cell
-sitedo<- raster::extract(DOcrop, inventorycoords, method='simple', df=TRUE)
+sitedo<- raster::extract(r_do_mean, inventorycoords, method='simple', df=TRUE)
 
 # rename column names of sitedo
 colnames(sitedo)<-c("id", "DO")
@@ -183,7 +165,7 @@ polygondo<-subs(vorraster@data@values, sitedo, by=sitedo$id, which=sitedo$DO)
 # do range
 
 # extract do range value for each monitoring site cell
-sitedorange<- raster::extract(DOrangecrop, inventorycoords, method='simple', df=TRUE)
+sitedorange<- raster::extract(r_do_range, inventorycoords, method='simple', df=TRUE)
 
 # rename column names of sitedorange
 colnames(sitedorange)<-c("id", "DOrange")
