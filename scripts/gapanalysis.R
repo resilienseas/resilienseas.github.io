@@ -1,7 +1,7 @@
-# gap analysis
+# gap analysis!
 
 # load packages ----
-if (!require(pacman)) install.package(pacman)
+if (!require(pacman)) install.packages("pacman")
 library(pacman)
 p_load(
   tidyverse, here, 
@@ -93,6 +93,12 @@ plot_raster(r_dissox, "DO range")
 # import inventory
 oahfocus <- read_csv(here("data/oahfocus.csv"))
 
+#oahfocus<-subset(oahfocus, DiscCarbPmtr>1 | ISCarbPmtr > 1)
+
+measperyr<-oahfocus$`Meas/Yr`
+
+oahfocus<-subset(oahfocus, measperyr > 365)
+
 # isolate coordinate columns
 coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
 
@@ -104,6 +110,7 @@ inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84
 inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:6414'))
 
 # check to make sure projections match
+
 # devtools::load_all(here("../oatools")) # for use while developing
 plot_raster(r_sst_mean, "SST (C) + inventory")
 plot(inventorycoords, add=TRUE)
@@ -111,14 +118,12 @@ plot(inventorycoords, add=TRUE)
 # create voronoi polygons
 vor <-voronoi(inventorycoords)
 
-# plot polygons by id number
-spplot(vor, "id")
-
 # rasterize polygons
 vorraster<- rasterize(vor, r_sst_mean, "id")
 
 # plot rasterized polygons
 plot_raster(vorraster, "vorraster")
+mapview(vorraster)
 
 # substitution process ----
 
@@ -133,8 +138,20 @@ colnames(sitesst)<-c("id", "SST")
 # make sure inventory points and polygons are in same order?
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
-polygonsst <- subs(vorraster, sitesst, by="id", which="SST")
-plot(polygonsst, col=my.colors(1000))
+polygonsst <- subs(vorraster, sitesst, by="id", which="SST", subsWithNA=FALSE)
+
+fill.na<- function(polygonsst){
+  if(is.na(polygonsst)){
+    return(round(mean(x, na.rm=TRUE),0))
+  }else{
+    return(round(polygonsst),0)
+  }
+}
+
+polygonsst<-focal(polygonsst, w = matrix(1, 228, 102), fun = fill.na, pad = TRUE, na.rm = FALSE)
+
+
+mapview(polygonsst)
 
 # sst range
 
@@ -147,7 +164,7 @@ colnames(sitesstrange)<-c("id", "SSTrange")
 # make sure inventory points and polygons are in same order?
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
-polygonsstrange<-subs(vorraster@data@values, sitesstrange, by=sitesstrange$id, which=sitesstrange$SSTrange)
+polygonsstrange<-subs(vorraster, sitesstrange, by="id", which="SSTrange")
 
 # do
 
@@ -160,7 +177,7 @@ colnames(sitedo)<-c("id", "DO")
 # make sure inventory points and polygons are in same order?
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
-polygondo<-subs(vorraster@data@values, sitedo, by=sitedo$id, which=sitedo$DO)
+polygondo<-subs(vorraster, sitedo, by="id", which="DO")
 
 # do range
 
@@ -173,27 +190,72 @@ colnames(sitedorange)<-c("id", "DOrange")
 # make sure inventory points and polygons are in same order?
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
-polygondorange<-subs(vorraster@data@values, sitedorange, by=sitedorange$id, which=sitedorange$DOrange)
+polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
+
+# spatial + temporal variation ----
+
+# variation = (imean - amean) + (imean - amean)*(irange - arange)
+# where i = cell in raster of study area and a = cell containing nearest monitoring site
+
+# sst variation
+
+# sst mean
+sstmeandiff <- abs(SSTcrop - polygonsst)
+mapview(sstmeandiff)
+
+# sst range
+sstrangediff <- abs(SSTrangecrop - polygonsstrange)
+
+# sst combine
+sstvariation <- sstmeandiff+(sstmeandiff*sstrangediff)
+
+# do variation
+
+# do mean
+domeandiff <- abs(DOcrop - polygondo)
+
+# do range
+dorangediff <- abs(DOrangecrop - polygondorange)
+
+# do combine
+dovariation <- domeandiff + (domeandiff*dorangediff)
+
+#total variation
+variation <- (sstvariation*dovariation)
 
 # gap analysis ----
 
 # get distance to nearest monitoring site
-distance<-distanceFromPoints(variability,inventorycoords)
+distance<-distanceFromPoints(variation,inventorycoords)
+
+## investigate capability of this function to pull measurements from nearest monitoring site as well....
 
 # plot distance
 plot(distance)
 
 # define gaps = distance * ((diffmeans)+(diffranges*diffmeans))
-# gaps <- setValues(distance, (getValues(distance)*getValues(variability)))
-
-# plot gaps
-# plot(gaps)
+gaps <- setValues(distance, (getValues(distance)*(getValues(variation))))
 
 # create binary gaps
-# binarygaps <- setValues(gaps, (getValues(distance)*getValues(variability)) > 6000)
+binarygaps <- setValues(gaps, (getValues(distance)*getValues(variation)) > 6000)
 
 # plot binary gaps
-# plot(binarygaps)
+plot(binarygaps)
 
 # mapview
-# mapview(gaps)
+mapview(gaps)
+
+my.colors = colorRampPalette(c("#5E85B8","#C13127"))
+
+pal <- colorBin(my.colors, values(gaps), pretty = FALSE, na.color = "transparent")
+
+leaflet() %>% 
+  addTiles() %>%
+  addProviderTiles('Esri.OceanBasemap') %>% 
+  addRasterImage(gaps, colors = pal) %>% 
+  addLegend(
+    pal = binpal, values = values(gaps),
+    title = "Monitoring Gaps")
+
+
+
