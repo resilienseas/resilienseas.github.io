@@ -11,7 +11,7 @@ p_load(
   mapview)
 
 # custom R package: oatools
-devtools::load_all(here("../oatools")) # for use while developing
+
 # library(oatools) # devtools::install_github("resilinseas/oatools")
 
 # paths & variables ----
@@ -70,21 +70,21 @@ plot_raster(r_sst_range, "SST range (C)")
 
 # dissolved oxygen
 r_do_mean <- lyr_to_tif(
-  lyr = "BO_dissox", 
+  lyr = "BO2_dissoxmean_bdmin", 
   tif = here("data/do_mean.tif"),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study)
-plot_raster(r_dissox, "DO (C)") # TODO: DO units? not Celsius (C), usually (mg/L), or parts per million (ppm) or in micromoles (umol)
+plot_raster(r_do_mean, "DO") # TODO: DO units? not Celsius (C), usually (mg/L), or parts per million (ppm) or in micromoles (umol)
 
-# load mean SST layer w/o projection
+# do range
 r_do_range <- lyr_to_tif(
   lyr = "BO2_dissoxrange_bdmin", 
   tif = here("data/do_range.tif"),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study)
-plot_raster(r_dissox, "DO range")
+plot_raster(r_do_range, "DO range")
 
 # TODO: convert above into loop over layers, loading into a raster stack and outputting plots
 
@@ -150,7 +150,6 @@ fill.na<- function(polygonsst){
 
 polygonsst<-focal(polygonsst, w = matrix(1, 228, 102), fun = fill.na, pad = TRUE, na.rm = FALSE)
 
-
 mapview(polygonsst)
 
 # sst range
@@ -166,6 +165,18 @@ colnames(sitesstrange)<-c("id", "SSTrange")
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygonsstrange<-subs(vorraster, sitesstrange, by="id", which="SSTrange")
 
+fill.na<- function(polygonsstrange){
+  if(is.na(polygonsstrange)){
+    return(round(mean(x, na.rm=TRUE),0))
+  }else{
+    return(round(polygonsstrange),0)
+  }
+}
+
+polygonsstrange<-focal(polygonsstrange, w = matrix(1, 228, 102), fun = fill.na, pad = TRUE, na.rm = FALSE)
+
+mapview(polygonsstrange)
+
 # do
 
 # extract do value for each monitoring site cell
@@ -178,6 +189,16 @@ colnames(sitedo)<-c("id", "DO")
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygondo<-subs(vorraster, sitedo, by="id", which="DO")
+
+fill.na<- function(polygondo){
+  if(is.na(polygondo)){
+    return(round(mean(x, na.rm=TRUE),0))
+  }else{
+    return(round(polygondo),0)
+  }
+}
+
+polygondo<-focal(polygondo, w = matrix(1, 228, 102), fun = fill.na, pad = TRUE, na.rm = FALSE)
 
 # do range
 
@@ -192,6 +213,17 @@ colnames(sitedorange)<-c("id", "DOrange")
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
 
+fill.na<- function(polygondorange){
+  if(is.na(polygondorange)){
+    return(round(mean(x, na.rm=TRUE),0))
+  }else{
+    return(round(polygondorange),0)
+  }
+}
+
+polygondo<-focal(polygondorange, w = matrix(1, 228, 102), fun = fill.na, pad = TRUE, na.rm = FALSE)
+
+
 # spatial + temporal variation ----
 
 # variation = (imean - amean) + (imean - amean)*(irange - arange)
@@ -200,11 +232,13 @@ polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
 # sst variation
 
 # sst mean
-sstmeandiff <- abs(SSTcrop - polygonsst)
+sstmeandiff <- abs(r_sst_mean - polygonsst)
 mapview(sstmeandiff)
 
 # sst range
-sstrangediff <- abs(SSTrangecrop - polygonsstrange)
+sstrangediff <- abs(r_sst_mean - polygonsstrange)
+mapview(sstrangediff)
+
 
 # sst combine
 sstvariation <- sstmeandiff+(sstmeandiff*sstrangediff)
