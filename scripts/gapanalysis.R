@@ -4,16 +4,15 @@
 if (!require(pacman)) install.packages("pacman")
 library(pacman)
 p_load(
-  tidyverse, here, 
+  tidyverse, here, glue,
   raster,
   sdmpredictors, dismo, 
   deldir, 
   mapview)
 
 # custom R package: oatools
-devtools::load_all(here("../oatools")) # for use while developing
-library(oatools) # devtools::
-install_github("resilinseas/oatools")
+devtools::load_all(here("../oatools")) # for developing
+#library(oatools) # devtools::install_github("resilinseas/oatools") # for eventual production
 
 # paths & variables ----
 dir_data        <- here("data")
@@ -48,13 +47,28 @@ crs_study <- '+init=EPSG:6414'
 
 # sea surface temperature
 # devtools::load_all(here("../oatools")) # for use while developing
+
+r_sst_mean_nofill <- lyr_to_tif(
+  lyr = "BO_sstmean", 
+  tif = here("data/sst_mean.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE)
+
 r_sst_mean <- lyr_to_tif(
   lyr = "BO_sstmean", 
   tif = here("data/sst_mean.tif"),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study) #, redo=T)
-plot_raster(r_sst_mean, "SST (C)")
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)
+
+n_na_nofill <- sum(is.na(raster::getValues(r_sst_mean_nofill)))
+n_na        <- sum(is.na(raster::getValues(r_sst_mean)))
+
+plot_raster(r_sst_mean_nofill, glue("SST (C), NA not filled, NAs:{n_na_nofill}"))
+plot_raster(r_sst_mean       , glue("SST (C), NA are filled, NAs:{n_na}"))
 
 # test gap filling before/after:
 # sum(is.na(raster::getValues(r_sst_mean))) # n before: 11,835
