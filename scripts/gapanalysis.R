@@ -11,7 +11,7 @@ p_load(
   mapview)
 
 # custom R package: oatools
-#devtools::load_all(here("../oatools")) # for use while developing
+devtools::load_all(here("../oatools")) # for use while developing
 library(oatools) # devtools::
 install_github("resilinseas/oatools")
 
@@ -201,11 +201,11 @@ polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
 # sst variation
 
 # sst mean
-sstmeandiff <- abs(SSTcrop - polygonsst)
-mapview(sstmeandiff)
+sstmeandiff <- abs(r_sst_mean - polygonsst)
 
 # sst range
-sstrangediff <- abs(SSTrangecrop - polygonsstrange)
+sstrangediff <- abs(r_sst_range - polygonsstrange)
+mapview(sstrangediff)
 
 # sst combine
 sstvariation <- sstmeandiff+(sstmeandiff*sstrangediff)
@@ -213,10 +213,12 @@ sstvariation <- sstmeandiff+(sstmeandiff*sstrangediff)
 # do variation
 
 # do mean
-domeandiff <- abs(DOcrop - polygondo)
+domeandiff <- abs(r_do_mean - polygondo)
+mapview(domeandiff)
 
 # do range
-dorangediff <- abs(DOrangecrop - polygondorange)
+dorangediff <- abs(r_do_range - polygondorange)
+mapview(dorangediff)
 
 # do combine
 dovariation <- domeandiff + (domeandiff*dorangediff)
