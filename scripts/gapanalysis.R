@@ -274,6 +274,11 @@ plot(distance)
 # define gaps = distance * ((diffmeans)+(diffranges*diffmeans))
 gaps <- setValues(distance, (getValues(distance)*(getValues(variation))))
 
+#test clip of raster to coast shapefile
+poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
+poly_coast <- spTransform(poly_coast, crs(gaps))
+gaps_clipped <- mask(gaps, poly_coast, inverse = TRUE,progress='text')
+
 # create binary gaps
 binarygaps <- setValues(gaps, (getValues(distance)*getValues(variation)) > 6000)
 
@@ -292,7 +297,7 @@ pal <- colorBin(my.colors, values(gaps), pretty = FALSE, na.color = "transparent
 leaflet() %>% 
   addTiles() %>%
   addProviderTiles('Esri.OceanBasemap') %>% 
-  addRasterImage(gaps, colors = pal) %>% 
+  addRasterImage(gaps_clipped, colors = pal) %>% 
   addLegend(
     pal = pal(), values = values(gaps),
     title = "Monitoring Gaps")
