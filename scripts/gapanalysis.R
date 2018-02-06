@@ -283,6 +283,8 @@ plot(binarygaps)
 # mapview
 mapview(gaps)
 
+
+#leaflet ----
 my.colors = colorRampPalette(c("#5E85B8","#C13127"))
 
 pal <- colorBin(my.colors, values(gaps), pretty = FALSE, na.color = "transparent")
@@ -292,5 +294,5 @@ leaflet() %>%
   addProviderTiles('Esri.OceanBasemap') %>% 
   addRasterImage(gaps, colors = pal) %>% 
   addLegend(
-    pal = binpal, values = values(gaps),
+    pal = pal(), values = values(gaps),
     title = "Monitoring Gaps")
