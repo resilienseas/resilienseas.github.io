@@ -67,39 +67,63 @@ r_sst_mean <- lyr_to_tif(
 n_na_nofill <- sum(is.na(raster::getValues(r_sst_mean_nofill)))
 n_na        <- sum(is.na(raster::getValues(r_sst_mean)))
 
-plot_raster(r_sst_mean_nofill, glue("SST (C), NA not filled, NAs:{n_na_nofill}"))
-plot_raster(r_sst_mean       , glue("SST (C), NA are filled, NAs:{n_na}"))
-
 # test gap filling before/after:
 # sum(is.na(raster::getValues(r_sst_mean))) # n before: 11,835
 # "                                         # n  after: 11,250
 
 # sst range
+r_sst_range_nofill <- lyr_to_tif(
+  lyr = "BO_sstrange", 
+  tif = here("data/sst_range.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE)
+
 r_sst_range <- lyr_to_tif(
   lyr = "BO_sstrange", 
   tif = here("data/sst_range.tif"),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study)
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)
 plot_raster(r_sst_range, "SST range (C)")
 
 # dissolved oxygen
+r_do_mean_nofill <- lyr_to_tif(
+  lyr = "BO_dissox", 
+  tif = here("data/do_mean.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE)
+
 r_do_mean <- lyr_to_tif(
   lyr = "BO_dissox", 
   tif = here("data/do_mean.tif"),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study)
-plot_raster(r_dissox, "DO (C)") # TODO: DO units? not Celsius (C), usually (mg/L), or parts per million (ppm) or in micromoles (umol)
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)
+plot_raster(r_do_mean, "DO") 
 
-# load mean SST layer w/o projection
+#do range
+r_do_range_nofill <- lyr_to_tif(
+  lyr = "BO2_dissoxrange_bdmin", 
+  tif = here("data/do_range.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE)
+
 r_do_range <- lyr_to_tif(
   lyr = "BO2_dissoxrange_bdmin", 
   tif = here("data/do_range.tif"),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study)
-plot_raster(r_dissox, "DO range")
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)
+plot_raster(r_do_range, "DO range")
 
 # TODO: convert above into loop over layers, loading into a raster stack and outputting plots
 
@@ -155,17 +179,6 @@ colnames(sitesst)<-c("id", "SST")
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygonsst <- subs(vorraster, sitesst, by="id", which="SST", subsWithNA=FALSE)
 
-fill.na<- function(polygonsst){
-  if(is.na(polygonsst)){
-    return(round(mean(x, na.rm=TRUE),0))
-  }else{
-    return(round(polygonsst),0)
-  }
-}
-
-polygonsst<-focal(polygonsst, w = matrix(1, 228, 102), fun = fill.na, pad = TRUE, na.rm = FALSE)
-
-
 mapview(polygonsst)
 
 # sst range
@@ -179,7 +192,9 @@ colnames(sitesstrange)<-c("id", "SSTrange")
 # make sure inventory points and polygons are in same order?
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
-polygonsstrange<-subs(vorraster, sitesstrange, by="id", which="SSTrange")
+polygonsstrange<-subs(vorraster, sitesstrange, by="id", which="SSTrange", subsWithNA=FALSE)
+
+mapview(polygonsstrange)
 
 # do
 
@@ -194,6 +209,8 @@ colnames(sitedo)<-c("id", "DO")
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygondo<-subs(vorraster, sitedo, by="id", which="DO")
 
+mapview(polygondo)
+
 # do range
 
 # extract do range value for each monitoring site cell
@@ -207,6 +224,8 @@ colnames(sitedorange)<-c("id", "DOrange")
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
 
+mapview(polygondorange)
+
 # spatial + temporal variation ----
 
 # variation = (imean - amean) + (imean - amean)*(irange - arange)
@@ -215,10 +234,12 @@ polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
 # sst variation
 
 # sst mean
-sstmeandiff <- abs(r_sst_mean - polygonsst)
+sstmeandiff <- abs(r_sst_mean_nofill - polygonsst)
+mapview(sstmeandiff)
+
 
 # sst range
-sstrangediff <- abs(r_sst_range - polygonsstrange)
+sstrangediff <- abs(r_sst_range_nofill - polygonsstrange)
 mapview(sstrangediff)
 
 # sst combine
@@ -227,11 +248,11 @@ sstvariation <- sstmeandiff+(sstmeandiff*sstrangediff)
 # do variation
 
 # do mean
-domeandiff <- abs(r_do_mean - polygondo)
+domeandiff <- abs(r_do_mean_nofill - polygondo)
 mapview(domeandiff)
 
 # do range
-dorangediff <- abs(r_do_range - polygondorange)
+dorangediff <- abs(r_do_range_nofill - polygondorange)
 mapview(dorangediff)
 
 # do combine
