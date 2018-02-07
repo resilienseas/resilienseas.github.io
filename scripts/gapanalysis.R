@@ -292,12 +292,13 @@ mapview(gaps)
 #leaflet ----
 my.colors = colorRampPalette(c("#5E85B8","#C13127"))
 
-pal <- colorBin(my.colors, values(gaps), pretty = FALSE, na.color = "transparent")
+#colors including specification for N/A values
+pal <- colorNumeric(c("#0C2C84", "#41B6C4", "#FFFFCC"), values(gaps),na.color = "transparent")
 
 leaflet() %>% 
   addTiles() %>%
   addProviderTiles('Esri.OceanBasemap') %>% 
-  addRasterImage(gaps_clipped, colors = pal) %>% 
+  addRasterImage(gaps, colors = pal) %>% 
   addLegend(
-    pal = pal(), values = values(gaps),
+    pal = pal, values = values(gaps),
     title = "Monitoring Gaps")

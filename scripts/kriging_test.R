@@ -263,10 +263,10 @@ mapview(poly_MPA)
 leaflet() %>% 
   addTiles() %>%
   addProviderTiles('Esri.OceanBasemap') %>% 
-  addRasterImage(aragonite_clipped, colors = binpal) %>% 
+  addRasterImage(aragonite_clipped, colors = pal) %>% 
   addLegend(
-    pal = binpal, values = seq(1,3),
+    pal = pal, values = values(aragonite_clipped),
     title = "Aragonite Saturation State")
 
-
+pal <- colorNumeric(c("#0C2C84", "#41B6C4", "#FFFFCC"), values(aragonite_clipped),na.color = "transparent")
 binpal <- colorBin("Spectral", seq(1,3), 10, pretty = FALSE, na.color = "transparent")
