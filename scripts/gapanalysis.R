@@ -8,7 +8,8 @@ p_load(
   raster,
   sdmpredictors, dismo, 
   deldir, 
-  mapview)
+  mapview,
+  tmap)
 
 # custom R package: oatools
 devtools::load_all(here("../oatools")) # for developing
@@ -134,9 +135,9 @@ oahfocus <- read_csv(here("data/oahfocus.csv"))
 
 #oahfocus<-subset(oahfocus, DiscCarbPmtr>1 | ISCarbPmtr > 1)
 
-measperyr<-oahfocus$`Meas/Yr`
+#measperyr<-oahfocus$`Meas/Yr`
 
-oahfocus<-subset(oahfocus, measperyr > 365)
+#oahfocus<-subset(oahfocus, measperyr > 365)
 
 # isolate coordinate columns
 coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
@@ -295,6 +296,9 @@ my.colors = colorRampPalette(c("#5E85B8","#C13127"))
 #colors including specification for N/A values
 pal <- colorNumeric(c("#0C2C84", "#41B6C4", "#FFFFCC"), values(gaps),na.color = "transparent")
 
+pal <- colorRampPalette(c("#0C2C84", "#41B6C4", "#FFFFCC"))
+
+
 leaflet() %>% 
   addTiles() %>%
   addProviderTiles('Esri.OceanBasemap') %>% 
@@ -302,3 +306,13 @@ leaflet() %>%
   addLegend(
     pal = pal, values = values(gaps),
     title = "Monitoring Gaps")
+
+#tmap----
+
+pal <- colorRampPalette(c("dodgerblue", "tomato"))
+
+tm_shape(gaps)+
+  tm_raster(palette = pal(9), colorNA = NULL, title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", " ", "Low Priority Data Gap", "", "High Priority Data Gap"))
+
+tmap_mode("view")
+last_map()
