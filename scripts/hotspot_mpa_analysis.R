@@ -5,7 +5,7 @@ if (!require(pacman)) install.packages("pacman")
 library(pacman)
 p_load(
   tidyverse, here, 
-  sf, gstat, 
+  sf, gstat, raster, 
   mapview)
 
 #prepare dataset----
@@ -14,7 +14,7 @@ aragonite_data <- read_csv(here("data/WCOAC_2013_test.csv"))
 colnames(aragonite_data) <- c("Date", "Time", "Lat", "Long", "Pressure", "OmegaAr")
 
 #remove N/A values and filter for surface level obeservations (working on this part still)
-aragonite_data %>%
+aragonite_data <- aragonite_data %>%
   mutate(OmegaAr=replace(OmegaAr, OmegaAr==-999.000, NA)) %>%
   na.omit(aragonite_data) #%>% 
   #filter(aragonite_data, Pressure > 5)
@@ -40,8 +40,8 @@ aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.2,psill=1,range=2,
 
 #get extent of cruise observations and increase ROI by one degree in each direction
 extent <- bbox(aragonite_data)
-long<-seq(extent[1,1]+1,extent[2,1]+1,length=388)
-lat<-seq(extent[2,1]+1,extent[2,2]+1,length=1000)
+long<-seq(extent[1,1],extent[1,2],length=388)
+lat<-seq(extent[2,1],extent[2,2],length=1000)
 
 #create grid for interpolation surface
 aragonite_grid<-expand.grid(long,lat)
@@ -57,8 +57,8 @@ aragonitekrige<-krige(OmegaAr ~ 1, aragonite_data, newdata=aragonite_grid, model
 #transform krige object to raster, set CRS and re-project to California Teale Albers Equal Area
 aragonite_raster<-raster(aragonitekrige, layer=1, values=TRUE)
 projection(aragonite_raster) <- CRS("+proj=longlat +datum=WGS84")
-aragonite_raster <- projectRaster(aragonite_raster, crs=CRS('+init=EPSG:6414'),method="ngb")
-mapview(aragonite_raster)
+aragonite_raster_proj <- projectRaster(aragonite_raster, crs=CRS('+init=EPSG:6414'),method="ngb")
+mapview(aragonite_raster_proj)
 
 
 #create hotspot threshold mask----
@@ -71,6 +71,7 @@ hotspotmask <- reclassify(aragonite_raster, thresholdsmatrix)
 #load west coast shapefile and re-project to EPSG 6414 (Cal Teale Albers)
 westcoast <- st_read(dsn = "/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2")
 westcoast_proj <- st_transform(westcoast, "+init=epsg:6414")
+westcoast_sp <- as(westcoast_proj, "Spatial")
 
 #load MPA shapefile and re-project to EPSG 6414 (Cal Teale Albers)
 wc_mpas <- st_read(dsn = "/Users/Madi/Documents/UCSB Bren/ResilienSeas/all_mpas_update", layer = "all_mpas_update")
@@ -78,5 +79,15 @@ wc_mpas_proj <- st_transform(wc_mpas, "+init=epsg:6414")
 
 
 #clipping rasters to coast shapefile----
-aragonite_clipped <- mask(aragonite_raster, westcoast_proj, inverse=TRUE)
+aragonite_clipped <- mask(aragonite_raster_proj, westcoast_sp, inverse = TRUE, progress='text')
 mapview(aragonite_clipped)
+
+leaflet() %>% 
+  addTiles() %>%
+  addProviderTiles('Esri.OceanBasemap') %>% 
+  addRasterImage(aragonite_clipped, colors = pal) %>% 
+  addLegend(
+    pal = pal, values = values(aragonite_clipped),
+    title = "Aragonite Saturation State")
+
+pal <- colorNumeric(c("#0C2C84", "#41B6C4", "#FFFFCC"), values(aragonite_clipped),na.color = "transparent")
