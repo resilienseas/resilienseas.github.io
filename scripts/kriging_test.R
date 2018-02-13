@@ -15,6 +15,7 @@ library(tidyverse) #install.packages("tidyverse")
 library(mapview) #install.packages("mapview")
 library(pacman) #install.packages("pacman")
 library(here) #install.packages("here)
+library(leaflet) #install.packages("leaflet")
 
 
 ######################################################
@@ -26,8 +27,10 @@ OAdir<-"G:/"
 setwd(OAdir)
 
 #Load aragonite cruise csv data set
-aragonite_data <- read_csv(here("data/WCOAC_2013_test.csv"))
+#aragonite_data <- read_csv(here("data/WCOAC_2013_test.csv"))
 
+dir_data <- here("data")
+aragonite_data <- read_csv(here("data/WCOAC_2013_test.csv")) # read 2013 cruise data from github repo "data" folder
 
 #Set -999 values to NA and remove them from data frame
 aragonite_data[aragonite_data==-999.000]<-NA
@@ -161,9 +164,11 @@ mapview(hotspotmask)
 #layer_MPA <- 'all_mpas_update'
 #poly_MPA <- readOGR(dsn=dir_spatial, layer=layer_MPA)
 
-poly_MPA <- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/all_mpas_update"), layer="all_mpas_update")
+#poly_MPA <- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/all_mpas_update"), layer="all_mpas_update")
 
 #poly_MPA <- readOGR(dsn=path.expand("/Users/rttaylorburnscom/github/resilienseas/all_mpas_update"), layer="all_mpas_update")
+
+poly_MPA <- readOGR(dsn=path.expand("/Users/courtney/GP/all_mpas_update"), layer="all_mpas_update")
 
 #Assign same projection as hotspotmask raster to MPA shapefile
 poly_MPA <- spTransform(poly_MPA, crs(hotspotmask))
@@ -180,9 +185,9 @@ plot(hotspotmask, add=TRUE)
 
 poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
 
-
 #poly_coast <- readOGR(dsn=path.expand("/Users/rttaylorburnscom/github/resilienseas/Export_Output_2"), layer="Export_Output_2")
 
+poly_coast <- readOGR(dsn=path.expand("/Users/courtney/GP/Export_Output_2"), layer="Export_Output_2")
 
 #Set same projection as rasters
 poly_coast <- spTransform(poly_coast, crs(aragonite_raster_prj))

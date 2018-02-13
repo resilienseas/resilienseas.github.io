@@ -273,7 +273,9 @@ distance<-distanceFromPoints(variation,inventorycoords)
 plot(distance)
 
 # define gaps = distance * ((diffmeans)+(diffranges*diffmeans))
-gaps <- setValues(distance, (getValues(distance)*(getValues(variation))))
+gaps <- setValues(distance, log10(getValues(distance)*(getValues(variation))))
+
+
 
 #test clip of raster to coast shapefile
 poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
@@ -284,32 +286,32 @@ gaps_clipped <- mask(gaps, poly_coast, inverse = TRUE,progress='text')
 binarygaps <- setValues(gaps, (getValues(distance)*getValues(variation)) > 6000)
 
 # plot binary gaps
-plot(binarygaps)
+#plot(binarygaps)
 
 # mapview
-mapview(gaps)
+#mapview(gaps)
 
 
 #leaflet ----
-my.colors = colorRampPalette(c("#5E85B8","#C13127"))
+#my.colors = colorRampPalette(c("#5E85B8","#C13127"))
 
 #colors including specification for N/A values
-pal <- colorNumeric(c("#0C2C84", "#41B6C4", "#FFFFCC"), values(gaps),na.color = "transparent")
+#pal <- colorNumeric(c("#0C2C84", "#41B6C4", "#FFFFCC"), values(gaps),na.color = "transparent")
 
-pal <- colorRampPalette(c("#0C2C84", "#41B6C4", "#FFFFCC"))
+#pal <- colorRampPalette(c("#0C2C84", "#41B6C4", "#FFFFCC"))
 
 
-leaflet() %>% 
-  addTiles() %>%
-  addProviderTiles('Esri.OceanBasemap') %>% 
-  addRasterImage(gaps, colors = pal) %>% 
-  addLegend(
-    pal = pal, values = values(gaps),
-    title = "Monitoring Gaps")
+#leaflet() %>% 
+#  addTiles() %>%
+#  addProviderTiles('Esri.OceanBasemap') %>% 
+#  addRasterImage(gaps, colors = pal) %>% 
+#  addLegend(
+#    pal = pal, values = values(gaps),
+#    title = "Monitoring Gaps")
 
 #tmap----
 
-pal <- colorRampPalette(c("dodgerblue", "tomato"))
+pal <- colorRampPalette(c("steelblue", "orangered3"))
 
 tm_shape(gaps)+
   tm_raster(palette = pal(9), colorNA = NULL, title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", " ", "Low Priority Data Gap", "", "High Priority Data Gap"))
