@@ -58,13 +58,12 @@ aragonitekrige<-krige(OmegaAr ~ 1, aragonite_data, newdata=aragonite_grid, model
 aragonite_raster<-raster(aragonitekrige, layer=1, values=TRUE)
 projection(aragonite_raster) <- CRS("+proj=longlat +datum=WGS84")
 aragonite_raster_proj <- projectRaster(aragonite_raster, crs=CRS('+init=EPSG:6414'),method="ngb")
-mapview(aragonite_raster_proj)
 
 
 #create hotspot threshold mask----
 thresholds <- c(0,1,1, 1,1.7,1.7, 1.7,2,2, 2,10,NA)
 thresholdsmatrix <- matrix(thresholds, ncol=3, byrow=TRUE)
-hotspotmask <- reclassify(aragonite_raster, thresholdsmatrix)
+hotspotmask <- reclassify(aragonite_raster_proj, thresholdsmatrix)
 
 
 #coast and mpa shapfiles----
@@ -76,11 +75,17 @@ westcoast_sp <- as(westcoast_proj, "Spatial")
 #load MPA shapefile and re-project to EPSG 6414 (Cal Teale Albers)
 wc_mpas <- st_read(dsn = "/Users/Madi/Documents/UCSB Bren/ResilienSeas/all_mpas_update", layer = "all_mpas_update")
 wc_mpas_proj <- st_transform(wc_mpas, "+init=epsg:6414")
+wc_mpas_proj[,1] <- seq(1, length(wc_mpas_proj[,1]))
+wc_mpas_sp <- as(wc_mpas_proj, "Spatial")
 
 
 #clipping rasters to coast shapefile----
+#clipping continuous aragonite layer
 aragonite_clipped <- mask(aragonite_raster_proj, westcoast_sp, inverse = TRUE, progress='text')
 mapview(aragonite_clipped)
+
+#leaflet for continuous aragonite raster
+pal <- colorNumeric(c("#0C2C84", "#41B6C4", "#FFFFCC"), values(aragonite_clipped),na.color = "transparent")
 
 leaflet() %>% 
   addTiles() %>%
@@ -90,4 +95,14 @@ leaflet() %>%
     pal = pal, values = values(aragonite_clipped),
     title = "Aragonite Saturation State")
 
-pal <- colorNumeric(c("#0C2C84", "#41B6C4", "#FFFFCC"), values(aragonite_clipped),na.color = "transparent")
+#clipping hotspot mask
+hotspotmask_proj <- projectRaster(hotspotmask, crs=CRS('+init=EPSG:6414'),method="ngb")
+hotspot_clipped <- mask(hotspotmask, westcoast_sp, inverse = TRUE)
+mapview(hotspot_clipped)
+
+
+#zonal statistics----
+poly_MPA@data[,1] <- seq(1, length(poly_MPA@data[,1]))
+
+aragonite_mean<- raster::extract(aragonite_clipped, wc_mpas_proj, fun=mean, na.rm=TRUE, df=TRUE)
+
