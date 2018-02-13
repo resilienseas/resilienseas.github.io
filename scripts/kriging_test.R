@@ -268,4 +268,5 @@ leaflet() %>%
     pal = pal, values = values(aragonite_clipped),
     title = "Aragonite Saturation State")
 
-pal <- colorNumeric(c("#0C2C84", "#41B6C4", "#FFFFCC"), values(aragonite_clipped),na.color = "transparent")
+pal <- colorNumeric(c("#FFFFCC", "#41B6C4", "#0C2C84"), values(aragonite_clipped),na.color = "transparent")
+
