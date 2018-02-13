@@ -4,7 +4,6 @@
 
 #This script creates an interpolated raster across the extent of the 2013 West Coast OA Cruise from Moss Landing, CA to Seattle,WA of aragonite saturation state. The starting dataset is a CSV containing six columns (Date, Time, Latitude, Longitude, Pressure (db), and Omega Aragonite). Observations are subsetted (based on depth) to only include surface level observations. The cruise took place during the month of August 2013
 
-
 library(rgdal) #install.packages("rgdal")
 library(sp) #install.packages("sp")
 library(gstat) #install.packages("gstat")
@@ -16,7 +15,8 @@ library(mapview) #install.packages("mapview")
 library(pacman) #install.packages("pacman")
 library(here) #install.packages("here)
 library(leaflet) #install.packages("leaflet")
-
+library(tmap) #install.packages("tmap")
+library(sf) #install.packages("sf")
 
 ######################################################
 #PART I: PREPARE DATASET
@@ -201,6 +201,22 @@ hotspot_clipped <- mask(hotspotmask, poly_coast, inverse = TRUE,progress='text')
 mapview(hotspot_clipped)
 plot(hotspot_clipped)
 
+############Estuary .shp saved in hotspot interpolation folder on G drive
+#Load Estuary Data 
+estuary <- readOGR(dsn='G:/Hotspot_Interpolation/estuaries', layer='estuaries')
+
+#Set same projection as rasters
+estuary <- spTransform(estuary, crs(aragonite_raster_prj))
+#Use reverse mask to clip aragonite and hotspot rasters to clip to estuaries 
+aragonite_clipped_2 <- mask(aragonite_clipped, estuary, inverse= TRUE, progress='text')
+plot(aragonite_clipped_2)
+mapview(aragonite_clipped_2)
+
+#Use reverse mask to clip hotspot mask to estuaries
+hotspot_clipped_2 <- mask(hotspot_clipped, estuary, inverse=TRUE)
+
+plot(hotspot_clipped_2)
+mapview(hotspot_clipped_2)
 
 ##############################################################
 #PART VII. ZONAL STATISTICS
@@ -224,6 +240,106 @@ View(poly_MPA@data)
 plot(poly_MPA,col=poly_MPA@data[,6])
 mapview(poly_MPA)
 
+#############################################################
+#Part VIII. ZONAL CONT - % HOTSPOT COVER OF MPA
+#############################################################
+
+#Calculates percent (as decimal point) of non-NA cells from total number of cells contained in polygon MPA 
+pctcover <- raster::extract(hotspot_clipped, poly_MPA, fun=function(x, ...) length(na.omit(x))/length(x), df=TRUE)
+colnames(pctcover) <- c("OBJECTID", "PCT_HOTSPOTCOVER")
+
+#Join newly calculated percent hotspot cover to spatial data frame based on OBJECTID
+poly_MPA@data <- poly_MPA@data %>% 
+  left_join(pctcover, by = 'OBJECTID')
+View(poly_MPA@data)
+
+plot(poly_MPA,col=(poly_MPA@data[,6]))
+plot(poly_MPA)
+mapview(poly_MPA)
+
+######################################################
+#Visualizing MPA Zonal statistics
+##########################################################
+
+pal <- colorRampPalette(c("orangered3", "steelblue"))
+
+tm_shape(poly_MPA) + tm_polygons("ARAGONITE_MEAN", palette=pal(7),
+                                 breaks=seq(1,3, by=0.2),
+                                 title="Mean Aragonite \nSaturation State") +
+  tm_legend(legend.position=c("right", "bottom"))
+
+tm_shape(aragonite_clipped_2) +
+  tm_raster(aragonite_clipped_2, breaks=seq(1,3, by=0.2),
+            palette= pal(7), title="Aragonite Saturation State") 
+
+tmap_mode("view")
+last_map()
+
+#############################################################
+#HABITAT ANALYSIS
+#############################################################
+#Potential Historical data from EFH HAPC (Pacific Groundfish 2005 EIS)
+
+#Load using sf package
+efh_kelp <- st_read(dsn='G:/Habitat/EFH_kelp', layer='altb03')
+efh_rockyreef <- st_read(dsn='G:/Habitat/EFH_rocky_reefs', layer='altb06')
+eFH_seagrass <- st_read(dsn='G:/Habitat/EFH_seagrass', layer='altb04')
+#sf set projections
+efh_kelp <- st_transform(efh_kelp, '+init=EPSG:6414')
+efh_rockyreef <- st_transform(efh_rockyreef, '+init=EPSG:6414')
+efh_seagrass <- st_transform(eFH_seagrass, '+init=EPSG:6414')
+
+#Change names of columns in dataframe 
+names(efh_kelp) <- c("Habitat", "geometry")
+names(efh_rockyreef) <- c("Habitat", "geometry")
+names(efh_seagrass) <- c("Habitat", "geometry")
+
+#Add habitat type to dataframe
+efh_kelp$Habitat <- rep("kelp", times=271877)
+efh_rockyreef$Habitat <- rep("rocky_reef", times=17633)
+efh_seagrass$Habitat <- rep("seagrass", times=84100)
+
+#Merge three habitat layers
+efh_habitat <- rbind(efh_kelp, efh_seagrass, efh_rockyreef)
+
+plot(efh_habitat['Habitat'])
+library(tmap)
+tm_shape(efh_habitat) +
+  tm_polygons("Habitat", title="EFH Habitat Type")
+
+tmap_mode("view")
+last_map()
+
+###################################
+# LEAFLET VISUALIZATIONS
+###################################
+
+leaflet() %>% 
+  addTiles() %>%
+  addProviderTiles('Esri.OceanBasemap') %>% 
+  addRasterImage(aragonite_clipped, colors = pal) %>% 
+  addLegend(
+    pal = pal, values = values(aragonite_clipped),
+    title = "Aragonite Saturation State")
+
+pal <- colorNumeric(c("#FFFFCC", "#41B6C4", "#0C2C84"), values(aragonite_clipped),na.color = "transparent")
+
+#Leaflet Map of Aragonite Saturation State Raster
+leaflet() %>% 
+  addTiles() %>%
+  addProviderTiles('Esri.OceanBasemap') %>% 
+  addRasterImage(aragonite_clipped, colors = binpal) %>% 
+  addLegend(
+    pal = binpal, values = seq(1,3),
+    title = "Aragonite Saturation State")
+
+binpal <- colorBin("Spectral", seq(1,3), 10, pretty = FALSE, na.color = "transparent")
+
+#Leaflet Map of Hotspot Raster
+leaflet() %>% 
+  addTiles() %>%
+  addProviderTiles('Esri.OceanBasemap') %>% 
+  addRasterImage(hotspot_clipped)
 
 #############################################################
 #TRASH CODE
@@ -239,7 +355,6 @@ mapview(poly_MPA)
 #plot(p_lo)
 
 #plot(p_lo < 1)
-
 
 #Clipping experiments
 #plot(hotspotmask)
@@ -264,14 +379,3 @@ mapview(poly_MPA)
 #plot(hotspotmask, col='blue', add=TRUE)
 #plot(hotspotmask, col='blue')
 #plot(ocean, add=TRUE)
-
-leaflet() %>% 
-  addTiles() %>%
-  addProviderTiles('Esri.OceanBasemap') %>% 
-  addRasterImage(aragonite_clipped, colors = pal) %>% 
-  addLegend(
-    pal = pal, values = values(aragonite_clipped),
-    title = "Aragonite Saturation State")
-
-pal <- colorNumeric(c("#FFFFCC", "#41B6C4", "#0C2C84"), values(aragonite_clipped),na.color = "transparent")
-
