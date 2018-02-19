@@ -118,13 +118,13 @@ head(aragonitekrige@data)
 spplot(aragonitekrige)
 
 #Visualize interpolated aragonite saturation state values
-spplot(aragonitekrige['var1.pred'],main="Interpolated Aragonite Predictions")
+spplot(aragonitekrige['var1.pred'],main = list(label = "Omega Predictions (2013)", cex = 0.8, fontfamily = "serif"))
 
 #Visualize variation in interpolated aragonite saturation state values
-spplot(aragonitekrige["var1.var"])
+spplot(aragonitekrige["var1.var"], formula=sqrt(var1.var)~long+lat, main = list(label = "Standard Error of Predictions (2013)", cex = 0.8, fontfamily = "serif"))
 
 #Calculate standard error of aragonite predictions
-spplot(aragonitekrige['var1.var'],formula=sqrt(var1.var)~long+lat,col.regions=heat.colors(30),main="Interpolation Standard Error")
+spplot(aragonitekrige['var1.var'],formula=sqrt(var1.var)~long+lat,col.regions=heat.colors(30),main="Standard Error of Interpolation")
 
 spplot(aragonitekrige['var1.pred'],col.regions=heat.colors(30),main="Aragonite Observations")
 
