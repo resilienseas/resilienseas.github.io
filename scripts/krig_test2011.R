@@ -19,7 +19,7 @@ setwd(OAdir)
 
 #load aragonite cruise data
 View(WCOAC_2011_test)
-aragonite_data<-WCOAC_2011_test
+aragonite_data<-read_csv(here("data/WCOAC_2011_test.csv"))
 
 
 #remove X7 column
@@ -69,7 +69,7 @@ aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data)
 aragonite_var
 plot(aragonite_var)
 
-aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.15,psill=0.5,range=4,model="Exp"))
+aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.15,psill=0.5,range=4,model="Exp", anis = c(0,0.3)))
 aragonite_fit
 plot(aragonite_var,aragonite_fit)
 
@@ -95,6 +95,10 @@ spplot(aragonitekrige)
 
 spplot(aragonitekrige['var1.pred'])
 spplot(aragonitekrige['var1.var'])
+
+spplot(aragonitekrige['var1.pred'],main = list(label = "Omega Predictions (2011)", cex = 0.8, fontfamily = "serif"))
+
+spplot(aragonitekrige["var1.var"], formula=sqrt(var1.var)~long+lat, main = list(label = "Standard Error of Predictions (2011)", cex = 0.8, fontfamily = "serif"))
 
 
 p = aragonitekrige['var1.pred']

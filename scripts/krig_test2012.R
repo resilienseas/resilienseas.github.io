@@ -19,7 +19,7 @@ setwd(OAdir)
 
 #load aragonite cruise data
 View(WCOAC_2012_test)
-aragonite_data<-WCOAC_2012_test
+aragonite_data<-read_csv(here("data/WCOAC_2012_test.csv"))
 
 
 #remove X7 column
@@ -56,10 +56,10 @@ names(aragonite_data)
 class(aragonite_data)
 
 #remove duplicates
-#zd<-zerodist(aragonite_data)
-#aragonite_data_2<-aragonite_data[-zd[,2],]
+zd<-zerodist(aragonite_data)
+aragonite_data_2<-aragonite_data[-zd[,2],]
 #summary(aragonite_data_2)
-#aragonite_data<-aragonite_data_2
+aragonite_data<-aragonite_data_2
 
 bubble_aragonite<- bubble(aragonite_data, "OmegaAr", maxsize = 3, xlab = "Longitude", ylab ="Latitude", main = "West Coast Aragonite",scales = list(draw = T), col = "navy", pch = 20,na.rm=TRUE)
 bubble_aragonite
@@ -69,7 +69,7 @@ aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data)
 aragonite_var
 plot(aragonite_var)
 
-aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.1,psill=0.4,range=2,model="Exp"))
+aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.1,psill=0.4,range=2,model="Exp", anis=c(0, 0.3)))
 
 aragonite_fit
 plot(aragonite_var,aragonite_fit)
@@ -98,6 +98,9 @@ spplot(aragonitekrige)
 spplot(aragonitekrige['var1.pred'])
 spplot(aragonitekrige['var1.var'])
 
+spplot(aragonitekrige['var1.pred'],main = list(label = "Omega Predictions (2012)", cex = 0.8, fontfamily = "serif"))
+
+spplot(aragonitekrige["var1.var"], formula=sqrt(var1.var)~long+lat, main = list(label = "Standard Error of Predictions (2012)", cex = 0.8, fontfamily = "serif"))
 
 p = aragonitekrige['var1.pred']
 v = aragonitekrige['var1.var']
