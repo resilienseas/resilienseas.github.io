@@ -1,0 +1,226 @@
+---
+title: "Ocean Acidification Monitoring Inventory Gap Analysis"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+  
+##Step 1. Manipulate sea surface temperature and dissolved oxygen as proxies for ocean acidificiation change
+####Load packages
+```{r packages, message = FALSE, warning = FALSE, results = 'hide'}
+
+if (!require(pacman)) install.packages("pacman")
+library(pacman)
+p_load(
+  tidyverse, here, glue,
+  raster,
+  sdmpredictors, dismo, 
+  deldir, 
+  mapview,
+  tmap)
+
+devtools::load_all(here("../oatools"))
+
+```
+
+####Set paths and variables
+```{r paths, message = FALSE, warning = FALSE, results = 'hide'}
+
+dir_data        <- here("data")
+dir_sdmdata_old <- here("data/sdmpredictors")
+dir_cache       <- here("cache")
+dir_sdmdata     <- here("cache/sdmpredictors")
+
+SST_tif <- here("data/sst_mean.tif")
+DO_tif  <- here("data/do_mean.tif")
+
+```
+  
+####Set cache
+```{r cache, message = FALSE, warning = FALSE, results = 'hide'}
+
+if (!dir.exists(dir_data))    dir.create(dir_data)
+if (!dir.exists(dir_cache))   dir.create(dir_cache)
+if (!dir.exists(dir_sdmdata) & dir.exists(dir_sdmdata_old))
+  file.rename(dir_sdmdata_old, dir_sdmdata)
+if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
+
+```
+  
+####Set extent and coordinate reference system
+```{r extent, message = FALSE, warning = FALSE, results = 'hide'}
+
+ext_study <- extent(-670000, 350000, -885000, 1400000)
+crs_study <- '+init=EPSG:6414'
+
+```
+  
+####Create sea surface temperature layer (mean and range)
+```{r sst, message = FALSE, warning = FALSE, results = 'hide'}
+
+r_sst_mean_nofill <- lyr_to_tif(
+  lyr = "BO_sstmean", 
+  tif = here("data/sst_mean.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE)
+
+r_sst_mean <- lyr_to_tif(
+  lyr = "BO_sstmean", 
+  tif = here("data/sst_mean.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11) #caclulate mean
+
+n_na_nofill <- sum(is.na(raster::getValues(r_sst_mean_nofill)))
+n_na        <- sum(is.na(raster::getValues(r_sst_mean)))
+
+r_sst_range_nofill <- lyr_to_tif(
+  lyr = "BO_sstrange", 
+  tif = here("data/sst_range.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE)
+
+r_sst_range <- lyr_to_tif(
+  lyr = "BO_sstrange", 
+  tif = here("data/sst_range.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)
+
+```
+  
+####Create dissolved oxygen layer (mean and range)
+```{r do, message = FALSE, warning = FALSE, results = 'hide'}
+r_do_mean_nofill <- lyr_to_tif(
+  lyr = "BO_dissox", 
+  tif = here("data/do_mean.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE)
+
+r_do_mean <- lyr_to_tif(
+  lyr = "BO_dissox", 
+  tif = here("data/do_mean.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11) #calculate mean
+
+r_do_range_nofill <- lyr_to_tif(
+  lyr = "BO2_dissoxrange_bdmin", 
+  tif = here("data/do_range.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE)
+
+r_do_range <- lyr_to_tif(
+  lyr = "BO2_dissoxrange_bdmin", 
+  tif = here("data/do_range.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)
+
+```
+  
+##Step 2. Relate SST and DO trends to each monitoring site
+####Load monitoring inventory
+```{r inventory, message = FALSE, warning = FALSE, results = 'hide'}
+
+oahfocus <- read_csv(here("data/oahfocus.csv"))
+
+```
+  
+####Transform into spatial data
+```{r inventory spatial, message = FALSE, warning = FALSE, results = 'hide'}
+
+coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude) #isolate coordinate columns
+
+deduped.coords<-unique(coords) # remove duplicate locations
+
+inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
+inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:6414')) # create spatial points objects
+
+```
+  
+####Create voronoi polygons
+```{r voronoi, message = FALSE, warning = FALSE, results = 'hide'}
+
+vor <-voronoi(inventorycoords)
+
+vorraster<- rasterize(vor, r_sst_mean, "id") #rasterize
+
+```
+  
+####Extract SST mean and range for each monitoring site cell and substitute value for each voronoi polygon
+```{r extract and replace sst, message = FALSE, warning = FALSE, results = 'hide'}
+
+sitesst<- raster::extract(r_sst_mean, inventorycoords, method='simple', df=TRUE)
+colnames(sitesst)<-c("id", "SST") #rename column names of sitesst
+polygonsst <- subs(vorraster, sitesst, by="id", which="SST", subsWithNA=FALSE) #substitute polygon id for monitoring site sea surface temerature of that polygon
+
+sitesstrange<- raster::extract(r_sst_range, inventorycoords, method='simple', df=TRUE)
+colnames(sitesstrange)<-c("id", "SSTrange") #rename column names of sitesstrange
+polygonsstrange<-subs(vorraster, sitesstrange, by="id", which="SSTrange", subsWithNA=FALSE) #substitute polygon id for monitoring site sea surface temerature range of that polygon
+
+```
+  
+####Repeat with DO
+```{r extract and replace do, message = FALSE, warning = FALSE, results = 'hide'}
+
+sitedo<- raster::extract(r_do_mean, inventorycoords, method='simple', df=TRUE)
+colnames(sitedo)<-c("id", "DO") #rename column names of sitedo
+polygondo<-subs(vorraster, sitedo, by="id", which="DO")
+
+sitedorange<- raster::extract(r_do_range, inventorycoords, method='simple', df=TRUE)
+colnames(sitedorange)<-c("id", "DOrange")
+polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
+
+```
+  
+##Step 3. Create "oceanographic variability" layer relative to monitoring assett
+To account for variation in both SST and DO as a combined proxy for ocean acidification variability, we use the following formula:
+variation = (imean - amean) + (imean - amean)*(irange - arange)
+where i = cell in raster of study area and a = cell containing nearest monitoring site
+```{r calculate variability, message = FALSE, warning = FALSE, results = 'hide'}
+
+sstmeandiff <- abs(r_sst_mean_nofill - polygonsst) #difference between sst at each point and sst for area associated with closest monitoring site
+sstrangediff <- abs(r_sst_range_nofill - polygonsstrange) #difference between sst range at each point and sst range for area associated with closest monitoring site 
+sstvariation <- sstmeandiff+(sstmeandiff*sstrangediff)
+
+domeandiff <- abs(r_do_mean_nofill - polygondo) #difference between DO at each point and DO for area associated with closest monitoring site
+dorangediff <- abs(r_do_range_nofill - polygondorange) #difference between DO range at each point and DO range for area associated with closest monitoring site
+dovariation <- domeandiff + (domeandiff*dorangediff)
+
+variation <- (sstvariation*dovariation) #total variation
+
+```
+  
+##Step 4. Identify gaps
+####Identify gaps based on distance between monitoring points, qualified by strength of variability
+```{r gaps, message = FALSE, warning = FALSE, results = 'hide'}
+
+distance<-distanceFromPoints(variation,inventorycoords)
+gaps <- setValues(distance, log10(getValues(distance)*(getValues(variation))))
+
+```
+
+####Visualize gaps along the West Coast
+```{r west coast, message = FALSE, warning = FALSE, results = 'hide'}
+
+poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
+poly_coast <- spTransform(poly_coast, crs(gaps))
+gaps_clipped <- mask(gaps, poly_coast, inverse = TRUE,progress='text')
+
+```
+
