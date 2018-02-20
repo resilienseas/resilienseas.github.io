@@ -135,9 +135,9 @@ oahfocus <- read_csv(here("data/oahfocus.csv"))
 
 #oahfocus<-subset(oahfocus, DiscCarbPmtr>1 | ISCarbPmtr > 1)
 
-#measperyr<-oahfocus$`Meas/Yr`
+measperyr<-oahfocus$`Meas/Yr`
 
-#oahfocus<-subset(oahfocus, measperyr > 365)
+oahfocus<-subset(oahfocus, measperyr > 365)
 
 # isolate coordinate columns
 coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
@@ -273,7 +273,7 @@ distance<-distanceFromPoints(variation,inventorycoords)
 plot(distance)
 
 # define gaps = distance * ((diffmeans)+(diffranges*diffmeans))
-gaps <- setValues(distance, log10(getValues(distance)*(getValues(variation))))
+gaps <- setValues(distance, (getValues(distance)*(getValues(variation))))
 
 
 
@@ -314,7 +314,7 @@ binarygaps <- setValues(gaps, (getValues(distance)*getValues(variation)) > 6000)
 pal <- colorRampPalette(c("steelblue", "orangered3"))
 
 tm_shape(gaps)+
-  tm_raster(palette = pal(9), colorNA = NULL, title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", " ", "Low Priority Data Gap", "", "High Priority Data Gap"))
+  tm_raster(palette = pal(9), colorNA = NULL, title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "  ", "", "Low Priority Data Gap", "   ", "High Priority Data Gap"))
 
 tmap_mode("view")
 last_map()

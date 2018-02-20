@@ -2,9 +2,9 @@
 #Kriging test
 #11/2/2017
 
-#install.packages("sp")
-#install.packages("gstat")
-#install.packages("tibble")
+install.packages("sp")
+install.packages("gstat")
+install.packages("tibble")
 
 library(rgdal)
 library(sp)
@@ -70,7 +70,7 @@ aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data)
 aragonite_var
 plot(aragonite_var)
 
-aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.7,psill=0.4,range=9,model="Exp"))
+aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.7,psill=0.4,range=9,model="Sph"))
 aragonite_fit
 plot(aragonite_var,aragonite_fit)
 
