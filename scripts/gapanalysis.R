@@ -9,7 +9,8 @@ p_load(
   sdmpredictors, dismo, 
   deldir, 
   mapview,
-  tmap)
+  tmap,
+  ggplot2)
 
 # custom R package: oatools
 devtools::load_all(here("../oatools")) # for developing
@@ -195,7 +196,7 @@ colnames(sitesstrange)<-c("id", "SSTrange")
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygonsstrange<-subs(vorraster, sitesstrange, by="id", which="SSTrange", subsWithNA=FALSE)
 
-mapview(polygonsstrange)
+#mapview(polygonsstrange)
 
 # do
 
@@ -270,12 +271,10 @@ distance<-distanceFromPoints(variation,inventorycoords)
 ## investigate capability of this function to pull measurements from nearest monitoring site as well....
 
 # plot distance
-plot(distance)
+#plot(distance)
 
 # define gaps = distance * ((diffmeans)+(diffranges*diffmeans))
 gaps <- setValues(distance, (getValues(distance)*(getValues(variation))))
-
-
 
 #test clip of raster to coast shapefile
 poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
@@ -283,10 +282,17 @@ poly_coast <- spTransform(poly_coast, crs(gaps))
 gaps_clipped <- mask(gaps, poly_coast, inverse = TRUE,progress='text')
 
 # create binary gaps
-binarygaps <- setValues(gaps, (getValues(distance)*getValues(variation)) > 6000)
+severegaps <- setValues(gaps, (getValues(distance)*getValues(variation)) > quantile(gaps, (.99)))
+
+
+lowprioritygaps<-setValues(gaps, (getValues(distance)*getValues(variation)) > quantile(gaps, (.75)))
+
+finalgaps<- severegaps+lowprioritygaps
+
+plot(finalgaps)
 
 # plot binary gaps
-#plot(binarygaps)
+mapview(severegaps)
 
 # mapview
 #mapview(gaps)
@@ -311,10 +317,14 @@ binarygaps <- setValues(gaps, (getValues(distance)*getValues(variation)) > 6000)
 
 #tmap----
 
-pal <- colorRampPalette(c("steelblue", "orangered3"))
+pal <- colorRampPalette(c("#2c7fb8", "#7fcdbb", "#edf8b1"))
 
-tm_shape(gaps)+
-  tm_raster(palette = pal(9), colorNA = NULL, title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "  ", "", "Low Priority Data Gap", "   ", "High Priority Data Gap"))
+
+tm_shape(finalgaps)+
+  tm_raster(palette = pal(3), colorNA = NULL)+
+  tm_layout(main.title = "High Frequency Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = FALSE, fontfamily = "serif", fontface = "bold")
+
+
 
 tmap_mode("view")
 last_map()
