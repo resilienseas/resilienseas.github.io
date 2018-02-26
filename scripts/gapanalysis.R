@@ -134,21 +134,53 @@ plot_raster(r_do_range, "DO range")
 # import inventory
 oahfocus <- read_csv(here("data/oahfocus.csv"))
 
-#oahfocus<-subset(oahfocus, DiscCarbPmtr>1 | ISCarbPmtr > 1)
+carbcomplete<-subset(oahfocus, DiscCarbPmtr>1 | ISCarbPmtr > 1)
+
+incomplete <- subset(oahfocus, DiscCarbPmtr<2 & ISCarbPmtr < 2)
 
 measperyr<-oahfocus$`Meas/Yr`
 
-oahfocus<-subset(oahfocus, measperyr > 365)
+highfrequency<-subset(oahfocus, measperyr > 364)
+
+lowfrequency <- subset(oahfocus, measperyr < 365)
 
 # isolate coordinate columns
 coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
 
+carbcompletecoords <- cbind.data.frame(carbcomplete$Longitude, carbcomplete$Latitude)
+
+incompletecoords <- cbind.data.frame(incomplete$Longitude, incomplete$Latitude)
+
+highfrequencycoords <- cbind.data.frame(highfrequency$Longitude, highfrequency$Latitude)
+
+lowfrequencycoords <- cbind.data.frame(lowfrequency$Longitude, lowfrequency$Latitude)
+
 # remove duplicate locations
 deduped.coords<-unique(coords)
+
+deduped.carbcomplete <- unique(carbcompletecoords)
+
+deduped.incomplete <- unique(incompletecoords)
+
+deduped.highfrequency <- unique(highfrequencycoords)
+
+deduped.lowfrequency <- unique(lowfrequencycoords)
 
 # create spatial points objects
 inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
 inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:6414'))
+
+carbcompletecoords <- SpatialPoints(deduped.carbcomplete, CRS("+proj=longlat +ellps=WGS84"))
+carbcompletecoords <- spTransform(carbcompletecoords, CRS('+init=EPSG:6414'))
+
+incompletecoords <- SpatialPoints(deduped.incomplete, CRS("+proj=longlat +ellps=WGS84"))
+incompletecoords <- spTransform(incompletecoords, CRS('+init=EPSG:6414'))
+
+highfreqcoords <- SpatialPoints(deduped.highfrequency, CRS("+proj=longlat +ellps=WGS84"))
+highfreqcoords <- spTransform(highfreqcoords, CRS('+init=EPSG:6414'))
+
+lowfreqcoords <- SpatialPoints(deduped.lowfrequency, CRS("+proj=longlat +ellps=WGS84"))
+lowfreqcoords <- spTransform(lowfreqcoords, CRS('+init=EPSG:6414'))
 
 # check to make sure projections match
 
@@ -159,8 +191,19 @@ plot(inventorycoords, add=TRUE)
 # create voronoi polygons
 vor <-voronoi(inventorycoords)
 
+carbcompletevor <- voronoi(carbcompletecoords)
+incompletevor <- voronoi(incompletecoords)
+highfreqvor <- voronoi(highfreqcoords)
+lowfreqvor <- voronoi(lowfreqcoords)
+
+
 # rasterize polygons
 vorraster<- rasterize(vor, r_sst_mean, "id")
+carbcompletevorraster<- rasterize(carbcompletevor, r_sst_mean, "id")
+incompletevorraster<- rasterize(incompletevor, r_sst_mean, "id")
+highfreqvorraster<- rasterize(highfreqvor, r_sst_mean, "id")
+lowfreqvorraster<- rasterize(lowfreqvor, r_sst_mean, "id")
+
 
 # plot rasterized polygons
 plot_raster(vorraster, "vorraster")
@@ -172,46 +215,55 @@ mapview(vorraster)
 
 # extract sst value for each monitoring site cell
 sitesst<- raster::extract(r_sst_mean, inventorycoords, method='simple', df=TRUE)
+carbcompletesitesst<- raster::extract(r_sst_mean, carbcompletecoords, method='simple', df=TRUE)
+highfreqsitesst<- raster::extract(r_sst_mean, highfreqcoords, method='simple', df=TRUE)
 
 # rename column names of sitesst
 colnames(sitesst)<-c("id", "SST")
-
-# make sure inventory points and polygons are in same order?
+colnames(carbcompletesitesst)<-c("id", "SST")
+colnames(highfreqsitesst)<-c("id", "SST")
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygonsst <- subs(vorraster, sitesst, by="id", which="SST", subsWithNA=FALSE)
-
-mapview(polygonsst)
+carbcompletepolygonsst <- subs(carbcompletevorraster, sitesst, by="id", which="SST", subsWithNA=FALSE)
+highfreqpolygonsst <- subs(highfreqvorraster, sitesst, by="id", which="SST", subsWithNA=FALSE)
 
 # sst range
 
 # extract sst range value for each monitoring site cell
 sitesstrange<- raster::extract(r_sst_range, inventorycoords, method='simple', df=TRUE)
+carbcompletesitesstrange<- raster::extract(r_sst_range, carbcompletecoords, method='simple', df=TRUE)
+highfreqsitesstrange<- raster::extract(r_sst_range, highfreqcoords, method='simple', df=TRUE)
 
 # rename column names of sitesstrange
 colnames(sitesstrange)<-c("id", "SSTrange")
-
-# make sure inventory points and polygons are in same order?
+colnames(carbcompletesitesstrange)<-c("id", "SSTrange")
+colnames(highfreqsitesstrange)<-c("id", "SSTrange")
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygonsstrange<-subs(vorraster, sitesstrange, by="id", which="SSTrange", subsWithNA=FALSE)
-
-#mapview(polygonsstrange)
+carbcompletepolygonsstrange <- subs(carbcompletevorraster, sitesstrange, by="id", which="SSTrange", subsWithNA=FALSE)
+highfreqpolygonsstrange <- subs(highfreqvorraster, sitesstrange, by="id", which="SSTrange", subsWithNA=FALSE)
 
 # do
 
 # extract do value for each monitoring site cell
 sitedo<- raster::extract(r_do_mean, inventorycoords, method='simple', df=TRUE)
+carbcompletesitedo<- raster::extract(r_do_mean, carbcompletecoords, method='simple', df=TRUE)
+highfreqsitedo<- raster::extract(r_do_mean, highfreqcoords, method='simple', df=TRUE)
 
 # rename column names of sitedo
 colnames(sitedo)<-c("id", "DO")
-
-# make sure inventory points and polygons are in same order?
+colnames(carbcompletesitedo)<-c("id", "DO")
+colnames(highfreqsitedo)<-c("id", "DO")
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygondo<-subs(vorraster, sitedo, by="id", which="DO")
+carbcompletepolygondo<-subs(carbcompletevorraster, carbcompletesitedo, by="id", which="DO")
+highfreqpolygondo<-subs(highfreqvorraster, highfreqsitedo, by="id", which="DO")
 
-mapview(polygondo)
+
+#####   DID I DO THIS RIGHT? 
 
 # do range
 
@@ -220,8 +272,6 @@ sitedorange<- raster::extract(r_do_range, inventorycoords, method='simple', df=T
 
 # rename column names of sitedorange
 colnames(sitedorange)<-c("id", "DOrange")
-
-# make sure inventory points and polygons are in same order?
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
@@ -317,13 +367,16 @@ mapview(severegaps)
 
 #tmap----
 
-pal <- colorRampPalette(c("#2c7fb8", "#7fcdbb", "#edf8b1"))
+pal <- colorRampPalette(c("green", "yellow", "red"))
 
 
 tm_shape(finalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
-  tm_layout(main.title = "High Frequency Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = FALSE, fontfamily = "serif", fontface = "bold")
-
+  tm_layout(main.title = "High Frequency Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
+tm_shape(lowfreqcoords)+
+  tm_dots(col = "black")+
+tm_shape(highfreqcoords)+
+  tm_dots(col = "gray")
 
 
 tmap_mode("view")
