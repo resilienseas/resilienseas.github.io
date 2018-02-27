@@ -225,8 +225,8 @@ colnames(highfreqsitesst)<-c("id", "SST")
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygonsst <- subs(vorraster, sitesst, by="id", which="SST", subsWithNA=FALSE)
-carbcompletepolygonsst <- subs(carbcompletevorraster, sitesst, by="id", which="SST", subsWithNA=FALSE)
-highfreqpolygonsst <- subs(highfreqvorraster, sitesst, by="id", which="SST", subsWithNA=FALSE)
+plotcarbcompletepolygonsst <- subs(carbcompletevorraster, carbcompletesitesst, by="id", which="SST", subsWithNA=FALSE)
+highfreqpolygonsst <- subs(highfreqvorraster, highfreqsitesst, by="id", which="SST", subsWithNA=FALSE)
 
 # sst range
 
@@ -242,8 +242,8 @@ colnames(highfreqsitesstrange)<-c("id", "SSTrange")
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygonsstrange<-subs(vorraster, sitesstrange, by="id", which="SSTrange", subsWithNA=FALSE)
-carbcompletepolygonsstrange <- subs(carbcompletevorraster, sitesstrange, by="id", which="SSTrange", subsWithNA=FALSE)
-highfreqpolygonsstrange <- subs(highfreqvorraster, sitesstrange, by="id", which="SSTrange", subsWithNA=FALSE)
+carbcompletepolygonsstrange <- subs(carbcompletevorraster, carbcompletesitesstrange, by="id", which="SSTrange", subsWithNA=FALSE)
+highfreqpolygonsstrange <- subs(highfreqvorraster, highfreqsitesstrange, by="id", which="SSTrange", subsWithNA=FALSE)
 
 # do
 
@@ -262,21 +262,22 @@ polygondo<-subs(vorraster, sitedo, by="id", which="DO")
 carbcompletepolygondo<-subs(carbcompletevorraster, carbcompletesitedo, by="id", which="DO")
 highfreqpolygondo<-subs(highfreqvorraster, highfreqsitedo, by="id", which="DO")
 
-
-#####   DID I DO THIS RIGHT? 
-
 # do range
 
 # extract do range value for each monitoring site cell
 sitedorange<- raster::extract(r_do_range, inventorycoords, method='simple', df=TRUE)
+carbcompletesitedorange<- raster::extract(r_do_range, carbcompletecoords, method='simple', df=TRUE)
+highfreqsitedorange<- raster::extract(r_do_range, highfreqcoords, method='simple', df=TRUE)
 
 # rename column names of sitedorange
 colnames(sitedorange)<-c("id", "DOrange")
+colnames(carbcompletesitedorange)<-c("id", "DO")
+colnames(highfreqsitedorange)<-c("id", "DO")
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
-
-mapview(polygondorange)
+carbcompletepolygondorange<-subs(carbcompletevorraster, carbcompletesitedorange, by="id", which="DO")
+highfreqpolygondorange<-subs(highfreqvorraster, highfreqsitedorange, by="id", which="DO")
 
 # spatial + temporal variation ----
 
@@ -287,44 +288,53 @@ mapview(polygondorange)
 
 # sst mean
 sstmeandiff <- abs(r_sst_mean_nofill - polygonsst)
-mapview(sstmeandiff)
-
+carbcompletesstmeandiff <- abs(r_sst_mean_nofill - carbcompletepolygonsst)
+highfreqsstmeandiff <- abs(r_sst_mean_nofill - highfreqpolygonsst)
 
 # sst range
 sstrangediff <- abs(r_sst_range_nofill - polygonsstrange)
-mapview(sstrangediff)
+carbcompletesstrangediff <- abs(r_sst_range_nofill - carbcompletepolygonsstrange)
+highfreqsstrangediff <- abs(r_sst_range_nofill - highfreqpolygonsstrange)
 
 # sst combine
 sstvariation <- sstmeandiff+(sstmeandiff*sstrangediff)
+carbcompletesstvariation <- carbcompletesstmeandiff+(carbcompletesstmeandiff*carbcompletesstrangediff)
+highfreqsstvariation <- highfreqsstmeandiff+(highfreqsstmeandiff*highfreqsstrangediff)
 
 # do variation
 
 # do mean
 domeandiff <- abs(r_do_mean_nofill - polygondo)
-mapview(domeandiff)
+carbcompletedomeandiff <- abs(r_do_mean_nofill - carbcompletepolygondo)
+highfreqdomeandiff <- abs(r_do_mean_nofill - highfreqpolygondo)
+
 
 # do range
 dorangediff <- abs(r_do_range_nofill - polygondorange)
-mapview(dorangediff)
+carbcompletedorangediff <- abs(r_do_range_nofill - carbcompletepolygondorange)
+highfreqdorangediff <- abs(r_do_range_nofill - highfreqpolygondorange)
 
 # do combine
 dovariation <- domeandiff + (domeandiff*dorangediff)
+carbcompletedovariation <- carbcompletedomeandiff + (carbcompletedomeandiff*carbcompletedorangediff)
+highfreqdovariation <- highfreqdomeandiff + (highfreqdomeandiff*highfreqdorangediff)
 
 #total variation
 variation <- (sstvariation*dovariation)
+carbcompletevariation <- (carbcompletesstvariation * carbcompletedovariation)
+highfreqvariation <- (highfreqsstvariation * highfreqdovariation)
 
 # gap analysis ----
 
 # get distance to nearest monitoring site
 distance<-distanceFromPoints(variation,inventorycoords)
-
-## investigate capability of this function to pull measurements from nearest monitoring site as well....
-
-# plot distance
-#plot(distance)
+carbcompletedistance<-distanceFromPoints(carbcompletevariation,carbcompletecoords)
+highfreqdistance<-distanceFromPoints(highfreqvariation,highfreqcoords)
 
 # define gaps = distance * ((diffmeans)+(diffranges*diffmeans))
 gaps <- setValues(distance, (getValues(distance)*(getValues(variation))))
+carbcompletegaps <- setValues(carbcompletedistance, (getValues(carbcompletedistance)*(getValues(carbcompletevariation))))
+highfreqgaps <- setValues(highfreqdistance, (getValues(highfreqdistance)*(getValues(highfreqvariation))))
 
 #test clip of raster to coast shapefile
 poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
@@ -333,20 +343,20 @@ gaps_clipped <- mask(gaps, poly_coast, inverse = TRUE,progress='text')
 
 # create binary gaps
 severegaps <- setValues(gaps, (getValues(distance)*getValues(variation)) > quantile(gaps, (.99)))
-
-
 lowprioritygaps<-setValues(gaps, (getValues(distance)*getValues(variation)) > quantile(gaps, (.75)))
-
 finalgaps<- severegaps+lowprioritygaps
 
+carbcompleteseveregaps <- setValues(carbcompletegaps, (getValues(carbcompletedistance)*getValues(carbcompletevariation)) > quantile(carbcompletegaps, (.99)))
+carbcompletelowprioritygaps<- setValues(carbcompletegaps, (getValues(carbcompletedistance)*getValues(carbcompletevariation)) > quantile(carbcompletegaps, (.75)))
+carbcompletefinalgaps<- carbcompleteseveregaps + carbcompletelowprioritygaps
+
+highfreqseveregaps <- setValues(highfreqgaps, (getValues(highfreqdistance)*getValues(highfreqvariation)) > quantile(highfreqgaps, (.99)))
+highfreqlowprioritygaps<-setValues(gaps, (getValues(highfreqdistance)*getValues(highfreqvariation)) > quantile(highfreqgaps, (.75)))
+highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps
+
 plot(finalgaps)
-
-# plot binary gaps
-mapview(severegaps)
-
-# mapview
-#mapview(gaps)
-
+plot(carbcompletefinalgaps)
+plot(highfreqfinalgaps)
 
 #leaflet ----
 #my.colors = colorRampPalette(c("#5E85B8","#C13127"))
@@ -372,7 +382,22 @@ pal <- colorRampPalette(c("green", "yellow", "red"))
 
 tm_shape(finalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
-  tm_layout(main.title = "High Frequency Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
+  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
+  tm_shape(inventorycoords)+
+  tm_dots(col = "black")
+  
+
+tm_shape(carbcompletefinalgaps)+
+  tm_raster(palette = pal(3), colorNA = NULL)+
+  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
+  tm_shape(incompletecoords)+
+  tm_dots(col = "black")+
+  tm_shape(carbcompletecoords)+
+  tm_dots(col = "gray")
+
+tm_shape(highfreqfinalgaps)+
+  tm_raster(palette = pal(3), colorNA = NULL)+
+  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
 tm_shape(lowfreqcoords)+
   tm_dots(col = "black")+
 tm_shape(highfreqcoords)+
