@@ -36,7 +36,7 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
 # commenting out unused exploratory commands
 # list_datasets() %>% View()
 # list_layers()
-# list_layers("Bio-ORACLE") %>% View()
+ list_layers("Bio-ORACLE") %>% View()
 # list_layers("MARSPEC") %>% View()
 # list_layers("WorldClim") %>% View()
 # list<- list_layers("Bio-ORACLE")
@@ -377,31 +377,24 @@ plot(highfreqfinalgaps)
 
 #tmap----
 
-pal <- colorRampPalette(c("green", "yellow", "red"))
+pal <- colorRampPalette(c("olivedrab1", "darkorange", "red"))
 
 
 tm_shape(finalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
-  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
-  tm_shape(inventorycoords)+
-  tm_dots(col = "black")
-  
+  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")
 
 tm_shape(carbcompletefinalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
   tm_shape(incompletecoords)+
-  tm_dots(col = "black")+
-  tm_shape(carbcompletecoords)+
-  tm_dots(col = "gray")
+  tm_dots(col = "black")
 
 tm_shape(highfreqfinalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
 tm_shape(lowfreqcoords)+
-  tm_dots(col = "black")+
-tm_shape(highfreqcoords)+
-  tm_dots(col = "gray")
+  tm_dots(col = "black")
 
 
 tmap_mode("view")
