@@ -36,7 +36,7 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
 # commenting out unused exploratory commands
 # list_datasets() %>% View()
 # list_layers()
- list_layers("Bio-ORACLE") %>% View()
+# list_layers("Bio-ORACLE") %>% View()
 # list_layers("MARSPEC") %>% View()
 # list_layers("WorldClim") %>% View()
 # list<- list_layers("Bio-ORACLE")
@@ -132,13 +132,13 @@ plot_raster(r_do_range, "DO range")
 # prep inventory----
 
 # import inventory
-oahfocus <- read_csv(here("data/oahfocus.csv"))
+#oahfocus <- read_csv(here("data/oahfocus.csv"))
 
-carbcomplete<-subset(oahfocus, DiscCarbPmtr>1 | ISCarbPmtr > 1)
+carbcomplete<-subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
 
-incomplete <- subset(oahfocus, DiscCarbPmtr<2 & ISCarbPmtr < 2)
+incomplete <- subset(oahfocus, DisCrbPmtr<2 & ISCrbPmtr < 2)
 
-measperyr<-oahfocus$`Meas/Yr`
+measperyr<-oahfocus$`Meas.Yr`
 
 highfrequency<-subset(oahfocus, measperyr > 364)
 
@@ -225,7 +225,7 @@ colnames(highfreqsitesst)<-c("id", "SST")
 
 # substitute polygon id for monitoring site sea surface temerature of that polygon
 polygonsst <- subs(vorraster, sitesst, by="id", which="SST", subsWithNA=FALSE)
-plotcarbcompletepolygonsst <- subs(carbcompletevorraster, carbcompletesitesst, by="id", which="SST", subsWithNA=FALSE)
+carbcompletepolygonsst <- subs(carbcompletevorraster, carbcompletesitesst, by="id", which="SST", subsWithNA=FALSE)
 highfreqpolygonsst <- subs(highfreqvorraster, highfreqsitesst, by="id", which="SST", subsWithNA=FALSE)
 
 # sst range
@@ -384,9 +384,15 @@ tm_shape(finalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")
 
++
+  tm_shape(inventorycoords)+
+  tm_dots(col = "black")
+
 tm_shape(carbcompletefinalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
-  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
+  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")
+
+
   tm_shape(incompletecoords)+
   tm_dots(col = "black")
 
