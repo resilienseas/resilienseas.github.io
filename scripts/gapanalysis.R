@@ -44,7 +44,7 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
 # layer manipulation ----
 
 # extent of NE Pacific study area, for cropping rasters
-ext_study <- extent(-670000, 340000, -885000, 1400000)
+ext_study <- extent(-670000, 350000, -885000, 1400000)
 crs_study <- '+init=EPSG:6414'
 
 # sea surface temperature
