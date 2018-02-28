@@ -44,7 +44,7 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
 # layer manipulation ----
 
 # extent of NE Pacific study area, for cropping rasters
-ext_study <- extent(-670000, 350000, -885000, 1400000)
+ext_study <- extent(-670000, 340000, -885000, 1400000)
 crs_study <- '+init=EPSG:6414'
 
 # sea surface temperature
@@ -138,11 +138,9 @@ carbcomplete<-subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
 
 incomplete <- subset(oahfocus, DisCrbPmtr<2 & ISCrbPmtr < 2)
 
-measperyr<-oahfocus$`Meas.Yr`
+highfrequency<-subset(oahfocus, MeasType == "continuous")
 
-highfrequency<-subset(oahfocus, measperyr > 364)
-
-lowfrequency <- subset(oahfocus, measperyr < 365)
+lowfrequency <- subset(oahfocus, Meas.Yr < 365)
 
 # isolate coordinate columns
 coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
@@ -195,7 +193,6 @@ carbcompletevor <- voronoi(carbcompletecoords)
 incompletevor <- voronoi(incompletecoords)
 highfreqvor <- voronoi(highfreqcoords)
 lowfreqvor <- voronoi(lowfreqcoords)
-
 
 # rasterize polygons
 vorraster<- rasterize(vor, r_sst_mean, "id")
@@ -377,28 +374,27 @@ plot(highfreqfinalgaps)
 
 #tmap----
 
-pal <- colorRampPalette(c("olivedrab1", "darkorange", "red"))
+pal <- colorRampPalette(c("green", "orange", "red"))
 
 
 tm_shape(finalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
-  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")
-
-+
+  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))+
   tm_shape(inventorycoords)+
   tm_dots(col = "black")
 
 tm_shape(carbcompletefinalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
-  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")
-
-
+  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
+  tm_layout(basemaps = c('OpenStreetMap'))+
   tm_shape(incompletecoords)+
   tm_dots(col = "black")
 
 tm_shape(highfreqfinalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
+  tm_layout(basemaps = c('OpenStreetMap'))+
 tm_shape(lowfreqcoords)+
   tm_dots(col = "black")
 
