@@ -374,7 +374,7 @@ plot(highfreqfinalgaps)
 
 #tmap----
 
-pal <- colorRampPalette(c("green", "orange", "red"))
+pal <- colorRampPalette(c("green", "yellow", "red"))
 
 
 tm_shape(finalgaps)+
@@ -401,3 +401,20 @@ tm_shape(lowfreqcoords)+
 
 tmap_mode("view")
 last_map()
+
+tmap_mode("plot")
+
+pal <- colorRampPalette(c("orange", "blue"))
+
+tm_shape(r_sst_range_nofill)+
+  tm_raster(palette = pal(5000), legend.show = FALSE)
+
+tm_shape(variation)+
+  tm_raster(palette = pal(5), legend.show = FALSE)
+
+tm_shape(polygonsstrange)+
+  tm_raster(palette = pal(5000), legend.show = FALSE)+
+  tm_shape(inventorycoords)+
+  tm_dots()+
+  tm_shape(vor)+
+  tm_borders()
