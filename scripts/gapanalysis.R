@@ -293,6 +293,15 @@ sstrangediff <- abs(r_sst_range_nofill - polygonsstrange)
 carbcompletesstrangediff <- abs(r_sst_range_nofill - carbcompletepolygonsstrange)
 highfreqsstrangediff <- abs(r_sst_range_nofill - highfreqpolygonsstrange)
 
+#normalize
+sstmeandiff <- sstmeandiff/maxValue(sstmeandiff)
+carbcompletesstmeandiff <- carbcompletesstmeandiff/maxValue(carbcompletesstmeandiff)
+highfreqsstmeandiff <- highfreqsstmeandiff/maxValue(highfreqsstmeandiff)
+
+sstrangediff <- sstrangediff/maxValue(sstrangediff)
+carbcompletesstrangediff <- carbcompletesstrangediff/maxValue(carbcompletesstrangediff)
+highfreqsstrangediff <- highfreqsstrangediff/maxValue(highfreqsstrangediff)
+
 # sst combine
 sstvariation <- sstmeandiff+(sstmeandiff*sstrangediff)
 carbcompletesstvariation <- carbcompletesstmeandiff+(carbcompletesstmeandiff*carbcompletesstrangediff)
@@ -305,11 +314,19 @@ domeandiff <- abs(r_do_mean_nofill - polygondo)
 carbcompletedomeandiff <- abs(r_do_mean_nofill - carbcompletepolygondo)
 highfreqdomeandiff <- abs(r_do_mean_nofill - highfreqpolygondo)
 
-
 # do range
 dorangediff <- abs(r_do_range_nofill - polygondorange)
 carbcompletedorangediff <- abs(r_do_range_nofill - carbcompletepolygondorange)
 highfreqdorangediff <- abs(r_do_range_nofill - highfreqpolygondorange)
+
+#normalize
+domeandiff <- domeandiff/maxValue(domeandiff)
+carbcompletedomeandiff <- carbcompletedomeandiff/maxValue(carbcompletedomeandiff)
+highfreqdomeandiff <- highfreqdomeandiff/maxValue(highfreqdomeandiff)
+
+dorangediff <- dorangediff/maxValue(dorangediff)
+carbcompletedorangediff <- carbcompletedorangediff/maxValue(carbcompletedorangediff)
+highfreqdorangediff <- highfreqdorangediff/maxValue(highfreqdorangediff)
 
 # do combine
 dovariation <- domeandiff + (domeandiff*dorangediff)
@@ -317,6 +334,7 @@ carbcompletedovariation <- carbcompletedomeandiff + (carbcompletedomeandiff*carb
 highfreqdovariation <- highfreqdomeandiff + (highfreqdomeandiff*highfreqdorangediff)
 
 #total variation
+
 variation <- (sstvariation*dovariation)
 carbcompletevariation <- (carbcompletesstvariation * carbcompletedovariation)
 highfreqvariation <- (highfreqsstvariation * highfreqdovariation)
@@ -355,6 +373,46 @@ plot(finalgaps)
 plot(carbcompletefinalgaps)
 plot(highfreqfinalgaps)
 
+#bruce feedback ----
+dissimilarity <- sqrt((sstmeandiff^2+domeandiff^2)+(sstrangediff^2+dorangediff^2))
+dissimilarity <- dissimilarity/maxValue(dissimilarity)
+
+carbcompletedissimilarity<- sqrt((carbcompletesstmeandiff^2+carbcompletedomeandiff^2)+(carbcompletesstrangediff^2+carbcompletedorangediff^2))
+carbcompletedissimilarity <- carbcompletedissimilarity/maxValue(carbcompletedissimilarity)
+
+highfreqdissimilarity <- sqrt((highfreqsstmeandiff^2+highfreqdomeandiff^2)+(highfreqsstrangediff^2+highfreqdorangediff^2))
+highfreqdissimilarity <- highfreqdissimilarity/maxValue(highfreqdissimilarity)
+
+distance<-distanceFromPoints(dissimilarity, inventorycoords)
+carbcompletedistance<-distanceFromPoints(carbcompletedissimilarity, carbcompletecoords)
+highfreqdistance<-distanceFromPoints(highfreqdissimilarity, highfreqcoords)
+
+distance<-distance/maxValue(distance)
+carbcompletedistance<-carbcompletedistance/maxValue(carbcompletedistance)
+highfreqdistance<-highfreqdistance/maxValue(highfreqdistance)
+
+gap<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2))))
+
+carbcompletegap<-setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2))))
+
+highfreqgap<-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2))))
+
+severegaps <- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.99))
+lowprioritygaps<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.75))
+finalgaps<- severegaps+lowprioritygaps
+
+carbcompleteseveregaps <- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) > quantile(carbcompletegap, (.99))
+carbcompletelowprioritygaps<- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) > quantile(carbcompletegap, (.75))
+carbcompletefinalgaps<- carbcompleteseveregaps + carbcompletelowprioritygaps
+
+highfreqseveregaps <- setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) > quantile(highfreqgap, (.99))
+highfreqlowprioritygaps<-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) > quantile(highfreqgap, (.75))
+highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps
+
+
+
+
+
 #leaflet ----
 #my.colors = colorRampPalette(c("#5E85B8","#C13127"))
 
@@ -374,47 +432,52 @@ plot(highfreqfinalgaps)
 
 #tmap----
 
-pal <- colorRampPalette(c("green", "yellow", "red"))
+tmap_mode("view")
+
+
+pal <- colorRampPalette(c("blue", "white", "red"))
 
 
 tm_shape(finalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
-  tm_layout(basemaps = c('OpenStreetMap'))+
+  tm_layout(basemaps = c('OpenStreetMap'))
++
   tm_shape(inventorycoords)+
   tm_dots(col = "black")
 
 tm_shape(carbcompletefinalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
-  tm_layout(basemaps = c('OpenStreetMap'))+
+  tm_layout(basemaps = c('OpenStreetMap'))
++
   tm_shape(incompletecoords)+
   tm_dots(col = "black")
 
 tm_shape(highfreqfinalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
-  tm_layout(basemaps = c('OpenStreetMap'))+
+  tm_layout(basemaps = c('OpenStreetMap'))
++
 tm_shape(lowfreqcoords)+
   tm_dots(col = "black")
 
+#tmap_mode("view")
+#last_map()
 
-tmap_mode("view")
-last_map()
+#tmap_mode("plot")
 
-tmap_mode("plot")
+#pal <- colorRampPalette(c("orange", "blue"))
 
-pal <- colorRampPalette(c("orange", "blue"))
+#tm_shape(r_sst_range_nofill)+
+#  tm_raster(palette = pal(5000), legend.show = FALSE)
 
-tm_shape(r_sst_range_nofill)+
-  tm_raster(palette = pal(5000), legend.show = FALSE)
+#tm_shape(variation)+
+#  tm_raster(palette = pal(5), legend.show = FALSE)
 
-tm_shape(variation)+
-  tm_raster(palette = pal(5), legend.show = FALSE)
-
-tm_shape(polygonsstrange)+
-  tm_raster(palette = pal(5000), legend.show = FALSE)+
-  tm_shape(inventorycoords)+
-  tm_dots()+
-  tm_shape(vor)+
-  tm_borders()
+#tm_shape(polygonsstrange)+
+#  tm_raster(palette = pal(5000), legend.show = FALSE)+
+#  tm_shape(inventorycoords)+
+#  tm_dots()+
+#  tm_shape(vor)+
+#  tm_borders()
