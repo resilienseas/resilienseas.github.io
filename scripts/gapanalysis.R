@@ -44,7 +44,7 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
 # layer manipulation ----
 
 # extent of NE Pacific study area, for cropping rasters
-ext_study <- extent(-670000, 350000, -885000, 1400000)
+ext_study <- extent(-670000, 350000, -885000, 1250000)
 crs_study <- '+init=EPSG:6414'
 
 # sea surface temperature
@@ -178,14 +178,27 @@ oahfocus$MeasFreq[oahfocus$MeasFreq =="Trimester"] <- 3
 unique(oahfocus$MeasFreq)
 
 #remove NA coordinates
+
+
 oahfocus <- oahfocus[!is.na(oahfocus$Latitude), ]
 oahfocus <- oahfocus[!is.na(oahfocus$Longitude), ]
 
+write_csv(oahfocus, "oahfocus.csv")
+
+
+#remove spaces
+gsub(" ", "", oahfocus$Latitude)
+gsub(" ", "", oahfocus$Longitude)
+
+
+oahfocus<-oahfocus[!is.na(as.numeric(as.character(oahfocus$Latitude))),]
+oahfocus<-oahfocus[!is.na(as.numeric(as.character(oahfocus$Longitude))),]
+
+
+
 oahfocus<-transform(oahfocus, Latitude == as.numeric(Latitude))
+oahfocus<-transform(oahfocus,  Longitude  == as.numeric(Longitude))
 
-
-#####################
-oahfocus<-transform(oahfocus, Longitude == as.numeric(Longitude))
 
 #subsets
 carbcomplete<-subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
@@ -210,14 +223,14 @@ deduped.lowfrequency <- unique(lowfrequencycoords)
 #transform to numeric
 
 
-deduped.carbcomplete<-transform(deduped.carbcomplete, carbcomplete$Latitude == as.numeric(oahfocus$Latitude))
-deduped.coords<-transform(deduped.coords, oahfocus$Longitude == as.numeric(oahfocus$Longitude))
+#deduped.carbcomplete<-transform(deduped.carbcomplete, carbcomplete$Latitude #== as.numeric(oahfocus$Latitude))
+#deduped.coords<-transform(deduped.coords, oahfocus$Longitude == as.numeric#(oahfocus$Longitude))
 
-deduped.incomplete<-transform(deduped.incomplete, oahfocus$Latitude == as.numeric(oahfocus$Latitude))
-deduped.coords<-transform(deduped.coords, oahfocus$Longitude == as.numeric(oahfocus$Longitude))
+#deduped.incomplete<-transform(deduped.incomplete, oahfocus$Latitude == as.numeric(oahfocus$Latitude))
+#deduped.coords<-transform(deduped.coords, oahfocus$Longitude == as.numeric(oahfocus$Longitude))
 
-deduped.coords<-transform(deduped.coords, oahfocus$Latitude == as.numeric(oahfocus$Latitude))
-deduped.coords<-transform(deduped.coords, oahfocus$Longitude == as.numeric(oahfocus$Longitude))
+#deduped.coords<-transform(deduped.coords, oahfocus$Latitude == as.numeric(oahfocus$Latitude))
+#deduped.coords<-transform(deduped.coords, oahfocus$Longitude == as.numeric(oahfocus$Longitude))
 
 
 
@@ -245,7 +258,6 @@ plot(inventorycoords, add=TRUE)
 
 # create voronoi polygons
 vor <-voronoi(inventorycoords)
-
 carbcompletevor <- voronoi(carbcompletecoords)
 incompletevor <- voronoi(incompletecoords)
 highfreqvor <- voronoi(highfreqcoords)
@@ -359,11 +371,6 @@ sstrangediff <- sstrangediff/maxValue(sstrangediff)
 carbcompletesstrangediff <- carbcompletesstrangediff/maxValue(carbcompletesstrangediff)
 highfreqsstrangediff <- highfreqsstrangediff/maxValue(highfreqsstrangediff)
 
-# sst combine
-sstvariation <- sstmeandiff+(sstmeandiff*sstrangediff)
-carbcompletesstvariation <- carbcompletesstmeandiff+(carbcompletesstmeandiff*carbcompletesstrangediff)
-highfreqsstvariation <- highfreqsstmeandiff+(highfreqsstmeandiff*highfreqsstrangediff)
-
 # do variation
 
 # do mean
@@ -385,17 +392,6 @@ dorangediff <- dorangediff/maxValue(dorangediff)
 carbcompletedorangediff <- carbcompletedorangediff/maxValue(carbcompletedorangediff)
 highfreqdorangediff <- highfreqdorangediff/maxValue(highfreqdorangediff)
 
-# do combine
-dovariation <- domeandiff + (domeandiff*dorangediff)
-carbcompletedovariation <- carbcompletedomeandiff + (carbcompletedomeandiff*carbcompletedorangediff)
-highfreqdovariation <- highfreqdomeandiff + (highfreqdomeandiff*highfreqdorangediff)
-
-#total variation
-
-variation <- (sstvariation*dovariation)
-carbcompletevariation <- (carbcompletesstvariation * carbcompletedovariation)
-highfreqvariation <- (highfreqsstvariation * highfreqdovariation)
-
 # gap analysis ----
 
 # get distance to nearest monitoring site
@@ -403,35 +399,8 @@ distance<-distanceFromPoints(variation,inventorycoords)
 carbcompletedistance<-distanceFromPoints(carbcompletevariation,carbcompletecoords)
 highfreqdistance<-distanceFromPoints(highfreqvariation,highfreqcoords)
 
-# define gaps = distance * ((diffmeans)+(diffranges*diffmeans))
-gaps <- setValues(distance, (getValues(distance)*(getValues(variation))))
-carbcompletegaps <- setValues(carbcompletedistance, (getValues(carbcompletedistance)*(getValues(carbcompletevariation))))
-highfreqgaps <- setValues(highfreqdistance, (getValues(highfreqdistance)*(getValues(highfreqvariation))))
-
-#test clip of raster to coast shapefile
-poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
-poly_coast <- spTransform(poly_coast, crs(gaps))
-gaps_clipped <- mask(gaps, poly_coast, inverse = TRUE,progress='text')
-
-# create binary gaps
-severegaps <- setValues(gaps, (getValues(distance)*getValues(variation)) > quantile(gaps, (.99)))
-lowprioritygaps<-setValues(gaps, (getValues(distance)*getValues(variation)) > quantile(gaps, (.75)))
-finalgaps<- severegaps+lowprioritygaps
-
-carbcompleteseveregaps <- setValues(carbcompletegaps, (getValues(carbcompletedistance)*getValues(carbcompletevariation)) > quantile(carbcompletegaps, (.99)))
-carbcompletelowprioritygaps<- setValues(carbcompletegaps, (getValues(carbcompletedistance)*getValues(carbcompletevariation)) > quantile(carbcompletegaps, (.75)))
-carbcompletefinalgaps<- carbcompleteseveregaps + carbcompletelowprioritygaps
-
-highfreqseveregaps <- setValues(highfreqgaps, (getValues(highfreqdistance)*getValues(highfreqvariation)) > quantile(highfreqgaps, (.99)))
-highfreqlowprioritygaps<-setValues(gaps, (getValues(highfreqdistance)*getValues(highfreqvariation)) > quantile(highfreqgaps, (.75)))
-highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps
-
-plot(finalgaps)
-plot(carbcompletefinalgaps)
-plot(highfreqfinalgaps)
-
-#bruce feedback ----
-dissimilarity <- sqrt((sstmeandiff^2+domeandiff^2)+(sstrangediff^2+dorangediff^2))
+#oceanographic dissimilarity
+dissimilarity <- sqrt((sstmeandiff^2+domeandiff^2)+5*(sstrangediff^2+dorangediff^2))
 dissimilarity <- dissimilarity/maxValue(dissimilarity)
 
 carbcompletedissimilarity<- sqrt((carbcompletesstmeandiff^2+carbcompletedomeandiff^2)+(carbcompletesstrangediff^2+carbcompletedorangediff^2))
@@ -448,14 +417,14 @@ distance<-distance/maxValue(distance)
 carbcompletedistance<-carbcompletedistance/maxValue(carbcompletedistance)
 highfreqdistance<-highfreqdistance/maxValue(highfreqdistance)
 
-gap<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2))))
+gap<-setValues(distance, sqrt((getValues(distance)^2+5*(getValues(dissimilarity)^2))))
 
 carbcompletegap<-setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2))))
 
 highfreqgap<-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2))))
 
-severegaps <- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.99))
-lowprioritygaps<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.75))
+severegaps <- setValues(distance, sqrt((getValues(distance)^2+5*(getValues(dissimilarity)^2)))) > quantile(gap, (.99))
+lowprioritygaps<-setValues(distance, sqrt((getValues(distance)^2+5*(getValues(dissimilarity)^2)))) > quantile(gap, (.75))
 finalgaps<- severegaps+lowprioritygaps
 
 carbcompleteseveregaps <- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) > quantile(carbcompletegap, (.99))
@@ -466,9 +435,10 @@ highfreqseveregaps <- setValues(highfreqdistance, sqrt((getValues(highfreqdistan
 highfreqlowprioritygaps<-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) > quantile(highfreqgap, (.75))
 highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps
 
-
-
-
+#test clip of raster to coast shapefile
+poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
+poly_coast <- spTransform(poly_coast, crs(gaps))
+gaps_clipped <- mask(gaps, poly_coast, inverse = TRUE,progress='text')
 
 #leaflet ----
 #my.colors = colorRampPalette(c("#5E85B8","#C13127"))
@@ -492,8 +462,16 @@ highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps
 tmap_mode("view")
 
 
-pal <- colorRampPalette(c("blue", "white", "red"))
+pal <- colorRampPalette(c("blue", "white"))
 
+
+tm_shape(inventorycoords)+
+  tm_dots(col = "black")+
+  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
+
+tm_shape(r_sst_mean_nofill)+
+  tm_raster(palette = pal(50))+ 
+  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
 
 tm_shape(finalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
