@@ -132,7 +132,7 @@ plot_raster(r_do_range, "DO range")
 # prep inventory----
 
 # import inventory
-#oahfocus <- read_csv(here("data/oahfocus.csv"))
+inventory <- read_csv(here("data/inventory.csv"))
 
 carbcomplete<-subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
 
@@ -441,7 +441,7 @@ pal <- colorRampPalette(c("blue", "white", "red"))
 tm_shape(finalgaps)+
   tm_raster(palette = pal(3), colorNA = NULL)+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
-  tm_layout(basemaps = c('OpenStreetMap'))
+  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
 +
   tm_shape(inventorycoords)+
   tm_dots(col = "black")
