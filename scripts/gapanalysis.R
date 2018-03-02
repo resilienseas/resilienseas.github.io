@@ -134,35 +134,92 @@ plot_raster(r_do_range, "DO range")
 # import inventory
 inventory <- read_csv(here("data/inventory.csv"))
 
+#remove non OAH focus entries
+oahfocus <- subset(inventory, OAHFocus == "OA" | OAHFocus == "H" | OAHFocus == "OAH")
+
+#quantify frequencies
+unique(oahfocus$MeasFreq)
+
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Once"] <- 0
+oahfocus$MeasFreq[oahfocus$MeasFreq == 10] <- 52560
+oahfocus$MeasFreq[oahfocus$MeasFreq =="< 6 hours"] <- 1460
+oahfocus$MeasFreq[oahfocus$MeasFreq == 60] <- 8760
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Daily"] <- 365
+oahfocus$MeasFreq[oahfocus$MeasFreq ==30] <- 17520
+oahfocus$MeasFreq[oahfocus$MeasFreq == 20] <- 26280
+oahfocus$MeasFreq[oahfocus$MeasFreq == 15] <- 35040
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Quarterly"] <- 4
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Annual"] <- 1
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Monthly"] <- 12
+oahfocus$MeasFreq[oahfocus$MeasFreq == 5] <- 105120
+oahfocus$MeasFreq[oahfocus$MeasFreq == 6] <- 87600
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Semi-annual"] <- 2
+oahfocus$MeasFreq[oahfocus$MeasFreq == 180] <- 2920
+oahfocus$MeasFreq[oahfocus$MeasFreq == 2] <- 262800
+oahfocus$MeasFreq[oahfocus$MeasFreq == 0.25] <- 2102400
+oahfocus$MeasFreq[oahfocus$MeasFreq == 3] <- 175200
+oahfocus$MeasFreq[oahfocus$MeasFreq == 1] <- 525600
+oahfocus$MeasFreq[oahfocus$MeasFreq == 120] <- 2920
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Bi-weekly"] <- 26
+oahfocus$MeasFreq[oahfocus$MeasFreq == 360] <- 1460
+oahfocus$MeasFreq[oahfocus$MeasFreq == 720] <- 730
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Seasonally"] <- 1
+oahfocus$MeasFreq[oahfocus$MeasFreq =="1/4 second"] <- 126144000
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Bi-monthly"] <- 6
+oahfocus$MeasFreq[oahfocus$MeasFreq =="5  Years"] <- 0.2
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Bi-weekly"] <- 26
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Variable"] <- 0
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Decadal"] <- 0.1
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Biennial"] <- 0.5
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Weekly"] <- 52
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Triennial"] <- 0.33333
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Trimester"] <- 3
+
+unique(oahfocus$MeasFreq)
+
+#remove NA coordinates
+oahfocus <- oahfocus[!is.na(oahfocus$Latitude), ]
+oahfocus <- oahfocus[!is.na(oahfocus$Longitude), ]
+
+oahfocus<-transform(oahfocus, Latitude == as.numeric(Latitude))
+
+
+#####################
+oahfocus<-transform(oahfocus, Longitude == as.numeric(Longitude))
+
+#subsets
 carbcomplete<-subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
-
 incomplete <- subset(oahfocus, DisCrbPmtr<2 & ISCrbPmtr < 2)
-
 highfrequency<-subset(oahfocus, MeasType == "continuous")
-
-lowfrequency <- subset(oahfocus, Meas.Yr < 365)
+lowfrequency <- subset(oahfocus, MeasFreq < 365)
 
 # isolate coordinate columns
 coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
-
 carbcompletecoords <- cbind.data.frame(carbcomplete$Longitude, carbcomplete$Latitude)
-
 incompletecoords <- cbind.data.frame(incomplete$Longitude, incomplete$Latitude)
-
 highfrequencycoords <- cbind.data.frame(highfrequency$Longitude, highfrequency$Latitude)
-
 lowfrequencycoords <- cbind.data.frame(lowfrequency$Longitude, lowfrequency$Latitude)
 
 # remove duplicate locations
 deduped.coords<-unique(coords)
-
 deduped.carbcomplete <- unique(carbcompletecoords)
-
 deduped.incomplete <- unique(incompletecoords)
-
 deduped.highfrequency <- unique(highfrequencycoords)
-
 deduped.lowfrequency <- unique(lowfrequencycoords)
+
+#transform to numeric
+
+
+deduped.carbcomplete<-transform(deduped.carbcomplete, carbcomplete$Latitude == as.numeric(oahfocus$Latitude))
+deduped.coords<-transform(deduped.coords, oahfocus$Longitude == as.numeric(oahfocus$Longitude))
+
+deduped.incomplete<-transform(deduped.incomplete, oahfocus$Latitude == as.numeric(oahfocus$Latitude))
+deduped.coords<-transform(deduped.coords, oahfocus$Longitude == as.numeric(oahfocus$Longitude))
+
+deduped.coords<-transform(deduped.coords, oahfocus$Latitude == as.numeric(oahfocus$Latitude))
+deduped.coords<-transform(deduped.coords, oahfocus$Longitude == as.numeric(oahfocus$Longitude))
+
+
 
 # create spatial points objects
 inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
