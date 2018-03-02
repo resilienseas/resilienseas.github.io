@@ -179,6 +179,7 @@ unique(oahfocus$MeasFreq)
 
 #remove NA coordinates
 
+str_replace_all(oah)
 
 oahfocus <- oahfocus[!is.na(oahfocus$Latitude), ]
 oahfocus <- oahfocus[!is.na(oahfocus$Longitude), ]
@@ -189,6 +190,7 @@ write_csv(oahfocus, "oahfocus.csv")
 #remove spaces
 gsub(" ", "", oahfocus$Latitude)
 gsub(" ", "", oahfocus$Longitude)
+gsub("'<ca>'", "", oahfocus$Longitude)
 
 
 oahfocus<-oahfocus[!is.na(as.numeric(as.character(oahfocus$Latitude))),]
