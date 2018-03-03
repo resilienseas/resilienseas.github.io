@@ -287,7 +287,7 @@ mapview(poly_MPA)
 ##########################################################
 
 pal <- colorRampPalette(c("red", "white", "royalblue2"))
-
+pal <- c("red", "white", "royalblue2") 
 pal2 <- colorRampPalette(c("red", "darkorange1", "gold"))
 pal3 <- colorRampPalette(c("steelblue", "orangered3"))
 
@@ -298,7 +298,7 @@ tm_shape(poly_MPA) + tm_polygons("ARAGONITE_MEAN", palette=pal(3), colorNA=NULL,
 
 tm_shape(aragonite_clipped_2) +
   tm_raster(aragonite_clipped_2, breaks=seq(1,3, by=0.2),
-            palette= pal(3), title="Aragonite Saturation State") +
+            col= c("red", "white", "royalblue2"), title="Aragonite Saturation State") +
   tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
 
 tm_shape(arag_stdv2) +
