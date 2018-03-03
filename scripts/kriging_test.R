@@ -17,6 +17,7 @@ library(here) #install.packages("here)
 library(leaflet) #install.packages("leaflet")
 library(tmap) #install.packages("tmap")
 library(sf) #install.packages("sf")
+library(dplyr)
 
 ######################################################
 #PART I: PREPARE DATASET
@@ -169,6 +170,7 @@ mapview(hotspotmask)
 #poly_MPA <- readOGR(dsn=path.expand("/Users/rttaylorburnscom/github/resilienseas/all_mpas_update"), layer="all_mpas_update")
 
 poly_MPA <- readOGR(dsn=path.expand("/Users/courtney/GP/all_mpas_update"), layer="all_mpas_update")
+#poly_MPA <- readOGR(dsn=path.expand("/Users/courtneycochran/downloads/all_mpas_update"), layer="all_mpas_update")
 
 #Assign same projection as hotspotmask raster to MPA shapefile
 poly_MPA <- spTransform(poly_MPA, crs(hotspotmask))
@@ -330,6 +332,8 @@ write.csv(poly_MPA@data, file= "mpa_habitat.csv")
 ######Rocky reef
 efh_rockyreef <- readOGR(dsn='G:/Habitat/EFH_rocky_reefs', layer='altb06')
 efh_rockyreef <- spTransform(efh_rockyreef, crs(hotspotmask))
+efh_rockyreef<- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/EFH_rocky_reefs"), layer="altb06")
+
 
 #create intersection of MPA with kelp
 mpa_rr <- raster::intersect(poly_MPA, efh_rockyreef)
@@ -371,6 +375,9 @@ poly_MPA@data <- merge(poly_MPA@data, mpa_seagrass_df, by="SITE_NAME", all=TRUE)
 
 #write csv
 write.csv(poly_MPA@data, file= "mpa_rr_seagrass.csv")
+
+########Plot Habitats
+
 
 ###################################
 # LEAFLET VISUALIZATIONS
