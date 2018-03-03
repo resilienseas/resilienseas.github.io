@@ -218,6 +218,17 @@ hotspot_clipped_2 <- mask(hotspot_clipped, estuary, inverse=TRUE)
 plot(hotspot_clipped_2)
 mapview(hotspot_clipped_2)
 
+##############Canada 
+Canada <- readOGR(dsn='G:/Final_MPA_shapefiles/Canada', layer='Canada')
+Canada <- spTransform(Canada, crs(aragonite_raster_prj))
+aragonite_clipped_2 <- mask(aragonite_clipped_2, Canada, inverse= TRUE, progress='text')
+hotspot_clipped_2 <- mask(hotspot_clipped_2, Canada, inverse=TRUE)
+#############Puget sound
+pugetsound <- readOGR(dsn='G:/Habitat/hotspot_square', layer='hotspot_square')
+pugetsound <- spTransform(pugetsound, crs(hotspotmask))
+aragonite_clipped_2 <- mask(aragonite_clipped_2, pugetsound, inverse= TRUE, progress='text')
+hotspot_clipped_2 <- mask(hotspot_clipped_2, pugetsound, inverse=TRUE)
+
 ##############################################################
 #PART VII. ZONAL STATISTICS
 #############################################################
