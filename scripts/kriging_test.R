@@ -139,7 +139,11 @@ mapview(aragonite_raster_prj)
 class(aragonite_raster)
 #writeRaster(aragonite_raster, "WCOA13_aragonite_raster_1000_anis", format="GTiff",overwrite=TRUE)
 
-
+###############################################################
+#Part III.B - Subtract Standard Deviation from raster layer 
+fun <- function(x) {x[x<0] <- 0; return(x) }
+arag_stdv <- aragonite_raster_prj - 1
+arag_stdv2 <- raster::calc(arag_stdv, fun)
 ##############################################################
 #PART IV: HOTSPOT MASK
 ######################################################
@@ -150,11 +154,15 @@ class(aragonite_raster)
 m <- c(0,1,1, 1,1.7,1.7, 1.7,2,2, 2,10,NA)
 reclassifymatrix <- matrix(m, ncol=3, byrow=TRUE)
 hotspotmask <- reclassify(aragonite_raster_prj, reclassifymatrix)
+hotspotmask <- reclassify(arag_stdv2, reclassifymatrix)
 View(reclassifymatrix)
 plot(hotspotmask)
 mapview(hotspotmask)
 #next steps: write as output and view in Arc
 #writeRaster(hotspotmask, "WCOA13_hotspotmask_anis", format="GTiff",overwrite=TRUE)
+
+#test other wat to make hotspot mask
+#test1 <- calc(arag_stdv2, fun=function(x){ x[x < 2] <- NA; return(x)} )
 
 
 ##############################################################
@@ -190,6 +198,7 @@ poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSe
 #poly_coast <- readOGR(dsn=path.expand("/Users/rttaylorburnscom/github/resilienseas/Export_Output_2"), layer="Export_Output_2")
 
 poly_coast <- readOGR(dsn=path.expand("/Users/courtney/GP/Export_Output_2"), layer="Export_Output_2")
+poly_coast <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/Export_Output_2"), layer="Export_Output_2")
 
 #Set same projection as rasters
 poly_coast <- spTransform(poly_coast, crs(aragonite_raster_prj))
@@ -206,6 +215,7 @@ plot(hotspot_clipped)
 ############Estuary .shp saved in hotspot interpolation folder on G drive
 #Load Estuary Data 
 estuary <- readOGR(dsn='G:/Hotspot_Interpolation/estuaries', layer='estuaries')
+estuary <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/estuaries"), layer="altb02")
 
 #Set same projection as rasters
 estuary <- spTransform(estuary, crs(aragonite_raster_prj))
@@ -223,11 +233,13 @@ mapview(hotspot_clipped_2)
 ##############Canada 
 Canada <- readOGR(dsn='G:/Final_MPA_shapefiles/Canada', layer='Canada')
 Canada <- spTransform(Canada, crs(aragonite_raster_prj))
+Canada <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/Canada"), layer="Canada")
 aragonite_clipped_2 <- mask(aragonite_clipped_2, Canada, inverse= TRUE, progress='text')
 hotspot_clipped_2 <- mask(hotspot_clipped_2, Canada, inverse=TRUE)
 #############Puget sound
 pugetsound <- readOGR(dsn='G:/Habitat/hotspot_square', layer='hotspot_square')
 pugetsound <- spTransform(pugetsound, crs(hotspotmask))
+pugetsound <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/hotspot_square"), layer="hotspot_square")
 aragonite_clipped_2 <- mask(aragonite_clipped_2, pugetsound, inverse= TRUE, progress='text')
 hotspot_clipped_2 <- mask(hotspot_clipped_2, pugetsound, inverse=TRUE)
 
@@ -289,10 +301,17 @@ tm_shape(aragonite_clipped_2) +
             palette= pal(3), title="Aragonite Saturation State") +
   tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
 
+tm_shape(arag_stdv2) +
+  tm_raster(arag_stdv2, 
+            palette= pal(3), title="Aragonite Saturation State") +
+  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
+
 tm_shape(hotspot_clipped_2) +
-  tm_raster(hotspot_clipped_2, breaks= c(0, 1.0, 1.7, 2.0),
+  tm_raster(hotspot_clipped_2, 
             palette = pal2(3), title="Aragonite Saturation State") +
   tm_layout(basemaps=c('OpenStreetMap'), basemaps.alpha = 0.5)
+
+breaks= c(0, 1.0, 1.7, 2.0)
 
 tm_shape(poly_MPA) + tm_polygons("PCT_HOTSPOTCOVER", palette=pal3(7),
                                  breaks=seq(0, 1, by=0.1),
@@ -301,6 +320,7 @@ tm_shape(poly_MPA) + tm_polygons("PCT_HOTSPOTCOVER", palette=pal3(7),
 
 tmap_mode("view")
 last_map()
+
 
 #############################################################
 #HABITAT ANALYSIS
