@@ -179,28 +179,16 @@ unique(oahfocus$MeasFreq)
 
 #remove NA coordinates
 
-str_replace_all(oah)
-
 oahfocus <- oahfocus[!is.na(oahfocus$Latitude), ]
 oahfocus <- oahfocus[!is.na(oahfocus$Longitude), ]
 
 write_csv(oahfocus, "oahfocus.csv")
 
 
-#remove spaces
+#remove spaces and transform to numeric
 gsub(" ", "", oahfocus$Latitude)
 gsub(" ", "", oahfocus$Longitude)
 gsub("'<ca>'", "", oahfocus$Longitude)
-
-
-oahfocus<-oahfocus[!is.na(as.numeric(as.character(oahfocus$Latitude))),]
-oahfocus<-oahfocus[!is.na(as.numeric(as.character(oahfocus$Longitude))),]
-
-
-
-oahfocus<-transform(oahfocus, Latitude == as.numeric(Latitude))
-oahfocus<-transform(oahfocus,  Longitude  == as.numeric(Longitude))
-
 
 #subsets
 carbcomplete<-subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
@@ -221,20 +209,6 @@ deduped.carbcomplete <- unique(carbcompletecoords)
 deduped.incomplete <- unique(incompletecoords)
 deduped.highfrequency <- unique(highfrequencycoords)
 deduped.lowfrequency <- unique(lowfrequencycoords)
-
-#transform to numeric
-
-
-#deduped.carbcomplete<-transform(deduped.carbcomplete, carbcomplete$Latitude #== as.numeric(oahfocus$Latitude))
-#deduped.coords<-transform(deduped.coords, oahfocus$Longitude == as.numeric#(oahfocus$Longitude))
-
-#deduped.incomplete<-transform(deduped.incomplete, oahfocus$Latitude == as.numeric(oahfocus$Latitude))
-#deduped.coords<-transform(deduped.coords, oahfocus$Longitude == as.numeric(oahfocus$Longitude))
-
-#deduped.coords<-transform(deduped.coords, oahfocus$Latitude == as.numeric(oahfocus$Latitude))
-#deduped.coords<-transform(deduped.coords, oahfocus$Longitude == as.numeric(oahfocus$Longitude))
-
-
 
 # create spatial points objects
 inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
@@ -271,11 +245,6 @@ carbcompletevorraster<- rasterize(carbcompletevor, r_sst_mean, "id")
 incompletevorraster<- rasterize(incompletevor, r_sst_mean, "id")
 highfreqvorraster<- rasterize(highfreqvor, r_sst_mean, "id")
 lowfreqvorraster<- rasterize(lowfreqvor, r_sst_mean, "id")
-
-
-# plot rasterized polygons
-plot_raster(vorraster, "vorraster")
-mapview(vorraster)
 
 # substitution process ----
 
@@ -347,6 +316,28 @@ polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
 carbcompletepolygondorange<-subs(carbcompletevorraster, carbcompletesitedorange, by="id", which="DO")
 highfreqpolygondorange<-subs(highfreqvorraster, highfreqsitedorange, by="id", which="DO")
 
+# normalization process ----
+r_sst_mean_nofill<-r_sst_mean_nofill/maxValue(r_sst_mean_nofill)
+r_sst_range_nofill<-r_sst_range_nofill/maxValue(r_sst_range_nofill)
+r_do_mean_nofill<-r_do_mean_nofill/maxValue(r_do_mean_nofill)
+r_do_range_nofill<-r_do_range_nofill/maxValue(r_do_range_nofill)
+
+polygonsst<-polygonsst/maxValue(r_sst_mean_nofill)
+carbcompletepolygonsst<-carbcompletepolygonsst/maxValue(r_sst_mean_nofill)
+highfreqpolygonsst<-highfreqpolygonsst/maxValue(r_sst_mean_nofill)
+
+polygonsstrange<-polygonsstrange/maxValue(r_sst_range_nofill)
+carbcompletepolygonsstrange<-carbcompletepolygonsstrange/maxValue(r_sst_range_nofill)
+highfreqpolygonsstrange<-highfreqpolygonsstrange/maxValue(r_sst_range_nofill)
+
+polygondo<-polygondo/maxValue(r_do_mean_nofill)
+carbcompletepolygondo<-carbcompletepolygondo/maxValue(r_do_mean_nofill)
+highfreqpolygondo<-highfreqpolygondo/maxValue(r_do_mean_nofill)
+
+polygondorange<-polygondorange/maxValue(r_do_range_nofill)
+carbcompletepolygondorange<-carbcompletepolygondorange/maxValue(r_do_range_nofill)
+highfreqpolygondorange<-highfreqpolygondorange/maxValue(r_do_range_nofill)
+
 # spatial + temporal variation ----
 
 # variation = (imean - amean) + (imean - amean)*(irange - arange)
@@ -364,15 +355,6 @@ sstrangediff <- abs(r_sst_range_nofill - polygonsstrange)
 carbcompletesstrangediff <- abs(r_sst_range_nofill - carbcompletepolygonsstrange)
 highfreqsstrangediff <- abs(r_sst_range_nofill - highfreqpolygonsstrange)
 
-#normalize
-sstmeandiff <- sstmeandiff/maxValue(sstmeandiff)
-carbcompletesstmeandiff <- carbcompletesstmeandiff/maxValue(carbcompletesstmeandiff)
-highfreqsstmeandiff <- highfreqsstmeandiff/maxValue(highfreqsstmeandiff)
-
-sstrangediff <- sstrangediff/maxValue(sstrangediff)
-carbcompletesstrangediff <- carbcompletesstrangediff/maxValue(carbcompletesstrangediff)
-highfreqsstrangediff <- highfreqsstrangediff/maxValue(highfreqsstrangediff)
-
 # do variation
 
 # do mean
@@ -385,48 +367,30 @@ dorangediff <- abs(r_do_range_nofill - polygondorange)
 carbcompletedorangediff <- abs(r_do_range_nofill - carbcompletepolygondorange)
 highfreqdorangediff <- abs(r_do_range_nofill - highfreqpolygondorange)
 
-#normalize
-domeandiff <- domeandiff/maxValue(domeandiff)
-carbcompletedomeandiff <- carbcompletedomeandiff/maxValue(carbcompletedomeandiff)
-highfreqdomeandiff <- highfreqdomeandiff/maxValue(highfreqdomeandiff)
-
-dorangediff <- dorangediff/maxValue(dorangediff)
-carbcompletedorangediff <- carbcompletedorangediff/maxValue(carbcompletedorangediff)
-highfreqdorangediff <- highfreqdorangediff/maxValue(highfreqdorangediff)
-
 # gap analysis ----
-
-# get distance to nearest monitoring site
-distance<-distanceFromPoints(variation,inventorycoords)
-carbcompletedistance<-distanceFromPoints(carbcompletevariation,carbcompletecoords)
-highfreqdistance<-distanceFromPoints(highfreqvariation,highfreqcoords)
 
 #oceanographic dissimilarity
 dissimilarity <- sqrt((sstmeandiff^2+domeandiff^2)+5*(sstrangediff^2+dorangediff^2))
-dissimilarity <- dissimilarity/maxValue(dissimilarity)
 
-carbcompletedissimilarity<- sqrt((carbcompletesstmeandiff^2+carbcompletedomeandiff^2)+(carbcompletesstrangediff^2+carbcompletedorangediff^2))
-carbcompletedissimilarity <- carbcompletedissimilarity/maxValue(carbcompletedissimilarity)
+carbcompletedissimilarity<- sqrt((carbcompletesstmeandiff^2+carbcompletedomeandiff^2)+5*(carbcompletesstrangediff^2+carbcompletedorangediff^2))
 
-highfreqdissimilarity <- sqrt((highfreqsstmeandiff^2+highfreqdomeandiff^2)+(highfreqsstrangediff^2+highfreqdorangediff^2))
-highfreqdissimilarity <- highfreqdissimilarity/maxValue(highfreqdissimilarity)
+highfreqdissimilarity <- sqrt((highfreqsstmeandiff^2+highfreqdomeandiff^2)+5*(highfreqsstrangediff^2+highfreqdorangediff^2))
 
-distance<-distanceFromPoints(dissimilarity, inventorycoords)
-carbcompletedistance<-distanceFromPoints(carbcompletedissimilarity, carbcompletecoords)
-highfreqdistance<-distanceFromPoints(highfreqdissimilarity, highfreqcoords)
+###sensitivity analysis to determine if this has a huge impact or not. if there is a future impact then thats an issue for future research. 
 
-distance<-distance/maxValue(distance)
-carbcompletedistance<-carbcompletedistance/maxValue(carbcompletedistance)
-highfreqdistance<-highfreqdistance/maxValue(highfreqdistance)
+distance<-distanceFromPoints(dissimilarity, inventorycoords)*10^-11
+carbcompletedistance<-distanceFromPoints(carbcompletedissimilarity, carbcompletecoords)*10^-11
+highfreqdistance<-distanceFromPoints(highfreqdissimilarity, highfreqcoords)*10^-11
 
-gap<-setValues(distance, sqrt((getValues(distance)^2+5*(getValues(dissimilarity)^2))))
-
+gap<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2))))
 carbcompletegap<-setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2))))
-
 highfreqgap<-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2))))
 
-severegaps <- setValues(distance, sqrt((getValues(distance)^2+5*(getValues(dissimilarity)^2)))) > quantile(gap, (.99))
-lowprioritygaps<-setValues(distance, sqrt((getValues(distance)^2+5*(getValues(dissimilarity)^2)))) > quantile(gap, (.75))
+severegaps <- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.99))
+
+
+
+lowprioritygaps<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.75))
 finalgaps<- severegaps+lowprioritygaps
 
 carbcompleteseveregaps <- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) > quantile(carbcompletegap, (.99))
@@ -464,7 +428,10 @@ gaps_clipped <- mask(gaps, poly_coast, inverse = TRUE,progress='text')
 tmap_mode("view")
 
 
-pal <- colorRampPalette(c("blue", "white"))
+pal <- colorRampPalette(c("slateblue", "plum", "orangered"))
+
+tm_shape(finalgaps)+
+  tm_raster(palette = pal(3))
 
 
 tm_shape(inventorycoords)+
@@ -476,26 +443,24 @@ tm_shape(r_sst_mean_nofill)+
   tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
 
 tm_shape(finalgaps)+
-  tm_raster(palette = pal(3), colorNA = NULL)+
+  tm_raster(palette = pal(3), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps"))+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
-  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
-+
+  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)+
+  tm_legend()
   tm_shape(inventorycoords)+
   tm_dots(col = "black")
 
 tm_shape(carbcompletefinalgaps)+
-  tm_raster(palette = pal(3), colorNA = NULL)+
+  tm_raster(palette = pal(3), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps"))+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
-  tm_layout(basemaps = c('OpenStreetMap'))
-+
+  tm_layout(basemaps = c('OpenStreetMap'))+
   tm_shape(incompletecoords)+
   tm_dots(col = "black")
 
 tm_shape(highfreqfinalgaps)+
-  tm_raster(palette = pal(3), colorNA = NULL)+
+  tm_raster(palette = pal(3), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps"))+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
-  tm_layout(basemaps = c('OpenStreetMap'))
-+
+  tm_layout(basemaps = c('OpenStreetMap'))+
 tm_shape(lowfreqcoords)+
   tm_dots(col = "black")
 
