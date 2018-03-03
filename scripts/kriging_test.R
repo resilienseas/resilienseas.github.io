@@ -377,7 +377,12 @@ poly_MPA@data <- merge(poly_MPA@data, mpa_seagrass_df, by="SITE_NAME", all=TRUE)
 write.csv(poly_MPA@data, file= "mpa_rr_seagrass.csv")
 
 ########Plot Habitats
-
+tm_shape(poly_MPA) + tm_polygons()  +
+  tm_shape(efh_rockyreef) + tm_polygons()
+  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
+  
+  tmap_mode("view")
+  last_map()
 
 ###################################
 # LEAFLET VISUALIZATIONS
