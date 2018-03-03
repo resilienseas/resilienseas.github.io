@@ -272,7 +272,10 @@ mapview(poly_MPA)
 #Visualizing MPA Zonal statistics
 ##########################################################
 
-pal <- colorRampPalette(c("orangered3", "steelblue"))
+pal <- colorRampPalette(c("red", "white", "royalblue2"))
+
+pal2 <- colorRampPalette(c("red", "darkorange1", "gold"))
+pal3 <- colorRampPalette(c("steelblue", "orangered3"))
 
 tm_shape(poly_MPA) + tm_polygons("ARAGONITE_MEAN", palette=pal(7),
                                  breaks=seq(1,3, by=0.2),
