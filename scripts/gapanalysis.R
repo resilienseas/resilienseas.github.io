@@ -44,7 +44,7 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
 # layer manipulation ----
 
 # extent of NE Pacific study area, for cropping rasters
-ext_study <- extent(-670000, 350000, -885000, 1250000)
+ext_study <- extent(-670000, 350000, -650000, 1250000)
 crs_study <- '+init=EPSG:6414'
 
 # sea surface temperature
@@ -182,6 +182,8 @@ unique(oahfocus$MeasFreq)
 oahfocus <- oahfocus[!is.na(oahfocus$Latitude), ]
 oahfocus <- oahfocus[!is.na(oahfocus$Longitude), ]
 
+
+
 write_csv(oahfocus, "oahfocus.csv")
 
 
@@ -189,6 +191,9 @@ write_csv(oahfocus, "oahfocus.csv")
 gsub(" ", "", oahfocus$Latitude)
 gsub(" ", "", oahfocus$Longitude)
 gsub("'<ca>'", "", oahfocus$Longitude)
+oahfocus$Longitude<-as.numeric(oahfocus$Longitude)
+oahfocus$Latitude<-as.numeric(oahfocus$Latitude)
+
 
 #subsets
 carbcomplete<-subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
@@ -370,36 +375,38 @@ highfreqdorangediff <- abs(r_do_range_nofill - highfreqpolygondorange)
 # gap analysis ----
 
 #oceanographic dissimilarity
-dissimilarity <- sqrt((sstmeandiff^2+domeandiff^2)+5*(sstrangediff^2+dorangediff^2))
+dissimilarity <- sqrt((sstmeandiff^2+domeandiff^2)+3*(sstrangediff^2+dorangediff^2))
 
-carbcompletedissimilarity<- sqrt((carbcompletesstmeandiff^2+carbcompletedomeandiff^2)+5*(carbcompletesstrangediff^2+carbcompletedorangediff^2))
+carbcompletedissimilarity<- sqrt((carbcompletesstmeandiff^2+carbcompletedomeandiff^2)+3*(carbcompletesstrangediff^2+carbcompletedorangediff^2))
 
-highfreqdissimilarity <- sqrt((highfreqsstmeandiff^2+highfreqdomeandiff^2)+5*(highfreqsstrangediff^2+highfreqdorangediff^2))
+highfreqdissimilarity <- sqrt((highfreqsstmeandiff^2+highfreqdomeandiff^2)+3*(highfreqsstrangediff^2+highfreqdorangediff^2))
 
 ###sensitivity analysis to determine if this has a huge impact or not. if there is a future impact then thats an issue for future research. 
 
-distance<-distanceFromPoints(dissimilarity, inventorycoords)*10^-11
-carbcompletedistance<-distanceFromPoints(carbcompletedissimilarity, carbcompletecoords)*10^-11
-highfreqdistance<-distanceFromPoints(highfreqdissimilarity, highfreqcoords)*10^-11
+distance<-distanceFromPoints(dissimilarity, inventorycoords)*10^-5
+carbcompletedistance<-distanceFromPoints(carbcompletedissimilarity, carbcompletecoords)*10^-5
+highfreqdistance<-distanceFromPoints(highfreqdissimilarity, highfreqcoords)*10^-5
 
 gap<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2))))
 carbcompletegap<-setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2))))
 highfreqgap<-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2))))
 
-severegaps <- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.99))
+severegaps <- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.999))
 
-
+highprioritygaps <- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.99))
 
 lowprioritygaps<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.75))
-finalgaps<- severegaps+lowprioritygaps
+finalgaps<- severegaps+lowprioritygaps+highprioritygaps
 
-carbcompleteseveregaps <- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) > quantile(carbcompletegap, (.99))
+carbcompleteseveregaps <- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) > quantile(carbcompletegap, (.999))
+carbcompletehighprioritygaps<- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) > quantile(carbcompletegap, (.99))
 carbcompletelowprioritygaps<- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) > quantile(carbcompletegap, (.75))
-carbcompletefinalgaps<- carbcompleteseveregaps + carbcompletelowprioritygaps
+carbcompletefinalgaps<- carbcompleteseveregaps + carbcompletelowprioritygaps+carbcompletehighprioritygaps
 
-highfreqseveregaps <- setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) > quantile(highfreqgap, (.99))
+highfreqseveregaps <- setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) > quantile(highfreqgap, (.999))
+highfreqhighprioritygaps<-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) > quantile(highfreqgap, (.99))
 highfreqlowprioritygaps<-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) > quantile(highfreqgap, (.75))
-highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps
+highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps+highfreqhighprioritygaps
 
 #test clip of raster to coast shapefile
 poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
@@ -428,7 +435,7 @@ gaps_clipped <- mask(gaps, poly_coast, inverse = TRUE,progress='text')
 tmap_mode("view")
 
 
-pal <- colorRampPalette(c("slateblue", "plum", "orangered"))
+pal <- colorRampPalette(c("slateblue4", "slateblue", "plum", "orangered2"))
 
 tm_shape(finalgaps)+
   tm_raster(palette = pal(3))
@@ -443,7 +450,7 @@ tm_shape(r_sst_mean_nofill)+
   tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
 
 tm_shape(finalgaps)+
-  tm_raster(palette = pal(3), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps"))+
+  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
   tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)+
   tm_legend()
@@ -451,14 +458,14 @@ tm_shape(finalgaps)+
   tm_dots(col = "black")
 
 tm_shape(carbcompletefinalgaps)+
-  tm_raster(palette = pal(3), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps"))+
+  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
   tm_layout(basemaps = c('OpenStreetMap'))+
   tm_shape(incompletecoords)+
   tm_dots(col = "black")
 
 tm_shape(highfreqfinalgaps)+
-  tm_raster(palette = pal(3), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps"))+
+  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
   tm_layout(basemaps = c('OpenStreetMap'))+
 tm_shape(lowfreqcoords)+
