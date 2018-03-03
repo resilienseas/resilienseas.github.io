@@ -280,22 +280,22 @@ pal3 <- colorRampPalette(c("steelblue", "orangered3"))
 tm_shape(poly_MPA) + tm_polygons("ARAGONITE_MEAN", palette=pal(3), colorNA=NULL,
                                  breaks=seq(1,3, by=0.2),
                                  title="Mean Aragonite \nSaturation State") +
-  tm_legend(legend.position=c("right", "bottom"))
+  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
 
 tm_shape(aragonite_clipped_2) +
   tm_raster(aragonite_clipped_2, breaks=seq(1,3, by=0.2),
             palette= pal(3), title="Aragonite Saturation State") +
-  tm_layout(basemaps = c('OpenStreetMap'))
+  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
 
 tm_shape(hotspot_clipped_2) +
   tm_raster(hotspot_clipped_2, breaks= c(0, 1.0, 1.7, 2.0),
             palette = pal2(3), title="Aragonite Saturation State") +
-  tm_layout(basemaps=c('OpenStreetMap'))
+  tm_layout(basemaps=c('OpenStreetMap'), basemaps.alpha = 0.5)
 
 tm_shape(poly_MPA) + tm_polygons("PCT_HOTSPOTCOVER", palette=pal3(7),
                                  breaks=seq(0, 1, by=0.1),
                                  title="Percent of MPA Covered by Hotspot") +
-  tm_legend(legend.position=c("right", "bottom"))
+  tm_legend(legend.position=c("right", "bottom"), basemaps.alpha = 0.5)
 
 tmap_mode("view")
 last_map()
@@ -303,37 +303,74 @@ last_map()
 #############################################################
 #HABITAT ANALYSIS
 #############################################################
-#Potential Historical data from EFH HAPC (Pacific Groundfish 2005 EIS)
+#Historical data from EFH HAPC (Pacific Groundfish 2005 EIS)
 
-#Load using sf package
-efh_kelp <- st_read(dsn='G:/Habitat/EFH_kelp', layer='altb03')
-efh_rockyreef <- st_read(dsn='G:/Habitat/EFH_rocky_reefs', layer='altb06')
-eFH_seagrass <- st_read(dsn='G:/Habitat/EFH_seagrass', layer='altb04')
-#sf set projections
-efh_kelp <- st_transform(efh_kelp, '+init=EPSG:6414')
-efh_rockyreef <- st_transform(efh_rockyreef, '+init=EPSG:6414')
-efh_seagrass <- st_transform(eFH_seagrass, '+init=EPSG:6414')
+efh_kelp <- readOGR(dsn='G:/Habitat/EFH_kelp', layer='altb03')
+efh_kelp <- spTransform(efh_kelp, crs(hotspotmask))
 
-#Change names of columns in dataframe 
-names(efh_kelp) <- c("Habitat", "geometry")
-names(efh_rockyreef) <- c("Habitat", "geometry")
-names(efh_seagrass) <- c("Habitat", "geometry")
+#create intersection of MPA with kelp
+mpa_kelp <- raster::intersect(poly_MPA, efh_kelp)
 
-#Add habitat type to dataframe
-efh_kelp$Habitat <- rep("kelp", times=271877)
-efh_rockyreef$Habitat <- rep("rocky_reef", times=17633)
-efh_seagrass$Habitat <- rep("seagrass", times=84100)
+#calculate area of mpa and kelp overlap
+mpa_kelp@data$area_km2 <-gArea(mpa_kelp, byid=TRUE)/1e6
 
-#Merge three habitat layers
-efh_habitat <- rbind(efh_kelp, efh_seagrass, efh_rockyreef)
+#summarize the amount of mpa/kelp overlap within each MPA
+mpa_kelp_df <- mpa_kelp@data %>% 
+  group_by(SITE_ID, SITE_NAME) %>%
+  summarize(kelp_area = sum(area_km2),
+            by = 'SITE_ID')
+#remove extra column names 
+mpa_kelp_df <- mpa_kelp_df[, 2:3]
 
-plot(efh_habitat['Habitat'])
-library(tmap)
-tm_shape(efh_habitat) +
-  tm_polygons("Habitat", title="EFH Habitat Type")
+#join to poly_mpa data
+poly_MPA@data <- merge(poly_MPA@data, mpa_kelp_df, by="SITE_NAME", all=TRUE)
 
-tmap_mode("view")
-last_map()
+write.csv(poly_MPA@data, file= "mpa_habitat.csv")
+
+######Rocky reef
+efh_rockyreef <- readOGR(dsn='G:/Habitat/EFH_rocky_reefs', layer='altb06')
+efh_rockyreef <- spTransform(efh_rockyreef, crs(hotspotmask))
+
+#create intersection of MPA with kelp
+mpa_rr <- raster::intersect(poly_MPA, efh_rockyreef)
+
+#calculate area of mpa and kelp overlap
+mpa_rr@data$area_km2 <-gArea(mpa_rr, byid=TRUE)/1e6
+
+#summarize the amount of mpa/kelp overlap within each MPA
+mpa_rr_df <- mpa_rr@data %>% 
+  group_by(SITE_ID, SITE_NAME) %>%
+  summarize(rockyreef_area = sum(area_km2),
+            by = 'SITE_ID')
+#remove extra column names 
+mpa_rr_df <- mpa_rr_df[, 2:3]
+
+#join to poly_mpa data
+poly_MPA@data <- merge(poly_MPA@data, mpa_rr_df, by="SITE_NAME", all=TRUE)
+
+#####Seagrass
+efh_seagrass <- readOGR(dsn='G:/Habitat/EFH_seagrass', layer='altb04')
+efh_seagrass <- spTransform(efh_seagrass, crs(hotspotmask))
+
+#create intersection of MPA with kelp
+mpa_seagrass <- raster::intersect(poly_MPA, efh_seagrass)
+
+#calculate area of mpa and kelp overlap
+mpa_seagrass@data$area_km2 <-gArea(mpa_seagrass, byid=TRUE)/1e6
+
+#summarize the amount of mpa/kelp overlap within each MPA
+mpa_seagrass_df <- mpa_seagrass@data %>% 
+  group_by(SITE_ID, SITE_NAME) %>%
+  summarize(seagrass_area = sum(area_km2),
+            by = 'SITE_ID')
+#remove extra column names 
+mpa_seagrass_df <- mpa_seagrass_df[, 2:3]
+
+#join to poly_mpa data
+poly_MPA@data <- merge(poly_MPA@data, mpa_seagrass_df, by="SITE_NAME", all=TRUE)
+
+#write csv
+write.csv(poly_MPA@data, file= "mpa_rr_seagrass.csv")
 
 ###################################
 # LEAFLET VISUALIZATIONS
