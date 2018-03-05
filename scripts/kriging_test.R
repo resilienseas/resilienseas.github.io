@@ -178,7 +178,7 @@ mapview(hotspotmask)
 #poly_MPA <- readOGR(dsn=path.expand("/Users/rttaylorburnscom/github/resilienseas/all_mpas_update"), layer="all_mpas_update")
 
 poly_MPA <- readOGR(dsn=path.expand("/Users/courtney/GP/all_mpas_update"), layer="all_mpas_update")
-#poly_MPA <- readOGR(dsn=path.expand("/Users/courtneycochran/downloads/all_mpas_update"), layer="all_mpas_update")
+poly_MPA <- readOGR(dsn=path.expand("/Users/courtneycochran/downloads/all_mpas_update"), layer="all_mpas_update")
 
 #Assign same projection as hotspotmask raster to MPA shapefile
 poly_MPA <- spTransform(poly_MPA, crs(hotspotmask))
@@ -248,7 +248,7 @@ hotspot_clipped_2 <- mask(hotspot_clipped_2, pugetsound, inverse=TRUE)
 #############################################################
 
 #Calculate mean aragonite saturation state for each MPA and export as data frame
-aragonite_mean<- raster::extract(aragonite_clipped, poly_MPA, fun=mean, na.rm=TRUE, df=TRUE)
+aragonite_mean<- raster::extract(aragonite_clipped_2, poly_MPA, fun=mean, na.rm=TRUE, df=TRUE)
 View(aragonite_mean)
 colnames(aragonite_mean) <- c("OBJECTID", "ARAGONITE_MEAN")
 
@@ -270,7 +270,7 @@ mapview(poly_MPA)
 #############################################################
 
 #Calculates percent (as decimal point) of non-NA cells from total number of cells contained in polygon MPA 
-pctcover <- raster::extract(hotspot_clipped, poly_MPA, fun=function(x, ...) length(na.omit(x))/length(x), df=TRUE)
+pctcover <- raster::extract(hotspot_clipped_2, poly_MPA, fun=function(x, ...) length(na.omit(x))/length(x), df=TRUE)
 colnames(pctcover) <- c("OBJECTID", "PCT_HOTSPOTCOVER")
 
 #Join newly calculated percent hotspot cover to spatial data frame based on OBJECTID
@@ -292,13 +292,13 @@ pal2 <- colorRampPalette(c("red", "darkorange1", "gold"))
 pal3 <- colorRampPalette(c("steelblue", "orangered3"))
 
 tm_shape(poly_MPA) + tm_polygons("ARAGONITE_MEAN", palette=pal(3), colorNA=NULL,
-                                 breaks=seq(1,3, by=0.2),
+                                 breaks=seq(.8,3, by=0.2),
                                  title="Mean Aragonite \nSaturation State") +
   tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
 
 tm_shape(aragonite_clipped_2) +
-  tm_raster(aragonite_clipped_2, breaks=seq(1,3, by=0.2),
-            col= c("red", "white", "royalblue2"), title="Aragonite Saturation State") +
+  tm_raster(palette = pal(3), breaks = seq(0.8,3.6, by=0.2),
+             title="Aragonite Saturation State") + 
   tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
 
 tm_shape(arag_stdv2) +
@@ -320,6 +320,8 @@ tm_shape(poly_MPA) + tm_polygons("PCT_HOTSPOTCOVER", palette=pal3(7),
 
 tmap_mode("view")
 last_map()
+
+mapview(poly_MPA)
 
 
 #############################################################
