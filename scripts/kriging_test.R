@@ -154,7 +154,7 @@ arag_stdv2 <- raster::calc(arag_stdv, fun)
 m <- c(0,1,1, 1,1.7,1.7, 1.7,2,2, 2,10,NA)
 reclassifymatrix <- matrix(m, ncol=3, byrow=TRUE)
 hotspotmask <- reclassify(aragonite_raster_prj, reclassifymatrix)
-hotspotmask <- reclassify(arag_stdv2, reclassifymatrix)
+hotspotmask2 <- reclassify(arag_stdv2, reclassifymatrix)
 View(reclassifymatrix)
 plot(hotspotmask)
 mapview(hotspotmask)
@@ -207,8 +207,9 @@ poly_coast <- spTransform(poly_coast, crs(aragonite_raster_prj))
 aragonite_clipped <- mask(aragonite_raster_prj, poly_coast, inverse = TRUE,progress='text')
 mapview(aragonite_clipped)
 plot(aragonite_clipped)
+aragonite_clippedB <- mask(arag_stdv2, poly_coast, inverse = TRUE,progress='text')
 
-hotspot_clipped <- mask(hotspotmask, poly_coast, inverse = TRUE,progress='text')
+hotspot_clippedB <- mask(hotspotmask2, poly_coast, inverse = TRUE,progress='text')
 mapview(hotspot_clipped)
 plot(hotspot_clipped)
 
@@ -223,9 +224,11 @@ estuary <- spTransform(estuary, crs(aragonite_raster_prj))
 aragonite_clipped_2 <- mask(aragonite_clipped, estuary, inverse= TRUE, progress='text')
 plot(aragonite_clipped_2)
 mapview(aragonite_clipped_2)
+aragonite_clipped_2B <- mask(aragonite_clippedB, estuary, inverse= TRUE, progress='text')
 
 #Use reverse mask to clip hotspot mask to estuaries
 hotspot_clipped_2 <- mask(hotspot_clipped, estuary, inverse=TRUE)
+hotspot_clipped_2B <- mask(hotspot_clippedB, estuary, inverse=TRUE)
 
 plot(hotspot_clipped_2)
 mapview(hotspot_clipped_2)
@@ -236,12 +239,16 @@ Canada <- spTransform(Canada, crs(aragonite_raster_prj))
 Canada <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/Canada"), layer="Canada")
 aragonite_clipped_2 <- mask(aragonite_clipped_2, Canada, inverse= TRUE, progress='text')
 hotspot_clipped_2 <- mask(hotspot_clipped_2, Canada, inverse=TRUE)
+aragonite_clipped_2B <- mask(aragonite_clipped_2B, Canada, inverse= TRUE, progress='text')
+hotspot_clipped_2B <- mask(hotspot_clipped_2B, Canada, inverse=TRUE)
 #############Puget sound
 pugetsound <- readOGR(dsn='G:/Habitat/hotspot_square', layer='hotspot_square')
 pugetsound <- spTransform(pugetsound, crs(hotspotmask))
 pugetsound <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/hotspot_square"), layer="hotspot_square")
 aragonite_clipped_2 <- mask(aragonite_clipped_2, pugetsound, inverse= TRUE, progress='text')
 hotspot_clipped_2 <- mask(hotspot_clipped_2, pugetsound, inverse=TRUE)
+aragonite_clipped_2B <- mask(aragonite_clipped_2B, pugetsound, inverse= TRUE, progress='text')
+hotspot_clipped_2B <- mask(hotspot_clipped_2B, pugetsound, inverse=TRUE)
 
 ##############################################################
 #PART VII. ZONAL STATISTICS
@@ -278,8 +285,10 @@ poly_MPA@data <- poly_MPA@data %>%
   left_join(pctcover, by = 'OBJECTID')
 View(poly_MPA@data)
 
-plot(poly_MPA,col=(poly_MPA@data[,6]))
-plot(poly_MPA)
+write.csv(poly_MPA@data, file= path.expand("/Users/courtneycochran/mpapercentcover.csv"))
+
+plot(poly_MPA,col=(poly_MPA@data[,6]))  
+plot(poly_MPA) 
 mapview(poly_MPA)
 
 ######################################################
