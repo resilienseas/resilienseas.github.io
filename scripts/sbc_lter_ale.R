@@ -31,7 +31,7 @@ ale$date <- as.Date(ale$date,'%Y-%m-%d')
 # remove NA for mean/std deviation calculations
 ale.wo.na <- na.omit(ale)
 
-png(filename="visualizations/ale.arag.ts.png", width = 10, height = 7, units = 'in', res = 300)
+png(filename="visualizations/ale.arag.ts.png", width = 12, height = 7, units = 'in', res = 300)
 ggplot(data=ale, aes(date, aragonite)) +
   geom_rect(data=ale, xmin=-Inf,
             xmax=Inf,
@@ -42,9 +42,10 @@ ggplot(data=ale, aes(date, aragonite)) +
   geom_hline(yintercept = mean(ale.wo.na$aragonite), color="dodgerblue", linetype = "dashed") +
   labs(title="Santa Barbara Channel Aragonite Saturation State\n",x="\nDate", y = "Aragonite Saturation State\n") +
   theme_classic() +
-  theme(text=element_text(family="Spectral"), plot.title = element_text(size = 20, hjust = 0.5, face = "bold"), axis.title = element_text(size = 18), axis.text = element_text(size = 16)) +
-  scale_y_continuous(limits = c(0, 4.25)) +
-  scale_x_date(date_breaks = "3 months", labels = date_format("%b-%y"))
+  theme(text=element_text(family="Spectral"), plot.title = element_text(size = 24, hjust = 0.5), axis.title = element_text(size = 18), axis.text = element_text(size = 14)) +
+  theme(plot.margin=unit(c(5,10,5,5),"mm")) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, 4.15)) +
+  scale_x_date(expand = c(0,0), date_breaks = "3 months", labels = date_format("%b. '%y"))
 dev.off()
 
 #annotate(geom = "text", x = as.Date("2012-02-03"), y = 3.5,label= "Mean = 2.327\nSD = 0.364",fontface = "bold") +
