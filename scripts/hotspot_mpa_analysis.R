@@ -107,3 +107,7 @@ poly_MPA@data[,1] <- seq(1, length(poly_MPA@data[,1]))
 
 aragonite_mean<- raster::extract(aragonite_clipped, wc_mpas_proj, fun=mean, na.rm=TRUE, df=TRUE)
 
+
+tm_shape(aragonite_data)+
+  tm_dots(col = "black", size = 0.003)+
+  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
