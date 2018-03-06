@@ -488,3 +488,4 @@ leaflet() %>%
 tm_shape(aragonite_data)+
   tm_dots(col = "black", size = 0.01)+
   tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 1)
+ 
