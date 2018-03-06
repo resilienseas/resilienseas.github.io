@@ -299,17 +299,18 @@ pal <- colorRampPalette(c("red", "white", "royalblue2"))
 palB <- colorRampPalette(c("red", "white"))
 pal <- c("red", "white", "royalblue2") 
 pal2 <- colorRampPalette(c("red", "darkorange1", "gold"))
+pal2 <- colorRampPalette(c("red", "white"))
 pal3 <- colorRampPalette(c("steelblue", "orangered3"))
 
 tm_shape(poly_MPA) + tm_polygons("ARAGONITE_MEAN", palette=pal(3), colorNA=NULL,
                                  breaks=seq(.8,3, by=0.2),
                                  title="Mean Aragonite \nSaturation State") +
-  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
+  tm_layout(basemaps = c('OpenStreetMap'))
 
 tm_shape(aragonite_clipped_2) +
-  tm_raster(palette = pal(3),  breaks = seq(0.8,3.6, by=0.2),
+  tm_raster(palette = pal(3),  breaks = seq(0.8,3, by=0.2),
              title="Aragonite Saturation State") + 
-  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
+  tm_layout(basemaps = c('OpenStreetMap'))
 
 tm_shape(aragonite_clipped_2B) +
   tm_raster(aragonite_clipped_2B, breaks = seq(0,2, by=0.2),
@@ -318,8 +319,8 @@ tm_shape(aragonite_clipped_2B) +
 
 tm_shape(hotspot_clipped_2) +
   tm_raster(hotspot_clipped_2, 
-            palette = pal2(3), title="Aragonite Saturation State") +
-  tm_layout(basemaps=c('OpenStreetMap'), basemaps.alpha = 0.5)
+            palette = pal2(2), title="Aragonite Saturation State") +
+  tm_layout(basemaps=c('OpenStreetMap'))
 
 breaks= c(0, 1.0, 1.7, 2.0)
 
