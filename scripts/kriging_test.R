@@ -491,3 +491,8 @@ leaflet() %>%
 #plot(hotspotmask, col='blue', add=TRUE)
 #plot(hotspotmask, col='blue')
 #plot(ocean, add=TRUE)
+
+tm_shape(aragonite_data)+
+  tm_dots(col = "black", size = 0.01)+
+  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 1)
+ 
