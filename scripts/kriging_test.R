@@ -296,6 +296,7 @@ mapview(poly_MPA)
 ##########################################################
 
 pal <- colorRampPalette(c("red", "white", "royalblue2"))
+palB <- colorRampPalette(c("red", "white"))
 pal <- c("red", "white", "royalblue2") 
 pal2 <- colorRampPalette(c("red", "darkorange1", "gold"))
 pal3 <- colorRampPalette(c("steelblue", "orangered3"))
@@ -306,13 +307,13 @@ tm_shape(poly_MPA) + tm_polygons("ARAGONITE_MEAN", palette=pal(3), colorNA=NULL,
   tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
 
 tm_shape(aragonite_clipped_2) +
-  tm_raster(palette = pal(3), breaks = seq(0.8,3.6, by=0.2),
+  tm_raster(palette = pal(3),  breaks = seq(0.8,3.6, by=0.2),
              title="Aragonite Saturation State") + 
   tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
 
-tm_shape(arag_stdv2) +
-  tm_raster(arag_stdv2, 
-            palette= pal(3), title="Aragonite Saturation State") +
+tm_shape(aragonite_clipped_2B) +
+  tm_raster(aragonite_clipped_2B, breaks = seq(0,2, by=0.2),
+            palette= palB(3), title="Aragonite Saturation State") +
   tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
 
 tm_shape(hotspot_clipped_2) +
@@ -321,6 +322,11 @@ tm_shape(hotspot_clipped_2) +
   tm_layout(basemaps=c('OpenStreetMap'), basemaps.alpha = 0.5)
 
 breaks= c(0, 1.0, 1.7, 2.0)
+
+tm_shape(hotspot_clipped_2B) +
+  tm_raster(hotspot_clipped_2B, breaks= c(0, 1.1, 1.8, 2.1),
+            palette = pal2(4), title="Aragonite Saturation State") +
+  tm_layout(basemaps=c('OpenStreetMap'), basemaps.alpha = 0.5)
 
 tm_shape(poly_MPA) + tm_polygons("PCT_HOTSPOTCOVER", palette=pal3(7),
                                  breaks=seq(0, 1, by=0.1),
