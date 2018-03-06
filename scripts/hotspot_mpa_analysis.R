@@ -109,5 +109,6 @@ aragonite_mean<- raster::extract(aragonite_clipped, wc_mpas_proj, fun=mean, na.r
 
 
 tm_shape(aragonite_data)+
-  tm_dots(col = "black", size = 0.003)+
-  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
+  tm_dots(col = "black", size = 0.01)+
+  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 1)
+
