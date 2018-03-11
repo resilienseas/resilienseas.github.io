@@ -44,7 +44,7 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
 # layer manipulation ----
 
 # extent of NE Pacific study area, for cropping rasters
-ext_study <- extent(-670000, 350000, -650000, 1250000)
+ext_study <- extent(-670000, 340000, -650000, 1200000)
 crs_study <- '+init=EPSG:6414'
 
 # sea surface temperature
@@ -182,11 +182,6 @@ unique(oahfocus$MeasFreq)
 oahfocus <- oahfocus[!is.na(oahfocus$Latitude), ]
 oahfocus <- oahfocus[!is.na(oahfocus$Longitude), ]
 
-
-
-write_csv(oahfocus, "oahfocus.csv")
-
-
 #remove spaces and transform to numeric
 gsub(" ", "", oahfocus$Latitude)
 gsub(" ", "", oahfocus$Longitude)
@@ -198,7 +193,8 @@ oahfocus$Latitude<-as.numeric(oahfocus$Latitude)
 #subsets
 carbcomplete<-subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
 incomplete <- subset(oahfocus, DisCrbPmtr<2 & ISCrbPmtr < 2)
-highfrequency<-subset(oahfocus, MeasType == "continuous")
+highfrequency<-subset(oahfocus, MeasFreq > 364)
+highfreqcarbcomplete<-subset(oahfocus, MeasFreq > 364 & DisCrbPmtr>1 | MeasFreq > 364 & ISCrbPmtr > 1)
 lowfrequency <- subset(oahfocus, MeasFreq < 365)
 
 # isolate coordinate columns
@@ -207,6 +203,7 @@ carbcompletecoords <- cbind.data.frame(carbcomplete$Longitude, carbcomplete$Lati
 incompletecoords <- cbind.data.frame(incomplete$Longitude, incomplete$Latitude)
 highfrequencycoords <- cbind.data.frame(highfrequency$Longitude, highfrequency$Latitude)
 lowfrequencycoords <- cbind.data.frame(lowfrequency$Longitude, lowfrequency$Latitude)
+highfreqcarbcompletecoords <- cbind.data.frame(highfreqcarbcomplete$Longitude, highfreqcarbcomplete$Latitude)
 
 # remove duplicate locations
 deduped.coords<-unique(coords)
@@ -214,6 +211,7 @@ deduped.carbcomplete <- unique(carbcompletecoords)
 deduped.incomplete <- unique(incompletecoords)
 deduped.highfrequency <- unique(highfrequencycoords)
 deduped.lowfrequency <- unique(lowfrequencycoords)
+deduped.highfreqcarbcomplete <- unique(highfreqcarbcompletecoords)
 
 # create spatial points objects
 inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
@@ -230,6 +228,9 @@ highfreqcoords <- spTransform(highfreqcoords, CRS('+init=EPSG:6414'))
 
 lowfreqcoords <- SpatialPoints(deduped.lowfrequency, CRS("+proj=longlat +ellps=WGS84"))
 lowfreqcoords <- spTransform(lowfreqcoords, CRS('+init=EPSG:6414'))
+
+highfreqcarbcompletecoords <- SpatialPoints(deduped.highfreqcarbcomplete, CRS("+proj=longlat +ellps=WGS84"))
+highfreqcarbcompletecoords <- spTransform(highfreqcarbcomplete, CRS('+init=EPSG:6414'))
 
 # check to make sure projections match
 
@@ -374,18 +375,21 @@ highfreqdorangediff <- abs(r_do_range_nofill - highfreqpolygondorange)
 
 # gap analysis ----
 
+distanceweight = 10^-11
+temporalweight = 10
+
 #oceanographic dissimilarity
-dissimilarity <- sqrt((sstmeandiff^2+domeandiff^2)+3*(sstrangediff^2+dorangediff^2))
+dissimilarity <- sqrt((sstmeandiff^2+domeandiff^2)+temporalweight*(sstrangediff^2+dorangediff^2))
 
-carbcompletedissimilarity<- sqrt((carbcompletesstmeandiff^2+carbcompletedomeandiff^2)+3*(carbcompletesstrangediff^2+carbcompletedorangediff^2))
+carbcompletedissimilarity<- sqrt((carbcompletesstmeandiff^2+carbcompletedomeandiff^2)+temporalweight*(carbcompletesstrangediff^2+carbcompletedorangediff^2))
 
-highfreqdissimilarity <- sqrt((highfreqsstmeandiff^2+highfreqdomeandiff^2)+3*(highfreqsstrangediff^2+highfreqdorangediff^2))
+highfreqdissimilarity <- sqrt((highfreqsstmeandiff^2+highfreqdomeandiff^2)+temporalweight*(highfreqsstrangediff^2+highfreqdorangediff^2))
 
 ###sensitivity analysis to determine if this has a huge impact or not. if there is a future impact then thats an issue for future research. 
 
-distance<-distanceFromPoints(dissimilarity, inventorycoords)*10^-5
+distance<-distanceFromPoints(dissimilarity, inventorycoords)*distanceweight
 carbcompletedistance<-distanceFromPoints(carbcompletedissimilarity, carbcompletecoords)*10^-5
-highfreqdistance<-distanceFromPoints(highfreqdissimilarity, highfreqcoords)*10^-5
+highfreqdistance<-distanceFromPoints(highfreqdissimilarity, highfreqcoords)*distanceweight
 
 gap<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2))))
 carbcompletegap<-setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2))))
@@ -399,6 +403,8 @@ lowprioritygaps<-setValues(distance, sqrt((getValues(distance)^2+(getValues(diss
 finalgaps<- severegaps+lowprioritygaps+highprioritygaps
 
 carbcompleteseveregaps <- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) > quantile(carbcompletegap, (.999))
+
+
 carbcompletehighprioritygaps<- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) > quantile(carbcompletegap, (.99))
 carbcompletelowprioritygaps<- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) > quantile(carbcompletegap, (.75))
 carbcompletefinalgaps<- carbcompleteseveregaps + carbcompletelowprioritygaps+carbcompletehighprioritygaps
@@ -409,7 +415,7 @@ highfreqlowprioritygaps<-setValues(highfreqdistance, sqrt((getValues(highfreqdis
 highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps+highfreqhighprioritygaps
 
 #test clip of raster to coast shapefile
-poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
+poly_coast<- readOGR(dsn=path.expand("Export_Output_2"), layer="Export_Output_2")
 poly_coast <- spTransform(poly_coast, crs(gaps))
 gaps_clipped <- mask(gaps, poly_coast, inverse = TRUE,progress='text')
 
@@ -443,7 +449,11 @@ tm_shape(finalgaps)+
 
 tm_shape(inventorycoords)+
   tm_dots(col = "black")+
-  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
+  tm_shape(highfreqcoords)+
+  tm_dots(col = "black")+
+  tm_shape(highfreqcarbcompletecoords)+
+  tm_dots(col = "black")+
+  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 1)
 
 tm_shape(r_sst_mean_nofill)+
   tm_raster(palette = pal(50))+ 
@@ -452,23 +462,23 @@ tm_shape(r_sst_mean_nofill)+
 tm_shape(finalgaps)+
   tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
-  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)+
-  tm_legend()
+  tm_layout(basemaps = c('OpenStreetMap'))+
+  tm_legend()+
   tm_shape(inventorycoords)+
   tm_dots(col = "black")
 
 tm_shape(carbcompletefinalgaps)+
-  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
+  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "Aragonite Measurement Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
   tm_layout(basemaps = c('OpenStreetMap'))+
   tm_shape(incompletecoords)+
   tm_dots(col = "black")
 
 tm_shape(highfreqfinalgaps)+
-  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
+  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "High Frequency Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
   tm_layout(basemaps = c('OpenStreetMap'))+
-tm_shape(lowfreqcoords)+
+tm_shape(highfreqcoords)+
   tm_dots(col = "black")
 
 #tmap_mode("view")
@@ -476,17 +486,115 @@ tm_shape(lowfreqcoords)+
 
 #tmap_mode("plot")
 
-#pal <- colorRampPalette(c("orange", "blue"))
 
-#tm_shape(r_sst_range_nofill)+
-#  tm_raster(palette = pal(5000), legend.show = FALSE)
 
-#tm_shape(variation)+
-#  tm_raster(palette = pal(5), legend.show = FALSE)
+#data viz final project
 
-#tm_shape(polygonsstrange)+
-#  tm_raster(palette = pal(5000), legend.show = FALSE)+
-#  tm_shape(inventorycoords)+
-#  tm_dots()+
-#  tm_shape(vor)+
-#  tm_borders()
+pal <- colorRampPalette(c("slateblue4", "slateblue", "plum", "orangered2"))
+
+pal2 <- colorRampPalette(c("black", "white"))
+
+poly_coast<- readOGR(dsn=path.expand("Export_Output_2"), layer="Export_Output_2")
+poly_coast <- spTransform(poly_coast, crs(distance))
+
+distance_clipped <- mask(distance, dissimilarity,progress='text')
+
+distance95 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.95))})
+
+distance90 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.90)) & distance_clipped < quantile((distance_clipped), (.95))})
+
+distance85 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.85)) & distance_clipped < quantile((distance_clipped), (.90))})
+
+
+distance80 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.80)) & distance_clipped < quantile((distance_clipped), (.85))})
+
+
+distance75 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.75)) & distance_clipped < quantile((distance_clipped), (.80))})
+
+
+distance70 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.70)) & distance_clipped < quantile((distance_clipped), (.75))})
+
+distance65 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.65)) & distance_clipped < quantile((distance_clipped), (.70))})
+
+distance60 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.60)) & distance_clipped < quantile((distance_clipped), (.65))})
+
+
+distance55 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.55)) & distance_clipped < quantile((distance_clipped), (.60))})
+
+distance50 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.50)) & distance_clipped < quantile((distance_clipped), (.55))})
+
+
+distance45 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.45)) & distance_clipped < quantile((distance_clipped), (.50))})
+
+
+distance40 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.40)) & distance_clipped < quantile((distance_clipped), (.45))})
+
+
+distance35 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.35)) & distance_clipped < quantile((distance_clipped), (.40))})
+
+distance30 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.30)) & distance_clipped < quantile((distance_clipped), (.35))})
+
+distance25 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.25)) & distance_clipped < quantile((distance_clipped), (.30))})
+
+distance20 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.20)) & distance_clipped < quantile((distance_clipped), (.25))})
+
+distance15 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.15)) & distance_clipped < quantile((distance_clipped), (.20))})
+
+distance10 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.10)) & distance_clipped < quantile((distance_clipped), (.15))})
+
+distance5 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.05)) & distance_clipped < quantile((distance_clipped), (.10))})
+
+
+tm_shape(dissimilarity)+
+  tm_raster(palette = pal(1000), legend.show = FALSE)+
+  tm_shape(distance95)+
+  tm_fill(col = "white", alpha = 0.10)+
+  tm_shape(distance90)+
+  tm_fill(col = "white", alpha = 0.20)+
+  tm_shape(distance85)+
+  tm_fill(col = "white", alpha = 0.30)+
+  tm_shape(distance80)+
+  tm_fill(col = "white", alpha = 0.40)+
+  tm_shape(distance75)+
+  tm_fill(col = "white", alpha = 0.45)+
+  tm_shape(distance70)+
+  tm_fill(col = "white", alpha = 0.50)+
+  tm_shape(distance65)+
+  tm_fill(col = "white", alpha = 0.55)+
+  tm_shape(distance60)+
+  tm_fill(col = "white", alpha = 0.60)+
+  tm_shape(distance55)+
+  tm_fill(col = "white", alpha = 0.65)+
+  tm_shape(distance50)+
+  tm_fill(col = "white", alpha = 0.70)+
+  tm_shape(distance45)+
+  tm_fill(col = "white", alpha = 0.75)+
+  tm_shape(distance40)+
+  tm_fill(col = "white", alpha = 0.80)+
+  tm_shape(distance35)+
+  tm_fill(col = "white", alpha = 0.85)+
+  tm_shape(distance30)+
+  tm_fill(col = "white", alpha = 0.90)+
+  tm_shape(distance25)+
+  tm_fill(col = "white", alpha = 0.95)+
+  tm_shape(distance20)+
+  tm_fill(col = "white", alpha = 0.96)+
+  tm_shape(distance15)+
+  tm_fill(col = "white", alpha = 0.97)+
+  tm_shape(distance10)+
+  tm_fill(col = "white", alpha = 0.98)+
+  tm_shape(distance5)+
+  tm_fill(col = "white", alpha = 0.99)+
+  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))
+
+tm_shape(distance_clipped)+
+  tm_raster(legend.show = FALSE, palette = pal2(100))+
+  tm_layout(basemaps = c('OpenStreetMap'))+
+  tm_shape(inventorycoords)+
+  tm_dots(col = "black", size = 0.01)
+
+tm_shape(dissimilarity)+
+  tm_raster(palette = pal(10), legend.show = FALSE)+
+  tm_layout(basemaps = c('OpenStreetMap'))
+
