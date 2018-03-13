@@ -5,6 +5,31 @@
 ########################
 
 library(shiny)
+library(leaflet)
+fullinvetory <- raster("full_invetory_gaps.tif")
+pal <- colorRampPalette(c("#0C2C84", "#41B6C4", "#FFFFCC"))
+
+fullinvetorygaps <- leaflet() %>%
+  addTiles() %>%
+  addProviderTiles('Esri.OceanBasemap') %>% 
+  addRasterImage(fullinvetory)
+
+coordinates(oahfocus) <-~Longitude+Latitude
+class(oahfocus)
+writeOGR(obj= oahfocus, dsn="gap_app/gap_app", layer="inventorycoords", driver="ESRI Shapefile")
+
+
+SpatialPointsDataFrame(inventorycoords)
+writeOGR(obj=deduped.coords, dsn="gap_app/gap_app", layer="inventorycoords", driver="ESRI Shapefile")
+
+leaflet(data = oahfocus) %>% 
+  addTiles() %>%
+  addProviderTiles('Esri.OceanBasemap') %>% 
+  addCircleMarkers(
+    radius = 3, 
+    color = "black",
+    #popup = ~as.character(), label = ~as.character()
+    stroke = FALSE, fillOpacity = 0.5) 
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
