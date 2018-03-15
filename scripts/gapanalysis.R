@@ -414,6 +414,14 @@ highfreqhighprioritygaps<-setValues(highfreqdistance, sqrt((getValues(highfreqdi
 highfreqlowprioritygaps<-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) > quantile(highfreqgap, (.75))
 highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps+highfreqhighprioritygaps
 
+#save rasters for gap shiny app
+writeRaster(raster, "name you want file to be saved as", format="GTiff",
+            overwrite=TRUE) 
+writeRaster(finalgaps, filename = "/Users/courtneycochran/github/resilienseas.github.io/gap_app/gap_app/full_invetory_gaps", format="GTiff", overwrite=TRUE)
+writeRaster(carbcompletefinalgaps, filename = "/Users/courtneycochran/github/resilienseas.github.io/gap_app/gap_app/carbcomplete_gaps", format="GTiff", overwrite=TRUE)
+writeRaster(highfreqfinalgaps, filename = "/Users/courtneycochran/github/resilienseas.github.io/gap_app/gap_app/highfreq_gaps", format="GTiff", overwrite=TRUE)
+
+
 #test clip of raster to coast shapefile
 poly_coast<- readOGR(dsn=path.expand("Export_Output_2"), layer="Export_Output_2")
 poly_coast <- spTransform(poly_coast, crs(gaps))
