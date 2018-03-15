@@ -5,6 +5,7 @@
 ########################
 
 library(shiny)
+library(raster)
 library(leaflet)
 #Convert gap analysis data layers to rasters 
 fullinventory <- raster("full_invetory_gaps.tif")
