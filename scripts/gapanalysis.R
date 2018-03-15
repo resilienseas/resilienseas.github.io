@@ -1,6 +1,5 @@
 # gap analysis
 
-
 # load packages ----
 if (!require(pacman)) install.packages("pacman")
 library(pacman)
@@ -389,7 +388,7 @@ highfreqdissimilarity <- sqrt((highfreqsstmeandiff^2+highfreqdomeandiff^2)+tempo
 ###sensitivity analysis to determine if this has a huge impact or not. if there is a future impact then thats an issue for future research. 
 
 distance<-distanceFromPoints(dissimilarity, inventorycoords)*distanceweight
-carbcompletedistance<-distanceFromPoints(carbcompletedissimilarity, carbcompletecoords)*10^-5
+carbcompletedistance<-distanceFromPoints(carbcompletedissimilarity, carbcompletecoords)*distanceweight
 highfreqdistance<-distanceFromPoints(highfreqdissimilarity, highfreqcoords)*distanceweight
 
 gap<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2))))
