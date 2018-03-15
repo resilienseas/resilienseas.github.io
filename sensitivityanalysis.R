@@ -3,14 +3,14 @@
 #first run gap analysis
 
 #create matrix of weights
-xy <- matrix(nrow = 10, ncol = 10)
+#xy <- matrix(nrow = 10, ncol = 10)
 distanceweight = c(10^-5, 10^-6, 10^-7, 10^-8, 10^-9, 10^-10, 10^-11, 10^-12, 10^-13, 10^-14)
 temporalweight = c(2, 4, 6, 8, 10, 12, 14, 16, 18, 20)
 
-x = distanceweight
-y = temporalweight
-xy[i,j] <- paste(x[i], y[j])
-apply(xy, 1, FUN=paste, x, sep =",")
+#x = distanceweight
+#y = temporalweight
+#xy[i,j] <- paste(x[i], y[j])
+#apply(xy, 1, FUN=paste, x, sep =",")
 
 #create list of 100 rasters of top 1% of gaps
 
@@ -42,7 +42,11 @@ sensitivitystack[(sensitivitystack == 0)] <- NA
 
 #intersect loop
 
+intersection <- intersect(sensitivitystack[1], sensitivitystack[2])
+
+
 for (i in 1:nlayers(sensitivitystack)) 
   {
-  intersect(sensitivitystack[[i]], sensitivitystack[[i+1]])
+  intersection <- intersect(sensitivitystack[[i]], sensitivitystack[[i+1]])
+  intersect2 <- intersect(intersection, sensitivitystack[[i+2]])
   }
