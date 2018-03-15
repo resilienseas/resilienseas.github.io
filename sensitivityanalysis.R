@@ -32,6 +32,7 @@ for(i in 1:length(distanceweight)){
   }
 }
 
+
 #transform to raster stack
 sensitivitystack <- stack(rastersensitivity[[1]])
 for(i in 2:length(rastersensitivity)) sensitivitystack <- addLayer(sensitivitystack, rastersensitivity[[i]])
