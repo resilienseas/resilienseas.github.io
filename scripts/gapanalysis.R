@@ -498,7 +498,7 @@ tm_shape(highfreqcoords)+
 
 #data viz final project
 
-pal <- colorRampPalette(c("slateblue4", "slateblue", "plum", "orangered2"))
+pal <- colorRampPalette(c("white", "red"))
 
 pal2 <- colorRampPalette(c("black", "white"))
 
@@ -507,29 +507,29 @@ poly_coast <- spTransform(poly_coast, crs(distance))
 
 distance_clipped <- mask(distance, dissimilarity,progress='text')
 
-distance95 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.95))})
+distance90 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.90))})
 
-distance90 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.90)) & distance_clipped < quantile((distance_clipped), (.95))})
+distance80 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.80)) & distance_clipped < quantile((distance_clipped), (.90))})
 
-distance85 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.85)) & distance_clipped < quantile((distance_clipped), (.90))})
-
-
-distance80 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.80)) & distance_clipped < quantile((distance_clipped), (.85))})
+distance70 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.70)) & distance_clipped < quantile((distance_clipped), (.80))})
 
 
-distance75 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.75)) & distance_clipped < quantile((distance_clipped), (.80))})
+distance60 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.60)) & distance_clipped < quantile((distance_clipped), (.70))})
 
 
-distance70 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.70)) & distance_clipped < quantile((distance_clipped), (.75))})
-
-distance65 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.65)) & distance_clipped < quantile((distance_clipped), (.70))})
-
-distance60 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.60)) & distance_clipped < quantile((distance_clipped), (.65))})
+distance50 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.50)) & distance_clipped < quantile((distance_clipped), (.60))})
 
 
-distance55 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.55)) & distance_clipped < quantile((distance_clipped), (.60))})
+distance40 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.40)) & distance_clipped < quantile((distance_clipped), (.50))})
 
-distance50 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.50)) & distance_clipped < quantile((distance_clipped), (.55))})
+distance30 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.30)) & distance_clipped < quantile((distance_clipped), (.40))})
+
+distance20 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.20)) & distance_clipped < quantile((distance_clipped), (.30))})
+
+
+distance10 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.10)) & distance_clipped < quantile((distance_clipped), (.20))})
+
+distance0 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped < quantile((distance_clipped), (.10))})
 
 
 distance45 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped){distance_clipped > quantile((distance_clipped), (.45)) & distance_clipped < quantile((distance_clipped), (.50))})
@@ -554,55 +554,55 @@ distance5 <- rasterToPolygons(distance_clipped, fun = function(distance_clipped)
 
 
 tm_shape(dissimilarity)+
-  tm_raster(palette = pal(1000), legend.show = FALSE)+
-  tm_shape(distance95)+
-  tm_fill(col = "white", alpha = 0.10)+
+  tm_raster(palette = pal(1000), legend.show = TRUE, breaks = c(0, 200, 600, 800, 1000), title = "Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
   tm_shape(distance90)+
-  tm_fill(col = "white", alpha = 0.20)+
-  tm_shape(distance85)+
-  tm_fill(col = "white", alpha = 0.30)+
+  tm_fill(col = "white", alpha = 0.0)+
   tm_shape(distance80)+
-  tm_fill(col = "white", alpha = 0.40)+
-  tm_shape(distance75)+
-  tm_fill(col = "white", alpha = 0.45)+
+  tm_fill(col = "white", alpha = 0.10)+
   tm_shape(distance70)+
-  tm_fill(col = "white", alpha = 0.50)+
-  tm_shape(distance65)+
-  tm_fill(col = "white", alpha = 0.55)+
+  tm_fill(col = "white", alpha = 0.20)+
   tm_shape(distance60)+
-  tm_fill(col = "white", alpha = 0.60)+
-  tm_shape(distance55)+
-  tm_fill(col = "white", alpha = 0.65)+
+  tm_fill(col = "white", alpha = 0.30)+
   tm_shape(distance50)+
-  tm_fill(col = "white", alpha = 0.70)+
-  tm_shape(distance45)+
-  tm_fill(col = "white", alpha = 0.75)+
+  tm_fill(col = "white", alpha = 0.40)+
   tm_shape(distance40)+
-  tm_fill(col = "white", alpha = 0.80)+
-  tm_shape(distance35)+
-  tm_fill(col = "white", alpha = 0.85)+
+  tm_fill(col = "white", alpha = 0.50)+
   tm_shape(distance30)+
-  tm_fill(col = "white", alpha = 0.90)+
-  tm_shape(distance25)+
-  tm_fill(col = "white", alpha = 0.95)+
+  tm_fill(col = "white", alpha = 0.60)+
   tm_shape(distance20)+
-  tm_fill(col = "white", alpha = 0.96)+
-  tm_shape(distance15)+
-  tm_fill(col = "white", alpha = 0.97)+
+  tm_fill(col = "white", alpha = 0.70)+
   tm_shape(distance10)+
-  tm_fill(col = "white", alpha = 0.98)+
-  tm_shape(distance5)+
-  tm_fill(col = "white", alpha = 0.99)+
-  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_fill(col = "white", alpha = 0.80)+
+  tm_shape(distance0)+
+  tm_fill(col = "white", alpha = 0.90)+ 
   tm_layout(basemaps = c('OpenStreetMap'))
 
-tm_shape(distance_clipped)+
-  tm_raster(legend.show = FALSE, palette = pal2(100))+
+
+tm_shape(distance90)+
+  tm_fill(col = "white", alpha = 0.0)+
+  tm_shape(distance80)+
+  tm_fill(col = "white", alpha = 0.10)+
+  tm_shape(distance70)+
+  tm_fill(col = "white", alpha = 0.20)+
+  tm_shape(distance60)+
+  tm_fill(col = "white", alpha = 0.30)+
+  tm_shape(distance50)+
+  tm_fill(col = "white", alpha = 0.40)+
+  tm_shape(distance40)+
+  tm_fill(col = "white", alpha = 0.50)+
+  tm_shape(distance30)+
+  tm_fill(col = "white", alpha = 0.60)+
+  tm_shape(distance20)+
+  tm_fill(col = "white", alpha = 0.70)+
+  tm_shape(distance10)+
+  tm_fill(col = "white", alpha = 0.80)+
+  tm_shape(distance0)+
+  tm_fill(col = "white", alpha = 0.90)+
   tm_layout(basemaps = c('OpenStreetMap'))+
   tm_shape(inventorycoords)+
-  tm_dots(col = "black", size = 0.01)
+  tm_dots(col = "black", size = 0.001)
 
 tm_shape(dissimilarity)+
-  tm_raster(palette = pal(10), legend.show = FALSE)+
+  tm_raster(palette = pal(100), legend.show = TRUE, breaks = c(0, 200, 600, 800, 1000), title = "Oceanographic Variability", labels = c("Low", "Moderate", "High", "Extreme"))+
   tm_layout(basemaps = c('OpenStreetMap'))
 
