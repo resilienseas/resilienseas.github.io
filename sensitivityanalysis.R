@@ -26,27 +26,27 @@ for(i in 1:length(distanceweight)){
     gap<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2))))
     
     highprioritygaps <- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.99))
-    
+     
     name = paste(temporalweight[j], distanceweight[i], sep = "_")
     rastersensitivity[[name]] = highprioritygaps
   }
 }
 
-
 #transform to raster stack
 sensitivitystack <- stack(rastersensitivity[[1]])
 for(i in 2:length(rastersensitivity)) sensitivitystack <- addLayer(sensitivitystack, rastersensitivity[[i]])
 
-#replace 0s with NAs
-sensitivitystack[(sensitivitystack == 0)] <- NA
+###ADD UP VALUES
+sum <- sum(sensitivitystack)
 
-#intersect loop
+plot(sum)
 
-intersection <- intersect(sensitivitystack[1], sensitivitystack[2])
+freq(sum)
 
+overlap <- setValues(sum, getValues(sum == 100))
 
-for (i in 1:nlayers(sensitivitystack)) 
-  {
-  intersection <- intersect(sensitivitystack[[i]], sensitivitystack[[i+1]])
-  intersect2 <- intersect(intersection, sensitivitystack[[i+2]])
-  }
+plot(overlap)
+
+freq(overlap)
+
+##top 25% gaps 8% sensitive
