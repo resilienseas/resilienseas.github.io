@@ -35,34 +35,40 @@ ale.wo.na <- na.omit(ale)
 
 png(filename="visualizations/ale.arag.ts.png", width = 12, height = 7, units = 'in', res = 300)
 ggplot(data=ale, aes(x = date.time, y = aragonite)) +
-  # geom_rect(data=ale, xmin=-Inf,
-            #xmax=Inf,
-            #ymin=(mean(ale.wo.na$aragonite) - sd(ale.wo.na$aragonite)),
-            #ymax=(mean(ale.wo.na$aragonite) + sd(ale.wo.na$aragonite)), aes(xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax),
-            #fill="grey90",alpha=0.5) +
-  geom_rect(data=ale, xmin=as.POSIXct('2012-02-06'),
-            xmax=as.POSIXct('2012-06-22'),
-            ymin=-Inf,
-            ymax=Inf, aes(xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax),
-            fill="grey95") +
-  geom_rect(data=ale, xmin=as.POSIXct('2013-03-29'),
-            xmax=as.POSIXct('2013-10-07'),
-            ymin=-Inf,
-            ymax=Inf, aes(xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax),
-            fill="grey95") +
-  geom_line(colour = "dodgerblue3", size = 0.4, alpha = 0.6) +
+  geom_rect(data=ale, xmin=-Inf,
+            xmax=Inf,
+            ymin=(mean(ale.wo.na$aragonite) - sd(ale.wo.na$aragonite)),
+            ymax=(mean(ale.wo.na$aragonite) + sd(ale.wo.na$aragonite)), aes(xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax),
+            fill="grey95",alpha=0.5) +
+  #geom_rect(data=ale, xmin=as.POSIXct('2012-02-06'),
+            #xmax=as.POSIXct('2012-06-22'),
+            #ymin=-Inf,
+            #ymax=Inf, aes(xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax),
+            #fill="grey95") +
+  #geom_rect(data=ale, xmin=as.POSIXct('2013-03-29'),
+            #xmax=as.POSIXct('2013-10-07'),
+            #ymin=-Inf,
+            #ymax=Inf, aes(xmin=xmin,xmax=xmax,ymin=ymin,ymax=ymax),
+            #fill="grey95") +
+  geom_line(colour = "grey15", size = 0.4, alpha = 0.6) +
   #geom_smooth(data = ale.wo.na, aes(date.time, aragonite), span = 0.1, color = "grey80", se = FALSE) +
-  # geom_hline(yintercept = mean(ale.wo.na$aragonite), color="dodgerblue", linetype = "dashed") +
+  geom_hline(yintercept = mean(ale.wo.na$aragonite), color="dodgerblue2", linetype = "dashed") +
   #geom_hline(yintercept = 2, color="light pink", linetype = "dashed") +
   labs(title="Santa Barbara Channel Aragonite Saturation State\n",x="\nDate", y = "Aragonite Saturation State\n") +
-  theme_classic() +
-  theme(text=element_text(family="Spectral"), plot.title = element_text(size = 24, hjust = 0.5), axis.title = element_text(size = 18), axis.text = element_text(size = 14)) +
-  theme(plot.margin=unit(c(5,10,5,5),"mm")) +
-  scale_y_reverse(expand = c(0,0), limits = c(4.25, 0)) +
-  scale_x_datetime(expand = c(0,0), date_breaks = "3 months", labels = date_format("%b. '%y"))
+  theme_linedraw() +
+  theme(text=element_text(family="Spectral"), plot.title = element_text(size = 24, hjust = 0.5), axis.title = element_text(size = 18), axis.text = element_text(size = 14), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  #theme(plot.margin=unit(c(5,10,5,5),"mm")) +
+  #scale_y_continuous(limits = c(4.25, 0)) +
+  scale_x_datetime(expand = c(0,0), date_breaks = "3 months", labels = date_format("%d-%m-%y"))
   #annotate("text", x = as.POSIXct('2011-09-03'), y = 3.75, label = "Low Acidification", family = "Spectral") +
   #annotate("text", x = as.POSIXct('2011-09-03'), y = 0.5, label = "High Acidification", family = "Spectral")
 dev.off()
+
+
+  #theme(plot.margin=unit(c(5,10,5,5),"mm")) +
+  #scale_y_continuous(expand = c(0,0), limits = c(0, 4.15)) +
+  scale_x_date(date_breaks = "3 months", labels = date_format("%b-%d"))
 
 ale.seasonal <- subset(ale, ale$date.time >= "2011-11-01 00:00:00" & ale$date.time <= "2012-01-31 00:00:00")
 
