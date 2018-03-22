@@ -141,9 +141,9 @@ class(aragonite_raster)
 
 ###############################################################
 #Part III.B - Subtract Standard Deviation from raster layer 
-fun <- function(x) {x[x<0] <- 0; return(x) }
-arag_stdv <- aragonite_raster_prj - 1
-arag_stdv2 <- raster::calc(arag_stdv, fun)
+#fun <- function(x) {x[x<0] <- 0; return(x) }
+#arag_stdv <- aragonite_raster_prj - 1
+#arag_stdv2 <- raster::calc(arag_stdv, fun)
 ##############################################################
 #PART IV: HOTSPOT MASK
 ######################################################
@@ -154,7 +154,7 @@ arag_stdv2 <- raster::calc(arag_stdv, fun)
 m <- c(0,1,1, 1,1.7,1.7, 1.7,2,2, 2,10,NA)
 reclassifymatrix <- matrix(m, ncol=3, byrow=TRUE)
 hotspotmask <- reclassify(aragonite_raster_prj, reclassifymatrix)
-hotspotmask2 <- reclassify(arag_stdv2, reclassifymatrix)
+#hotspotmask2 <- reclassify(arag_stdv2, reclassifymatrix)
 View(reclassifymatrix)
 plot(hotspotmask)
 mapview(hotspotmask)
@@ -209,7 +209,7 @@ mapview(aragonite_clipped)
 plot(aragonite_clipped)
 aragonite_clippedB <- mask(arag_stdv2, poly_coast, inverse = TRUE,progress='text')
 
-hotspot_clippedB <- mask(hotspotmask2, poly_coast, inverse = TRUE,progress='text')
+hotspot_clipped <- mask(hotspotmask, poly_coast, inverse = TRUE,progress='text')
 mapview(hotspot_clipped)
 plot(hotspot_clipped)
 
@@ -326,9 +326,9 @@ tm_shape(aragonite_clipped_2B) +
   tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
 
 tm_shape(hotspot_clipped_2) +
-  tm_raster(hotspot_clipped_2, breaks= c(0, 1.0, 1.7, 2.0),
+  tm_raster(hotspot_clipped_2, breaks= c(0, 1.1, 1.8, 2.1),
             palette = pal2(2), title="Aragonite Saturation State") +
-  tm_layout(basemaps=c('OpenStreetMap'), basemaps.alpha = 0.2)
+  tm_layout(basemaps=c('OpenStreetMap'))
 
 breaks= c(0, 1.0, 1.7, 2.0)
 
@@ -337,10 +337,10 @@ tm_shape(hotspot_clipped_2B) +
             palette = pal2(4), title="Aragonite Saturation State") +
   tm_layout(basemaps=c('OpenStreetMap'), basemaps.alpha = 0.5)
 
-tm_shape(poly_MPA) + tm_polygons("PCT_HOTSPOTCOVER", palette=pal3(7),
+tm_shape(poly_MPA) + tm_polygons("PCT_HOTSPOTCOVER", palette=pal(7),
                                  breaks=seq(0, 1, by=0.1),
                                  title="Percent of MPA Covered by Hotspot") +
-  tm_legend(legend.position=c("right", "bottom"), basemaps.alpha = 0.5)
+  tm_layout(basemaps=c('OpenStreetMap')) 
 
 tmap_mode("view")
 last_map()
