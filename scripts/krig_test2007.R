@@ -97,6 +97,11 @@ spplot(aragonitekrige)
 spplot(aragonitekrige['var1.pred'])
 spplot(aragonitekrige['var1.var'])
 
+spplot(aragonitekrige['var1.pred'],main = list(label = "Omega Predictions (2007)", cex = 0.8, fontfamily = "serif"))
+
+spplot(aragonitekrige["var1.var"], formula=sqrt(var1.var)~long+lat, main = list(label = "Standard Error of Predictions (2007)", cex = 0.8, fontfamily = "serif"))
+
+
 
 p = aragonitekrige['var1.pred']
 v = aragonitekrige['var1.var']
@@ -106,7 +111,9 @@ library(raster)
 p_r = raster(p)
 v_r = raster(v)
 
-p_lo = p_r - p_r * 0.9 * v_r
+View(p_r)
+
+p_lo = p_r- p_r * 0.9 * v_r
 plot(p_lo)
 
 plot(p_lo < 1.4)

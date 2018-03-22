@@ -500,7 +500,6 @@ tm_shape(highfreqcoords)+
 
 pal <- colorRampPalette(c("white", "red"))
 
-pal2 <- colorRampPalette(c("black", "white"))
 
 poly_coast<- readOGR(dsn=path.expand("Export_Output_2"), layer="Export_Output_2")
 poly_coast <- spTransform(poly_coast, crs(distance))
@@ -602,7 +601,14 @@ tm_shape(distance90)+
   tm_shape(inventorycoords)+
   tm_dots(col = "black", size = 0.001)
 
+pal <- colorRampPalette(c("white", "blue"))
+
+
 tm_shape(dissimilarity)+
-  tm_raster(palette = pal(100), legend.show = TRUE, breaks = c(0, 200, 600, 800, 1000), title = "Oceanographic Variability", labels = c("Low", "Moderate", "High", "Extreme"))+
+  tm_raster(palette = pal(100), legend.show = TRUE, breaks = c(0, 200, 400, 600, 800), title = "Oceanographic Variability", labels = c("Low", "Moderate", "High", "Extreme"))+
+  tm_layout(basemaps = c('OpenStreetMap'))
+
+tm_shape(dissimilarity)+
+  tm_raster(palette = pal(100), title = "Oceanographic Variability")+
   tm_layout(basemaps = c('OpenStreetMap'))
 
