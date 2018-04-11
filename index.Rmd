@@ -4,7 +4,6 @@ output: html_document:
   toc: true
   toc_float: true
   code_folding: hide
-
 ---
 
 ```{r setup, include=FALSE}
@@ -16,13 +15,5 @@ knitr::opts_chunk$set(echo = TRUE)
 Ocean Acidification (OA) is progressing on the West Coast of North America at a rate 2x higher than the global average. However, with enhanced monitoring and evaluation, marine managers can be better prepared to understand how OA is changing regionally, and creating effects locally.
 
 ## Add Interactive Map
-
-```{r echo=FALSE}
-library(leaflet)
-leaflet() %>% 
-  addTiles() %>% 
-  fitBounds(-119, 34, -199.5, 34.5) %>% 
-  setView(-119.8422, 34.4132, zoom = 17)
-```
 
 
