@@ -307,12 +307,16 @@ tm_shape(poly_MPA) + tm_polygons("ARAGONITE_MEAN", palette=pal(3), colorNA=NULL,
                                  title="Mean Aragonite \nSaturation State") +
   tm_layout(basemaps = c('OpenStreetMap'))
 
+tm_shape(poly_MPA) + tm_polygons("ARAGONITE_MEAN", palette=pal(3), colorNA=NULL,
+                                 breaks=seq(.8,3, by=0.2),
+                                 title="Level of Ocean Acidification") +
+  tm_layout(basemaps = c('OpenStreetMap'))
+
 tm_shape(poly_MPA) + tm_polygons("OBJECTID", palette=pal3(1)
                                 ) +
   tm_layout(basemaps = c('OpenStreetMap'))
 
-tm_shape(poly_MPA) + tm_polygons("OBJECTID", palette=pal3(1)
-) +
+tm_shape(poly_MPA) + tm_polygons() +
   tm_layout(basemaps = c('OpenStreetMap'))
 
 tm_shape(aragonite_clipped_2) +
