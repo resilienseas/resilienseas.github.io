@@ -1,6 +1,10 @@
 ---
 title: "About Resilienseas"
-output: html_document
+output:  
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
@@ -11,10 +15,6 @@ library(htmltools)
 ## About the team
 
 We are a group of masters students at the Bren School of Environmental Science & Management at University of California, Santa Barbara. Over the past year and a half we have been working with our client, the West Coast Ocean Data Portal and partners at the West Coast Regional Planning Body to identify gaps in ocean acidification monitoring and hotspots throughout the California Current System.
-
-```{r}
-#`r img(src='resilienseas_defense.jpg', style='float: right;')`
-```
 
 ## About the client
 
