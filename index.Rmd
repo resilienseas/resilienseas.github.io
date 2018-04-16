@@ -11,8 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Ocean Acidification (OA) is progressing on the West Coast of North America at a rate 2x higher than the global average. However, with enhanced monitoring and evaluation, marine managers can be better prepared to understand how OA is changing regionally, and creating effects locally.
 
-## Add Interactive Map
-```{r}
+## West Coast Ocean Acidification and Hypoxia (OAH) Monitoring Inventory
+```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(leaflet)
 oahfocus <- read_csv("oahfocus.csv")
@@ -22,7 +22,12 @@ leaflet(oahfocus) %>%
       addCircleMarkers(
         radius = 6, 
         weight=7,
-        color = "black")
+        color = "black",
+        popup = paste("Project ID: ", oahfocus$ProjectID, "<br>",
+                      "Organization: ", oahfocus$Orgnztion, "<br>"),
+          
+        stroke=FALSE, fillOpacity = 1)
+  
 ```
 
 
