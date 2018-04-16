@@ -1,17 +1,20 @@
 ---
 title: "Ocean Acidification Monitoring Gaps and Hotspots"
-output: html_document
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Identifying Ocean Acidification Monitoring Gaps and Hotspots in the California Current System
-
 Ocean Acidification (OA) is progressing on the West Coast of North America at a rate 2x higher than the global average. However, with enhanced monitoring and evaluation, marine managers can be better prepared to understand how OA is changing regionally, and creating effects locally.
 
-## West Coast Ocean Acidification and Hypoxia (OAH) Monitoring Inventory
+## The Monitoring Inventory
+The West Coast Ocean Acidification and Hypoxia (OAH) Monitoring Inventory is a joint project of the Pacific Coast Collaborative and the Interagency Working Group on Ocean Acidification (OA). It emerged as a project to identify and catalog all monitoring assets along the West Coast that are measuring metrics of OAH. The assets are owned and operated with different priorities by different institutions, but are brought together in an attempt to analyze how well we understand and are monitoring OA trends at a regional level.
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(leaflet)
@@ -30,4 +33,6 @@ leaflet(oahfocus) %>%
   
 ```
 
+##Gap Analysis
 
+##Hotspots and Thresholds Analysis

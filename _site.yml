@@ -4,7 +4,7 @@ navbar:
   left:
     - text: "Home"
       href: index.html
-    - text: "About"
+    - text: "About ResilienSeas"
       href: about.html
     - text: "Analysis"
       icon: fa-flask
