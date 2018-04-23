@@ -30,7 +30,7 @@ leaflet(oahfocus) %>%
       addCircleMarkers(
         radius = 6, 
         weight=7,
-        color = "blue",
+        color = "turquoise",
         popup = paste("Project ID: ", oahfocus$ProjectID, "<br>",
                       "Organization: ", oahfocus$Orgnztion, "<br>"),
           
