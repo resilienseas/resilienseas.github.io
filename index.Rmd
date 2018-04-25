@@ -83,8 +83,6 @@ leaflet() %>%
     pal = pal, values = values(aragonite_map),
     title = "Aragonite Saturation State") 
   
-
-
-
 ```
 
+##West Coast MPAs and Ocean Acidification

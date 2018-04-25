@@ -13,7 +13,7 @@
 
 <title>About Resilienseas</title>
 
-<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<script src="site_libs/jquery-1.12.4/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
@@ -26,6 +26,17 @@
 <script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/htmlwidgets-1.0/htmlwidgets.js"></script>
+<link href="site_libs/leaflet-0.7.7/leaflet.css" rel="stylesheet" />
+<script src="site_libs/leaflet-0.7.7/leaflet.js"></script>
+<link href="site_libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
+<link href="site_libs/leaflet-label-0.2.2/leaflet.label.css" rel="stylesheet" />
+<script src="site_libs/leaflet-label-0.2.2/leaflet.label.js"></script>
+<script src="site_libs/Proj4Leaflet-0.7.2/proj4-compressed.js"></script>
+<script src="site_libs/Proj4Leaflet-0.7.2/proj4leaflet.js"></script>
+<script src="site_libs/leaflet-binding-1.1.0/leaflet.js"></script>
+<script src="site_libs/leaflet-providers-1.0.27/leaflet-providers.js"></script>
+<script src="site_libs/leaflet-providers-plugin-1.1.0/leaflet-providers-plugin.js"></script>
 <link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
 
 <style type="text/css">code{white-space: pre;}</style>
@@ -350,13 +361,30 @@ div.tocify {
 </div>
 <div id="about-the-client" class="section level2">
 <h2>About the client</h2>
+<div class="figure">
+<img src="WCODP_Logo.png" />
+
+</div>
 <p>The <a href="http://portal.westcoastoceans.org/">West Coast Ocean Data Portal</a> is a project of the West Coast Governors Alliance on Ocean Health (WCGA) to increase discovery and connectivity of ocean and coastal data and people to better inform regional resource management, policy development, and ocean planning. The Portal informs priority West Coast ocean issues such as tracking sources and patterns of marine debris, adaptation to sea-level rise, understanding impacts of ocean acidification on our coasts, and marine planning.</p>
 <p>The Portal links existing data systems together to provide an easy to use gateway to discover ocean and coastal data. Coastal decision-makers, researchers, and stakeholders use the Portal to access data and decision-support tools they need to understand and address high-priority regional issues. The Portal is funded through NOAA’s Regional Ocean Partnership grant and includes tools to help coastal managers track marine debris to help prioritize clean ups and advocate for policies to reduce the impact of trash on our beaches.</p>
+<div class="figure">
+<img src="WCRPB_Logo.png" />
+
+</div>
 <p>Established in 2015, the <a href="http://www.westcoastmarineplanning.org/">West Coast Regional Planning Body</a> (RPB) is a partnership between federally-recognized tribes, federal government agencies, and the states of Washington, Oregon and California focused on enhanced coordination and communication around planning and management of current and emerging ocean uses, as well as information and data-sharing on the West Coast of the U.S.</p>
 </div>
 <div id="about-the-bren-school" class="section level2">
 <h2>About the Bren School</h2>
 <p>The <a href="http://www.bren.ucsb.edu/">Bren School of Environmental Science &amp; Management</a> at UCSB has earned a reputation as one of the top schools of its kind in the nation. It is among a handful of schools in the United States — and the only one in the West — that integrate science, management, law, economics, and policy as part of an interdisciplinary approach to environmental problem-solving.</p>
+<pre class="r"><code>library(leaflet)
+
+blurb &lt;- paste(&quot;Bren School of Environmental Science &amp; Management&quot;)
+leaflet() %&gt;% 
+  addTiles() %&gt;%
+  addProviderTiles(providers$OpenSeaMap) %&gt;% 
+  addPopups(-119.842119, 34.413228, blurb)</code></pre>
+<div id="htmlwidget-6e6348a1ad688045b8da" style="width:672px;height:480px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-6e6348a1ad688045b8da">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false,"attribution":"&copy; <a href=\"http://openstreetmap.org\">OpenStreetMap<\/a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA<\/a>"}]},{"method":"addProviderTiles","args":["OpenSeaMap",null,null,{"errorTileUrl":"","noWrap":false,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false}]},{"method":"addPopups","args":[34.413228,-119.842119,"Bren School of Environmental Science & Management",null,null,{"maxWidth":300,"minWidth":50,"maxHeight":null,"autoPan":true,"keepInView":false,"closeButton":true,"zoomAnimation":true,"closeOnClick":null,"className":""}]}],"limits":{"lat":[34.413228,34.413228],"lng":[-119.842119,-119.842119]}},"evals":[],"jsHooks":[]}</script>
 </div>
 
 
