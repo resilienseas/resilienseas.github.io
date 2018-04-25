@@ -64,3 +64,27 @@ leaflet() %>%
   
   
 ##Hotspots and Thresholds Analysis
+*Low aragonite saturation state = high ocean acidification levels, while high saturation state = low ocean acidificaiton levels*
+```{r message=FALSE, warning=FALSE, fig.height = 6, fig.width = 6}
+library(raster)
+library(tidyverse)
+library(leaflet)
+
+aragonite_map <- raster("WCOA13_aragonite_raster_clipped.tif")
+
+pal <- colorNumeric("RdYlBu", values(aragonite_map),na.color = "transparent", reverse = FALSE)
+
+leaflet() %>% 
+  addTiles() %>% 
+  addProviderTiles('Esri.OceanBasemap') %>% 
+  setView(-120, 43.9, zoom = 6) %>% 
+  addRasterImage(aragonite_map, colors = pal) %>% 
+  addLegend(
+    pal = pal, values = values(aragonite_map),
+    title = "Aragonite Saturation State") 
+  
+
+
+
+```
+
