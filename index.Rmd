@@ -15,26 +15,33 @@ Ocean Acidification (OA) is progressing on the West Coast of North America at a 
 
 ## The Monitoring Inventory
 The West Coast Ocean Acidification and Hypoxia (OAH) Monitoring Inventory is a joint project of the Pacific Coast Collaborative and the Interagency Working Group on Ocean Acidification (OA). It emerged as a project to identify and catalog all monitoring assets along the West Coast that are measuring metrics of OAH. The assets are owned and operated with different priorities by different institutions, but are brought together in an attempt to analyze how well we understand and are monitoring OA trends at a regional level.
+
+**Click on a monitoring asset to learn more**
 ```{r message=FALSE, warning=FALSE, fig.height = 6, fig.width = 4}
+#load packages
 library(tidyverse)
 library(leaflet)
 library(sp)
-oahfocus <- read_csv("oahfocus.csv")
-coordinates(oahfocus) <-~Longitude+Latitude
-carbpoints <- subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
-highfreqpoints <- subset(oahfocus, MeasFreq > 364)
+library(RColorBrewer)
 
+#read in inventroy and transform to spatial points
+oahfocus <- read_csv("oahfocus_copy.csv")
+oahfocus %>% mutate(AssetType2 = case_when(AssetType == 'Cruise Station' & AssetType == 'Cruise' ~ 'Cruise', AssetType == 'Shoreside Sensor' & AssetType == 'Shoreside sensor' ~ 'Shoreside Sensor', TRUE ~ as.character(AssetType)))
+
+#create color palette based on subsets by asset type
+asset_pal <- colorFactor(terrain.colors(7), oahfocus$AssetType)
+#pal <- brewer.pal(7, "Paired")
+#factor_pal <- colorFactor(topo.colors, domain = oahfocus$AssetType)
+oahfocus$AssetType <- as.factor(oahfocus$AssetType)
 
 leaflet(oahfocus) %>%
-      addProviderTiles('Esri.OceanBasemap') %>% 
-      addCircleMarkers(
+  addProviderTiles('Esri.OceanBasemap') %>% 
+  addCircleMarkers(
         radius = 6, 
-        weight=7,
-        color = "turquoise",
-        popup = paste("Project ID: ", oahfocus$ProjectID, "<br>",
-                      "Organization: ", oahfocus$Orgnztion, "<br>"),
-          
-        stroke=FALSE, fillOpacity = 1)
+        weight = 7,
+        color = ~asset_pal(AssetType), 
+        popup = paste("Project ID: ", oahfocus$ProjectID, "<br>","Organization: ", oahfocus$Orgnztion, "<br>"), stroke=FALSE, fillOpacity = 0.5) %>% 
+  addLegend(pal = asset_pal, values = oahfocus$AssetType, title = "Asset Type", opacity = 1)
   
 ```
   
