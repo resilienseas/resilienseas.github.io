@@ -45,25 +45,31 @@ leaflet(oahfocus) %>%
   
   
 ##Gap Analysis
-A main recommendation of the West Coast OAH Panel is that a gap analysis be conducted on the combined regional monitoring network. This is crucial for identifying areas of future research and priorities for expanding the network. This gap analysis shows gaps across the entire network. This analysis was completed again with subsets of the inventory for high frequency monitoring and carbonate complete monitoring to highlight gaps in priority data types.
+A main recommendation of the West Coast OAH Panel is that a gap analysis be conducted on the combined regional monitoring network. This is crucial for identifying areas of future research and priorities for expanding the network. 
+This gap analysis shows gaps in carbonate complete monitoring. Carbonate complete monitoring is important because its robustness allows for clearer indication of the potential for biological impact. Our gap analysis was also completed to search for gaps in high frequency monitoring and gaps across the entire monitoring network. Thus, based on varying priorities in monitoring, more specific gaps can be identified for specific research needs.
+
+*Gaps in carbonate complete monitoring*
+
 ```{r message=FALSE, warning=FALSE, fig.height = 6, fig.width = 6}
 library(raster)
 library(sp)
 library(tidyverse)
 library(leaflet)
 
-full_gaps <- raster("full_invetory_gaps_copy.tif")
-gappal <- colorRampPalette(c("slateblue4", "slateblue", "plum", "orangered2"))
+carb_gaps <- raster("carbcomplete_gaps.tif")
+carbgappal <- colorRampPalette(c("slateblue4", "slateblue", "plum", "orangered2"))
 leaflet() %>% 
       addTiles() %>%
       addProviderTiles('Esri.OceanBasemap') %>% 
-      addRasterImage(full_gaps, colors = gappal(4)) %>% 
-      addLegend("topright", colors=gappal(4), values= values(gaprasters), labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"), title = "Severity of Gap")
+      addRasterImage(carb_gaps, colors = carbgappal(4)) %>% 
+      addLegend("topright", colors=carbgappal(4), values= values(gaprasters), labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"), title = "Severity of Gap")
 ```
 "Gaps" were identified by combining distance calculations between each given monitoring site, and oceanographic variability between monitoring sites. This assumes it is ideal to increase monitoring where current monitoring is sparse or conditions may be more variable. "Severe gaps" represent the top 0.1% of model results, representing greatest relative distance and greatest relative variability.
   
   
 ##Hotspots and Thresholds Analysis
+Using data from a 2013 NOAA Ocean Acidification Cruise, we predicted the location of ocean acidification hotspots along the West Coast. Hotspots are areas in which ocean acidification levels have the potential to have biological effects. For examples, an aragonite saturation state of 1.7 has been correlated with shellfish die offs. 
+  
 *Low aragonite saturation state = high ocean acidification levels, while high saturation state = low ocean acidificaiton levels*
 ```{r message=FALSE, warning=FALSE, fig.height = 6, fig.width = 6}
 library(raster)
