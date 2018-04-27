@@ -173,7 +173,7 @@ mapview(hotspotmask)
 #layer_MPA <- 'all_mpas_update'
 #poly_MPA <- readOGR(dsn=dir_spatial, layer=layer_MPA)
 
-#poly_MPA <- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/all_mpas_update"), layer="all_mpas_update")
+poly_MPA <- readOGR(dsn=path.expand("/Users/madisonharris/Documents/ResilienSeas/all_mpas_update"), layer="all_mpas_update")
 
 #poly_MPA <- readOGR(dsn=path.expand("/Users/rttaylorburnscom/github/resilienseas/all_mpas_update"), layer="all_mpas_update")
 
@@ -181,7 +181,7 @@ poly_MPA <- readOGR(dsn=path.expand("/Users/courtney/GP/all_mpas_update"), layer
 poly_MPA <- readOGR(dsn=path.expand("/Users/courtneycochran/downloads/all_mpas_update"), layer="all_mpas_update")
 
 #Assign same projection as hotspotmask raster to MPA shapefile
-poly_MPA <- spTransform(poly_MPA, crs(hotspotmask))
+poly_MPA <- spTransform(poly_MPA, crs(aragonite_clipped))
 
 #Plot MPA shapefile and hotspot raster together
 plot(poly_MPA, col='lightblue', border='blue')
@@ -258,7 +258,7 @@ hotspot_clipped_2B <- mask(hotspot_clipped_2B, pugetsound, inverse=TRUE)
 #############################################################
 
 #Calculate mean aragonite saturation state for each MPA and export as data frame
-aragonite_mean<- raster::extract(aragonite_clipped_2, poly_MPA, fun=mean, na.rm=TRUE, df=TRUE)
+aragonite_mean<- raster::extract(aragonite_clipped, poly_MPA, fun=mean, na.rm=TRUE, df=TRUE)
 View(aragonite_mean)
 colnames(aragonite_mean) <- c("OBJECTID", "ARAGONITE_MEAN")
 
@@ -294,6 +294,7 @@ plot(poly_MPA,col=(poly_MPA@data[,6]))
 plot(poly_MPA) 
 mapview(poly_MPA)
 
+writeOGR(poly_MPA, dsn = '.', layer = "mpa_mean", driver = "ESRI Shapefile", overwrite_layer = TRUE)
 ######################################################
 #Visualizing MPA Zonal statistics
 ##########################################################
