@@ -410,6 +410,8 @@ highfreqhighprioritygaps<-setValues(highfreqdistance, sqrt((getValues(highfreqdi
 highfreqlowprioritygaps<-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) > quantile(highfreqgap, (.75))
 highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps+highfreqhighprioritygaps
 
+
+
 #save rasters for gap shiny app
 writeRaster(finalgaps, filename = "/Users/rttaylorburnscom/github/resilienseas.github.io/gaps", format="GTiff", overwrite=TRUE)
 writeRaster(carbcompletefinalgaps, filename = "/Users/rttaylorburnscom/github/resilienseas.github.io/carbcomplete_gaps", format="GTiff", overwrite=TRUE)
