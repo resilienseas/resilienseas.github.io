@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 [oatools](https://github.com/resilienseas/oatools)
 
 ## Install
-
+This package contains streamlined tools used to create our Ocean Acidification Monitoring Gap Analysis.
 ```r
 # install.packages("devtools")
 devtools::install_package("resilienseas/oatools")

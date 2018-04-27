@@ -15,24 +15,74 @@ Ocean Acidification (OA) is progressing on the West Coast of North America at a 
 
 ## The Monitoring Inventory
 The West Coast Ocean Acidification and Hypoxia (OAH) Monitoring Inventory is a joint project of the Pacific Coast Collaborative and the Interagency Working Group on Ocean Acidification (OA). It emerged as a project to identify and catalog all monitoring assets along the West Coast that are measuring metrics of OAH. The assets are owned and operated with different priorities by different institutions, but are brought together in an attempt to analyze how well we understand and are monitoring OA trends at a regional level.
-```{r message=FALSE, warning=FALSE}
+
+*Click on a monitoring asset to learn more*
+```{r message=FALSE, warning=FALSE, fig.height = 6, fig.width = 6}
+#load packages
 library(tidyverse)
 library(leaflet)
-oahfocus <- read_csv("oahfocus.csv")
+library(sp)
+library(RColorBrewer)
+
+#read in inventroy and transform to spatial points
+oahfocus <- read_csv("oahfocus_copy.csv")
+
+#create color palette based on subsets by asset type
+asset_pal <- colorFactor(terrain.colors(7), oahfocus$AssetType)
 
 leaflet(oahfocus) %>%
-      addProviderTiles('Esri.OceanBasemap') %>% 
-      addCircleMarkers(
+  addProviderTiles('Esri.OceanBasemap') %>% 
+  setView(-122, 40, zoom = 5) %>% 
+  addCircleMarkers(
         radius = 6, 
-        weight=7,
-        color = "black",
-        popup = paste("Project ID: ", oahfocus$ProjectID, "<br>",
-                      "Organization: ", oahfocus$Orgnztion, "<br>"),
-          
-        stroke=FALSE, fillOpacity = 1)
+        weight = 7,
+        color = ~asset_pal(AssetType), 
+        popup = paste("Project ID: ", oahfocus$ProjectID, "<br>","Organization: ", oahfocus$Orgnztion, "<br>"), stroke=FALSE, fillOpacity = 0.5) %>% 
+  addLegend(pal = asset_pal, values = oahfocus$AssetType, title = "Asset Type", opacity = 1)
+  
+  
+```
+  
+  
+##Gap Analysis
+A main recommendation of the West Coast OAH Panel is that a gap analysis be conducted on the combined regional monitoring network. This is crucial for identifying areas of future research and priorities for expanding the network. This gap analysis shows gaps across the entire network. This analysis was completed again with subsets of the inventory for high frequency monitoring and carbonate complete monitoring to highlight gaps in priority data types.
+```{r message=FALSE, warning=FALSE, fig.height = 6, fig.width = 6}
+library(raster)
+library(sp)
+library(tidyverse)
+library(leaflet)
+
+full_gaps <- raster("full_invetory_gaps_copy.tif")
+gappal <- colorRampPalette(c("slateblue4", "slateblue", "plum", "orangered2"))
+leaflet() %>% 
+      addTiles() %>%
+      addProviderTiles('Esri.OceanBasemap') %>% 
+      addRasterImage(full_gaps, colors = gappal(4)) %>% 
+      addLegend("topright", colors=gappal(4), values= values(gaprasters), labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"), title = "Severity of Gap")
+```
+"Gaps" were identified by combining distance calculations between each given monitoring site, and oceanographic variability between monitoring sites. This assumes it is ideal to increase monitoring where current monitoring is sparse or conditions may be more variable. "Severe gaps" represent the top 0.1% of model results, representing greatest relative distance and greatest relative variability.
+  
+  
+##Hotspots and Thresholds Analysis
+*Low aragonite saturation state = high ocean acidification levels, while high saturation state = low ocean acidificaiton levels*
+```{r message=FALSE, warning=FALSE, fig.height = 6, fig.width = 6}
+library(raster)
+library(tidyverse)
+library(leaflet)
+
+aragonite_map <- raster("WCOA13_aragonite_raster_clipped.tif")
+
+pal <- colorNumeric("RdYlBu", values(aragonite_map),na.color = "transparent", reverse = FALSE)
+
+leaflet() %>% 
+  addTiles() %>% 
+  addProviderTiles('Esri.OceanBasemap') %>% 
+  setView(-120, 43.9, zoom = 6) %>% 
+  addRasterImage(aragonite_map, colors = pal) %>% 
+  addLegend(
+    pal = pal, values = values(aragonite_map),
+    title = "Aragonite Saturation State") 
   
 ```
 
-##Gap Analysis
-
-##Hotspots and Thresholds Analysis
+##West Coast MPAs and Ocean Acidification

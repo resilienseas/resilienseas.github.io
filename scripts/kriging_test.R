@@ -193,7 +193,7 @@ plot(hotspotmask, add=TRUE)
 
 #Load west coast shapefile
 
-poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
+poly_coast<- readOGR(dsn=path.expand("/Users/madisonharris/Documents/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
 
 #poly_coast <- readOGR(dsn=path.expand("/Users/rttaylorburnscom/github/resilienseas/Export_Output_2"), layer="Export_Output_2")
 
@@ -235,8 +235,10 @@ mapview(hotspot_clipped_2)
 
 ##############Canada 
 Canada <- readOGR(dsn='G:/Final_MPA_shapefiles/Canada', layer='Canada')
+#Canada <- readOGR(dsn = path.expand("/Users/madisonharris/Documents/ResilienSeas/Canada"), layer="Canada")
 Canada <- spTransform(Canada, crs(aragonite_raster_prj))
 Canada <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/Canada"), layer="Canada")
+#aragonite_clipped <- mask(aragonite_clipped, Canada, inverse = TRUE)
 aragonite_clipped_2 <- mask(aragonite_clipped_2, Canada, inverse= TRUE, progress='text')
 hotspot_clipped_2 <- mask(hotspot_clipped_2, Canada, inverse=TRUE)
 aragonite_clipped_2B <- mask(aragonite_clipped_2B, Canada, inverse= TRUE, progress='text')
@@ -250,6 +252,7 @@ hotspot_clipped_2 <- mask(hotspot_clipped_2, pugetsound, inverse=TRUE)
 aragonite_clipped_2B <- mask(aragonite_clipped_2B, pugetsound, inverse= TRUE, progress='text')
 hotspot_clipped_2B <- mask(hotspot_clipped_2B, pugetsound, inverse=TRUE)
 
+#writeRaster(aragonite_clipped, "WCOA13_aragonite_raster_clipped", format="GTiff",overwrite=TRUE)
 ##############################################################
 #PART VII. ZONAL STATISTICS
 #############################################################
