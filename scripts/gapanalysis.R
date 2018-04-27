@@ -411,11 +411,9 @@ highfreqlowprioritygaps<-setValues(highfreqdistance, sqrt((getValues(highfreqdis
 highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps+highfreqhighprioritygaps
 
 #save rasters for gap shiny app
-writeRaster(raster, "name you want file to be saved as", format="GTiff",
-            overwrite=TRUE) 
-writeRaster(finalgaps, filename = "/Users/courtneycochran/github/resilienseas.github.io/gap_app/gap_app/full_invetory_gaps", format="GTiff", overwrite=TRUE)
-writeRaster(carbcompletefinalgaps, filename = "/Users/courtneycochran/github/resilienseas.github.io/gap_app/gap_app/carbcomplete_gaps", format="GTiff", overwrite=TRUE)
-writeRaster(highfreqfinalgaps, filename = "/Users/courtneycochran/github/resilienseas.github.io/gap_app/gap_app/highfreq_gaps", format="GTiff", overwrite=TRUE)
+writeRaster(finalgaps, filename = "/Users/rttaylorburnscom/github/resilienseas.github.io/gaps", format="GTiff", overwrite=TRUE)
+writeRaster(carbcompletefinalgaps, filename = "/Users/rttaylorburnscom/github/resilienseas.github.io/carbcomplete_gaps", format="GTiff", overwrite=TRUE)
+writeRaster(highfreqfinalgaps, filename = "/Users/rttaylorburnscom/github/resilienseas.github.io/highfreq_gaps", format="GTiff", overwrite=TRUE)
 
 
 #test clip of raster to coast shapefile
