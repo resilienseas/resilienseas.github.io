@@ -25,7 +25,7 @@ library(sp)
 library(RColorBrewer)
 
 #read in inventroy and transform to spatial points
-oahfocus <- read_csv("oahfocus_copy.csv")
+oahfocus <- read_csv("/Users/madisonharris/Documents/github/resilienseas.github.io/website_visuals/oahfocus_copy.csv")
 
 #create color palette based on subsets by asset type
 asset_pal <- colorFactor(terrain.colors(7), oahfocus$AssetType)
@@ -56,7 +56,7 @@ library(sp)
 library(tidyverse)
 library(leaflet)
 
-carb_gaps <- raster("carbcomplete_gaps.tif")
+carb_gaps <- raster("/Users/madisonharris/Documents/github/resilienseas.github.io/website_visuals/carbcomplete_gaps.tif")
 carbgappal <- colorRampPalette(c("slateblue4", "slateblue", "plum", "orangered2"))
 leaflet() %>% 
       addTiles() %>%
@@ -76,7 +76,7 @@ library(raster)
 library(tidyverse)
 library(leaflet)
 
-aragonite_map <- raster("WCOA13_aragonite_raster_clipped.tif")
+aragonite_map <- raster("/Users/madisonharris/Documents/github/resilienseas.github.io/website_visuals/WCOA13_aragonite_raster_clipped.tif")
 
 pal <- colorNumeric("RdYlBu", values(aragonite_map),na.color = "transparent", reverse = FALSE)
 
