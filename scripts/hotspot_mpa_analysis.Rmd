@@ -106,8 +106,13 @@ Canada <- spTransform(Canada, crs(aragonite_raster_prj)) #Assign same CRS as ara
 ```{r clipping, message = FALSE, warning = FALSE}
 
 aragonite_clipped <- mask(aragonite_raster_proj, poly_coast, inverse = TRUE) #clip continuous raster
+aragonite_clipped <- mask(aragonite_clipped, estuary, inverse = TRUE) #clip raster layer to exclude estuaries
+aragonite_clipped <- mask(aragonite_clipped, Canada, inverse = TRUE) #clip raster layer to Canada layer
 
-hotspot_clipped <- mask(hotspotmask, poly_coast, inverse = TRUE) #clip hotspot mask
+
+hotspot_clipped <- mask(hotspotmask, poly_coast, inverse = TRUE) #clip hotspot mask to the coast
+hostspot_clipped <- mask(hotspot_clipped, estuary, inverse = TRUE) #clip hotspot layer to exclude estuaries
+hotspot_clipped <- mask(hotspot_clipped, Canada, inverse = TRUE) #clip hotspot layer to Canada layer
 
 ```
 
