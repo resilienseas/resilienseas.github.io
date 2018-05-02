@@ -413,8 +413,10 @@ highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps+highfreqhighprior
 
 
 #save rasters for gap shiny app
-writeRaster(finalgaps, filename = "/Users/rttaylorburnscom/github/resilienseas.github.io/gaps", format="GTiff", overwrite=TRUE)
+writeRaster(finalgaps, filename = "/Users/rttaylorburnscom/github/resilienseas.github.io/fullgaps", format="GTiff", overwrite=TRUE)
+
 writeRaster(carbcompletefinalgaps, filename = "/Users/rttaylorburnscom/github/resilienseas.github.io/carbcomplete_gaps", format="GTiff", overwrite=TRUE)
+
 writeRaster(highfreqfinalgaps, filename = "/Users/rttaylorburnscom/github/resilienseas.github.io/highfreq_gaps", format="GTiff", overwrite=TRUE)
 
 
