@@ -1,6 +1,8 @@
 ---
 title: "Ocean Acidification Hotspot and MPA Analysis"
-output: word_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
