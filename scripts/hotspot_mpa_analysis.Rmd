@@ -17,7 +17,7 @@ if (!require(pacman)) install.packages("pacman")
 library(pacman)
 p_load(
   tidyverse, here, 
-  sp, rgdal, gstat, raster, 
+  sp, rgdal, gstat, tibble, fields, leaflet, tmap,sf, dplyr, raster, 
   mapview)
 
 ```
@@ -85,14 +85,21 @@ hotspotmask <- reclassify(aragonite_raster_proj, thresholdsmatrix)
 ####Load shapefiles
 ```{r shapefiles, message = FALSE, warning = FALSE, results = 'hide'}
 
-poly_MPA <- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/all_mpas_update"), layer="all_mpas_update") #load MPAs
+poly_MPA <- readOGR(dsn=path.expand("/Users/courtneycochran/downloads/all_mpas_update"), layer="all_mpas_update") #Load MPA shapefile using pathway on personal computer
 
-poly_MPA <- spTransform(poly_MPA, crs(aragonite_raster_proj)) #assign same CRS as aragonite layer
+poly_MPA <- spTransform(poly_MPA, crs(aragonite_raster_proj)) #Assign same CRS as aragonite layer
 
-poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2") #load coast
+poly_coast<- readOGR(dsn=path.expand("/Users/courtneycochran/downloads/Export_Output_2"), layer="Export_Output_2") #Load coast shapefile using pathway on personal computer
 
-poly_coast <- spTransform(poly_coast, crs(aragonite_raster_proj)) #assign same CRS
+poly_coast <- spTransform(poly_coast, crs(aragonite_raster_proj)) #Assign same CRS as aragonite layer
 
+estuary <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/estuaries"), layer="altb02") #Load estuary shapefile using pathway on personal computer
+
+estuary <- spTransform(estuary, crs(aragonite_raster_prj)) #Assign same CRS as aragonite layer
+
+Canada <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/Canada"), layer="Canada") #Load Canada shapefile using pathway on personal computer 
+
+Canada <- spTransform(Canada, crs(aragonite_raster_prj)) #Assign same CRS as aragonite layer 
 ```
 
 ####Clip rasters to coast
