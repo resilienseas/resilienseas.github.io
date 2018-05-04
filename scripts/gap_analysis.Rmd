@@ -137,7 +137,7 @@ r_do_range <- lyr_to_tif(
 ####Load monitoring inventory
 ```{r inventory, message = FALSE, warning = FALSE, results = 'hide'}
 
-oahfocus <- read_csv(here("data/oahfocus.csv"))
+inventory <- read_csv(here("data/inventory.csv"))
 
 ```
 ####Tidy Inventory
@@ -321,9 +321,10 @@ gaps <- setValues(distance, log10(getValues(distance)*(getValues(variation))))
 ####Visualize gaps along the West Coast
 ```{r west coast, message = FALSE, warning = FALSE, results = 'hide'}
 
-poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
-poly_coast <- spTransform(poly_coast, crs(gaps))
-gaps_clipped <- mask(gaps, poly_coast, inverse = TRUE,progress='text')
+#poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB
+#Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
+#poly_coast <- spTransform(poly_coast, crs(gaps))
+#gaps_clipped <- mask(gaps, poly_coast, inverse = TRUE,progress='text')
 
 ```
 
