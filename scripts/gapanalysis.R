@@ -229,8 +229,8 @@ highfreqcoords <- spTransform(highfreqcoords, CRS('+init=EPSG:6414'))
 lowfreqcoords <- SpatialPoints(deduped.lowfrequency, CRS("+proj=longlat +ellps=WGS84"))
 lowfreqcoords <- spTransform(lowfreqcoords, CRS('+init=EPSG:6414'))
 
-#highfreqcarbcompletecoords <- SpatialPoints(deduped.highfreqcarbcomplete, CRS("+proj=longlat +ellps=WGS84"))
-#highfreqcarbcompletecoords <- spTransform(highfreqcarbcomplete, CRS('+init=EPSG:6414'))
+highfreqcarbcompletecoords <- SpatialPoints(deduped.highfreqcarbcomplete, CRS("+proj=longlat +ellps=WGS84"))
+highfreqcarbcompletecoords <- spTransform(highfreqcarbcompletecoords, CRS('+init=EPSG:6414'))
 
 # check to make sure projections match
 
@@ -444,12 +444,20 @@ gaps_clipped <- mask(gaps, poly_coast, inverse = TRUE,progress='text')
 
 tmap_mode("view")
 
-
 pal <- colorRampPalette(c("slateblue4", "slateblue", "plum", "orangered2"))
 
 tm_shape(finalgaps)+
   tm_raster(palette = pal(3))
 
+inventory_map <- tm_shape(inventorycoords)+
+  tm_dots(col = "black")+
+  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 1)
+
+save_tmap(inventory_map, filename="visualizations/inventory_map.png", width = 1920, height = 1080)
+# even though the mode is set to view, this function saves the "plot" view version of the map
+
+save_tmap(inventory_map, "inventory_map.html")
+# saves inventory_map as an html file -- still trying to figure out if we can integrate this w/ arcgis online
 
 tm_shape(inventorycoords)+
   tm_dots(col = "black")+
