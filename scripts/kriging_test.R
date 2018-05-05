@@ -173,7 +173,7 @@ mapview(hotspotmask)
 #layer_MPA <- 'all_mpas_update'
 #poly_MPA <- readOGR(dsn=dir_spatial, layer=layer_MPA)
 
-#poly_MPA <- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/all_mpas_update"), layer="all_mpas_update")
+poly_MPA <- readOGR(dsn=path.expand("/Users/madisonharris/Documents/ResilienSeas/all_mpas_update"), layer="all_mpas_update")
 
 #poly_MPA <- readOGR(dsn=path.expand("/Users/rttaylorburnscom/github/resilienseas/all_mpas_update"), layer="all_mpas_update")
 
@@ -181,7 +181,7 @@ poly_MPA <- readOGR(dsn=path.expand("/Users/courtney/GP/all_mpas_update"), layer
 poly_MPA <- readOGR(dsn=path.expand("/Users/courtneycochran/downloads/all_mpas_update"), layer="all_mpas_update")
 
 #Assign same projection as hotspotmask raster to MPA shapefile
-poly_MPA <- spTransform(poly_MPA, crs(hotspotmask))
+poly_MPA <- spTransform(poly_MPA, crs(aragonite_clipped))
 
 #Plot MPA shapefile and hotspot raster together
 plot(poly_MPA, col='lightblue', border='blue')
@@ -193,7 +193,7 @@ plot(hotspotmask, add=TRUE)
 
 #Load west coast shapefile
 
-poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
+poly_coast<- readOGR(dsn=path.expand("/Users/madisonharris/Documents/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
 
 #poly_coast <- readOGR(dsn=path.expand("/Users/rttaylorburnscom/github/resilienseas/Export_Output_2"), layer="Export_Output_2")
 
@@ -235,8 +235,10 @@ mapview(hotspot_clipped_2)
 
 ##############Canada 
 Canada <- readOGR(dsn='G:/Final_MPA_shapefiles/Canada', layer='Canada')
+#Canada <- readOGR(dsn = path.expand("/Users/madisonharris/Documents/ResilienSeas/Canada"), layer="Canada")
 Canada <- spTransform(Canada, crs(aragonite_raster_prj))
 Canada <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/Canada"), layer="Canada")
+#aragonite_clipped <- mask(aragonite_clipped, Canada, inverse = TRUE)
 aragonite_clipped_2 <- mask(aragonite_clipped_2, Canada, inverse= TRUE, progress='text')
 hotspot_clipped_2 <- mask(hotspot_clipped_2, Canada, inverse=TRUE)
 aragonite_clipped_2B <- mask(aragonite_clipped_2B, Canada, inverse= TRUE, progress='text')
@@ -250,12 +252,13 @@ hotspot_clipped_2 <- mask(hotspot_clipped_2, pugetsound, inverse=TRUE)
 aragonite_clipped_2B <- mask(aragonite_clipped_2B, pugetsound, inverse= TRUE, progress='text')
 hotspot_clipped_2B <- mask(hotspot_clipped_2B, pugetsound, inverse=TRUE)
 
+#writeRaster(aragonite_clipped, "WCOA13_aragonite_raster_clipped", format="GTiff",overwrite=TRUE)
 ##############################################################
 #PART VII. ZONAL STATISTICS
 #############################################################
 
 #Calculate mean aragonite saturation state for each MPA and export as data frame
-aragonite_mean<- raster::extract(aragonite_clipped_2, poly_MPA, fun=mean, na.rm=TRUE, df=TRUE)
+aragonite_mean<- raster::extract(aragonite_clipped, poly_MPA, fun=mean, na.rm=TRUE, df=TRUE)
 View(aragonite_mean)
 colnames(aragonite_mean) <- c("OBJECTID", "ARAGONITE_MEAN")
 
@@ -291,6 +294,7 @@ plot(poly_MPA,col=(poly_MPA@data[,6]))
 plot(poly_MPA) 
 mapview(poly_MPA)
 
+writeOGR(poly_MPA, dsn = '.', layer = "mpa_mean", driver = "ESRI Shapefile", overwrite_layer = TRUE)
 ######################################################
 #Visualizing MPA Zonal statistics
 ##########################################################
