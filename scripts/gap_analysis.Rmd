@@ -52,6 +52,7 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
 ```
   
 ####Set extent and coordinate reference system
+This is specific to our study area. We used NAD 83 California Teale Albers and used an extent that included waters off all three West Coast States. 
 ```{r extent, message = FALSE, warning = FALSE, results = 'hide'}
 
 ext_study <- extent(-670000, 350000, -885000, 1400000)
@@ -60,6 +61,7 @@ crs_study <- '+init=EPSG:6414'
 ```
   
 ####Create sea surface temperature layer (mean and range)
+We used filled and _nofill to ensure non NA values for cells near the coast
 ```{r sst, message = FALSE, warning = FALSE, results = 'hide'}
 
 r_sst_mean_nofill <- lyr_to_tif(
@@ -137,6 +139,7 @@ r_do_range <- lyr_to_tif(
   
 ##Step 2. Relate SST and DO trends to each monitoring site
 ####Load monitoring inventory
+This step can be done locally when updated versions of the monitoring inventory are available
 ```{r inventory, message = FALSE, warning = FALSE, results = 'hide'}
 
 inventory <- read_csv(here("data/inventory.csv"))
@@ -148,10 +151,11 @@ inventory <- read_csv(here("data/inventory.csv"))
 3. Remove NA coordinate entries from gliders
 4. Transform latitude and longitude to numeric
 5. Create subsets of data
-
 ```{r tidy, message = FALSE, warning = FALSE, results = 'hide'}
-oahfocus <- subset(inventory, OAHFocus == "OA" | OAHFocus == "H" | OAHFocus == "OAH") #remove non OAH focus entries
+# remove non OAH focus entries
+oahfocus <- subset(inventory, OAHFocus == "OA" | OAHFocus == "H" | OAHFocus == "OAH") 
 
+# quantify frequencies
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Once"] <- 0
 oahfocus$MeasFreq[oahfocus$MeasFreq == 10] <- 52560
 oahfocus$MeasFreq[oahfocus$MeasFreq =="< 6 hours"] <- 1460
@@ -186,40 +190,41 @@ oahfocus$MeasFreq[oahfocus$MeasFreq =="Biennial"] <- 0.5
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Weekly"] <- 52
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Triennial"] <- 0.33333
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Trimester"] <- 3
-#quantify frequencies
 
-#unique(oahfocus$MeasFreq)
-#use this to check to make sure all frequencies were quantified
+# use this to check to make sure all frequencies were quantified
+# unique(oahfocus$MeasFreq)
 
+# remove NA coordinates
 oahfocus <- oahfocus[!is.na(oahfocus$Latitude), ]
 oahfocus <- oahfocus[!is.na(oahfocus$Longitude), ]
-#remove NA coordinates
 
+# remove spaces and transform to numeric
 gsub(" ", "", oahfocus$Latitude)
 gsub(" ", "", oahfocus$Longitude)
 gsub("'<ca>'", "", oahfocus$Longitude)
 oahfocus$Longitude<-as.numeric(oahfocus$Longitude)
 oahfocus$Latitude<-as.numeric(oahfocus$Latitude)
-#remove spaces and transform to numeric
 
+# subset data
 carbcomplete<-subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
 incomplete <- subset(oahfocus, DisCrbPmtr<2 & ISCrbPmtr < 2)
 highfrequency<-subset(oahfocus, MeasFreq > 364)
 highfreqcarbcomplete<-subset(oahfocus, MeasFreq > 364 & DisCrbPmtr>1 | MeasFreq > 364 & ISCrbPmtr > 1)
 lowfrequency <- subset(oahfocus, MeasFreq < 365)
-#subset data
-
 ```
 
 ####Transform into spatial data
 ```{r inventory spatial, message = FALSE, warning = FALSE, results = 'hide'}
 
-coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude) #isolate coordinate columns
+# isolate coordinate columns
+coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude) 
 
-deduped.coords<-unique(coords) # remove duplicate locations
+# remove duplicate locations
+deduped.coords<-unique(coords) 
 
+# create spatial points objects
 inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
-inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:6414')) # create spatial points objects
+inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:6414'))
 
 # isolate coordinate columns
 coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
@@ -256,6 +261,7 @@ lowfreqcoords <- spTransform(lowfreqcoords, CRS('+init=EPSG:6414'))
 ```
   
 ####Create voronoi polygons and rasterize the results 
+This groups all cells that are nearest to a given monitoring site into a polygon. Rasterizing the result transforms the result from vector data to continuous raster data.
 ```{r voronoi, message = FALSE, warning = FALSE, results = 'hide'}
 
 vor <-voronoi(inventorycoords)
@@ -270,9 +276,11 @@ incompletevorraster<- rasterize(incompletevor, r_sst_mean, "id")
 highfreqvorraster<- rasterize(highfreqvor, r_sst_mean, "id")
 lowfreqvorraster<- rasterize(lowfreqvor, r_sst_mean, "id")
 
+plot(vor)
 ```
   
 ####Extract SST mean and range for each monitoring site cell and substitute value for each voronoi polygon
+This assigns SST mean and range values to all cells closest to a given monitoring site with the SST mean and range values measured at the monitoring site. 
 ```{r extract and replace sst, message = FALSE, warning = FALSE, results = 'hide'}
 
 sitesst<- raster::extract(r_sst_mean, inventorycoords, method='simple', df=TRUE)
@@ -309,41 +317,41 @@ highfreqpolygonsstrange <- subs(highfreqvorraster, highfreqsitesstrange, by="id"
   
 ####Repeat with DO
 ```{r extract and replace do, message = FALSE, warning = FALSE, results = 'hide'}
-
+# extract do value for each monitoring site cell
 sitedo<- raster::extract(r_do_mean, inventorycoords, method='simple', df=TRUE)
 carbcompletesitedo<- raster::extract(r_do_mean, carbcompletecoords, method='simple', df=TRUE)
 highfreqsitedo<- raster::extract(r_do_mean, highfreqcoords, method='simple', df=TRUE)
-# extract do value for each monitoring site cell
 
+# rename column names of sitedo
 colnames(sitedo)<-c("id", "DO")
 colnames(carbcompletesitedo)<-c("id", "DO")
 colnames(highfreqsitedo)<-c("id", "DO")
-# rename column names of sitedo
 
+# substitute polygon id for monitoring site sea surface temerature of that polygon
 polygondo<-subs(vorraster, sitedo, by="id", which="DO")
 carbcompletepolygondo<-subs(carbcompletevorraster, carbcompletesitedo, by="id", which="DO")
 highfreqpolygondo<-subs(highfreqvorraster, highfreqsitedo, by="id", which="DO")
-# substitute polygon id for monitoring site sea surface temerature of that polygon
 
+# extract do range value for each monitoring site cell
 sitedorange<- raster::extract(r_do_range, inventorycoords, method='simple', df=TRUE)
 carbcompletesitedorange<- raster::extract(r_do_range, carbcompletecoords, method='simple', df=TRUE)
 highfreqsitedorange<- raster::extract(r_do_range, highfreqcoords, method='simple', df=TRUE)
-# extract do range value for each monitoring site cell
 
+# rename column names of sitedorange
 colnames(sitedorange)<-c("id", "DOrange")
 colnames(carbcompletesitedorange)<-c("id", "DO")
 colnames(highfreqsitedorange)<-c("id", "DO")
-# rename column names of sitedorange
 
+# substitute polygon id for monitoring site sea surface temerature of that polygon
 polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
 carbcompletepolygondorange<-subs(carbcompletevorraster, carbcompletesitedorange, by="id", which="DO")
 highfreqpolygondorange<-subs(highfreqvorraster, highfreqsitedorange, by="id", which="DO")
-# substitute polygon id for monitoring site sea surface temerature of that polygon
 ```
   
 ##Step 3. Create "oceanographic dissimiarity" layer relative to monitoring asset
 
 ####Normalize SST, DO, and distance
+Normalize by dividing each raster by the maximum ovbserved value in that raster. Now each raster contains values between 0 and 1.
 ```{r normalization, message = FALSE, warning = FALSE, results = 'hide'}
 r_sst_mean_nofill<-r_sst_mean_nofill/maxValue(r_sst_mean_nofill)
 r_sst_range_nofill<-r_sst_range_nofill/maxValue(r_sst_range_nofill)
@@ -368,12 +376,7 @@ highfreqpolygondorange<-highfreqpolygondorange/maxValue(r_do_range_nofill)
 ```
 
 ####Calculate differences between each cell and the closest monitoring site
-To account for variation in both SST and DO as a combined proxy for ocean acidification variability, we use the following formula:
 
-temporal variation = ()
-
-
-where i = cell in raster of study area and a = cell containing nearest monitoring site
 ```{r calculate variability, message = FALSE, warning = FALSE, results = 'hide'}
 
 # sst mean
@@ -385,8 +388,6 @@ highfreqsstmeandiff <- abs(r_sst_mean_nofill - highfreqpolygonsst)
 sstrangediff <- abs(r_sst_range_nofill - polygonsstrange)
 carbcompletesstrangediff <- abs(r_sst_range_nofill - carbcompletepolygonsstrange)
 highfreqsstrangediff <- abs(r_sst_range_nofill - highfreqpolygonsstrange)
-
-# do variation
 
 # do mean
 domeandiff <- abs(r_do_mean_nofill - polygondo)
@@ -401,6 +402,8 @@ highfreqdorangediff <- abs(r_do_range_nofill - highfreqpolygondorange)
 ```
 
 ####Determine weights
+We chose these weights because we want to be sure to capture the "extreme" acidification events, influenced more by the range (temporal variation) than by the mean. We chose the distance weight because the other aspects of our analysis are all normalized between 0 and 1, so the distance values must we weighted such that they are on the same order. A sensitivity analysis on these weighting factors follows. 
+
 ```{r weights, message = FALSE, warning = FALSE, results = 'hide'}
 
 distanceweight = 10^-11
@@ -409,6 +412,15 @@ temporalweight = 10
 ```
 
 ####Create oceanographic dissimilarity layer
+
+To account for variation in both SST and DO as a combined proxy for ocean acidification variability, we use the following formula:
+
+spatial dissimilarity = (normalized difference between mean sst in cell and at nearest monitoring site)^2 + (normalized difference between mean do in cell and at nearest monitoring site)^2
+
+temporal dissimilarity = (normalized difference between range sst in cell and at nearest monitoring site)^2 + (normalized difference between range do in cell and at nearest monitoring site)^2
+
+oceanographic dissimilarity = sqrt(spatial dissimilarity + weighted temporal dissimilarity)
+
 ```{r dissimilarity, message = FALSE, warning = FALSE, results = 'hide'}
 
 dissimilarity <- sqrt((sstmeandiff^2+domeandiff^2)+temporalweight*(sstrangediff^2+dorangediff^2))
@@ -421,6 +433,10 @@ highfreqdissimilarity <- sqrt((highfreqsstmeandiff^2+highfreqdomeandiff^2)+tempo
 
 
 ##Step 4. Combine dissimilarity and distance to find gaps
+
+To combine oceanigraphic dissimilarity and distnce, we use the following formula:
+
+gap = sqrt(oceanographic dissimilarity^2 + weighted geographic distance^2)
 
 ```{r gaps, message = FALSE, warning = FALSE, results = 'hide'}
 
@@ -450,6 +466,7 @@ highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps+highfreqhighprior
 ```
 
 ####Visualize gaps along the West Coast
+Here, severe gaps, or the top 0.1% of gaps will have a value of 3, high priority gaps, or the top 1% of gaps will have a value of 2, and low priority gaps, or the top 25% of gaps will have a value of 1. 
 ```{r west coast, message = FALSE, warning = FALSE, results = 'hide'}
 plot(finalgaps)
 plot(carbcompletefinalgaps)
