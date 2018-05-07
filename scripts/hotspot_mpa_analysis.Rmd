@@ -93,13 +93,13 @@ poly_coast<- readOGR(dsn=path.expand("/Users/courtneycochran/downloads/Export_Ou
 
 poly_coast <- spTransform(poly_coast, crs(aragonite_raster_proj)) #Assign same CRS as aragonite layer
 
-estuary <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/estuaries"), layer="altb02") #Load estuary shapefile using pathway on personal computer
+estuary <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/estuaries"), layer="estuaries") #Load estuary shapefile using pathway on personal computer
 
-estuary <- spTransform(estuary, crs(aragonite_raster_prj)) #Assign same CRS as aragonite layer
+estuary <- spTransform(estuary, crs(aragonite_raster_proj)) #Assign same CRS as aragonite layer
 
 Canada <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/Canada"), layer="Canada") #Load Canada shapefile using pathway on personal computer 
 
-Canada <- spTransform(Canada, crs(aragonite_raster_prj)) #Assign same CRS as aragonite layer 
+Canada <- spTransform(Canada, crs(aragonite_raster_proj)) #Assign same CRS as aragonite layer 
 ```
 
 ####Clip rasters to coast
@@ -144,13 +144,13 @@ poly_MPA@data <- poly_MPA@data %>%
 pal <- colorRampPalette(c("red", "white", "royalblue2")) 
 pal2 <- colorRampPalette(c("red", "darkorange1", "gold")) #Color palettes used for maps
 
-tm_shape(aragonite_clipped_2) +
+tm_shape(aragonite_clipped) +
   tm_raster(palette = pal(3),  breaks = seq(0.8,3, by=0.2),
              title="Aragonite Saturation State") + 
   tm_layout(basemaps = c('OpenStreetMap')) #Map of aragonite saturation state layer, showing range of values from 0.8 to 3 by 0.2 increments 
 
-tm_shape(hotspot_clipped_2) +
-  tm_raster(hotspot_clipped_2, breaks= c(0, 1.1, 1.8, 2.1),
+tm_shape(hotspot_clipped) +
+  tm_raster(hotspot_clipped, breaks= c(0, 1.1, 1.8, 2.1),
             palette = pal2(2), title="Aragonite Saturation State") +
   tm_layout(basemaps=c('OpenStreetMap')) #Map of hotspots, displays the three thresholds displayed by our group of less than 2, less than 1.7 and less than 1 
 
@@ -163,5 +163,8 @@ tm_shape(poly_MPA) + tm_polygons("PCT_HOTSPOTCOVER", palette=pal(7),
                                  breaks=seq(0, 1, by=0.1),
                                  title="Percent of MPA Covered by Hotspot") +
   tm_layout(basemaps=c('OpenStreetMap')) #Map of MPAs with their fill corresponding to the percent of the MPA covered by a hotspot
+
+tmap_mode("view")
+last_map()
 ```
 
