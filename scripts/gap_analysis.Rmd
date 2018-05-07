@@ -1,6 +1,8 @@
 ---
 title: "Ocean Acidification Monitoring Inventory Gap Analysis"
-output: word_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -147,7 +149,7 @@ inventory <- read_csv(here("data/inventory.csv"))
 4. Transform latitude and longitude to numeric
 5. Create subsets of data
 
-```{r}
+```{r tidy, message = FALSE, warning = FALSE, results = 'hide'}
 oahfocus <- subset(inventory, OAHFocus == "OA" | OAHFocus == "H" | OAHFocus == "OAH") #remove non OAH focus entries
 
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Once"] <- 0
@@ -186,8 +188,8 @@ oahfocus$MeasFreq[oahfocus$MeasFreq =="Triennial"] <- 0.33333
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Trimester"] <- 3
 #quantify frequencies
 
-unique(oahfocus$MeasFreq)
-#check to make sure all frequencies were quantified
+#unique(oahfocus$MeasFreq)
+#use this to check to make sure all frequencies were quantified
 
 oahfocus <- oahfocus[!is.na(oahfocus$Latitude), ]
 oahfocus <- oahfocus[!is.na(oahfocus$Longitude), ]
@@ -209,7 +211,6 @@ lowfrequency <- subset(oahfocus, MeasFreq < 365)
 
 ```
 
-  
 ####Transform into spatial data
 ```{r inventory spatial, message = FALSE, warning = FALSE, results = 'hide'}
 
@@ -252,16 +253,22 @@ highfreqcoords <- spTransform(highfreqcoords, CRS('+init=EPSG:6414'))
 lowfreqcoords <- SpatialPoints(deduped.lowfrequency, CRS("+proj=longlat +ellps=WGS84"))
 lowfreqcoords <- spTransform(lowfreqcoords, CRS('+init=EPSG:6414'))
 
-
-
 ```
   
-####Create voronoi polygons
+####Create voronoi polygons and rasterize the results 
 ```{r voronoi, message = FALSE, warning = FALSE, results = 'hide'}
 
 vor <-voronoi(inventorycoords)
+carbcompletevor <- voronoi(carbcompletecoords)
+incompletevor <- voronoi(incompletecoords)
+highfreqvor <- voronoi(highfreqcoords)
+lowfreqvor <- voronoi(lowfreqcoords)
 
-vorraster<- rasterize(vor, r_sst_mean, "id") #rasterize
+vorraster<- rasterize(vor, r_sst_mean, "id")
+carbcompletevorraster<- rasterize(carbcompletevor, r_sst_mean, "id")
+incompletevorraster<- rasterize(incompletevor, r_sst_mean, "id")
+highfreqvorraster<- rasterize(highfreqvor, r_sst_mean, "id")
+lowfreqvorraster<- rasterize(lowfreqvor, r_sst_mean, "id")
 
 ```
   
@@ -269,12 +276,34 @@ vorraster<- rasterize(vor, r_sst_mean, "id") #rasterize
 ```{r extract and replace sst, message = FALSE, warning = FALSE, results = 'hide'}
 
 sitesst<- raster::extract(r_sst_mean, inventorycoords, method='simple', df=TRUE)
-colnames(sitesst)<-c("id", "SST") #rename column names of sitesst
-polygonsst <- subs(vorraster, sitesst, by="id", which="SST", subsWithNA=FALSE) #substitute polygon id for monitoring site sea surface temerature of that polygon
+carbcompletesitesst<- raster::extract(r_sst_mean, carbcompletecoords, method='simple', df=TRUE)
+highfreqsitesst<- raster::extract(r_sst_mean, highfreqcoords, method='simple', df=TRUE)
+# extract sst value for each monitoring site cell
+
+colnames(sitesst)<-c("id", "SST")
+colnames(carbcompletesitesst)<-c("id", "SST")
+colnames(highfreqsitesst)<-c("id", "SST")
+# rename column names of sitesst
+
+polygonsst <- subs(vorraster, sitesst, by="id", which="SST", subsWithNA=FALSE)
+carbcompletepolygonsst <- subs(carbcompletevorraster, carbcompletesitesst, by="id", which="SST", subsWithNA=FALSE)
+highfreqpolygonsst <- subs(highfreqvorraster, highfreqsitesst, by="id", which="SST", subsWithNA=FALSE)
+# substitute polygon id for monitoring site sea surface temerature of that polygon
 
 sitesstrange<- raster::extract(r_sst_range, inventorycoords, method='simple', df=TRUE)
-colnames(sitesstrange)<-c("id", "SSTrange") #rename column names of sitesstrange
-polygonsstrange<-subs(vorraster, sitesstrange, by="id", which="SSTrange", subsWithNA=FALSE) #substitute polygon id for monitoring site sea surface temerature range of that polygon
+carbcompletesitesstrange<- raster::extract(r_sst_range, carbcompletecoords, method='simple', df=TRUE)
+highfreqsitesstrange<- raster::extract(r_sst_range, highfreqcoords, method='simple', df=TRUE)
+# extract sst range value for each monitoring site cell
+
+colnames(sitesstrange)<-c("id", "SSTrange")
+colnames(carbcompletesitesstrange)<-c("id", "SSTrange")
+colnames(highfreqsitesstrange)<-c("id", "SSTrange")
+# rename column names of sitesstrange
+
+polygonsstrange<-subs(vorraster, sitesstrange, by="id", which="SSTrange", subsWithNA=FALSE)
+carbcompletepolygonsstrange <- subs(carbcompletevorraster, carbcompletesitesstrange, by="id", which="SSTrange", subsWithNA=FALSE)
+highfreqpolygonsstrange <- subs(highfreqvorraster, highfreqsitesstrange, by="id", which="SSTrange", subsWithNA=FALSE)
+# substitute polygon id for monitoring site sea surface temerature of that polygon
 
 ```
   
@@ -282,49 +311,186 @@ polygonsstrange<-subs(vorraster, sitesstrange, by="id", which="SSTrange", subsWi
 ```{r extract and replace do, message = FALSE, warning = FALSE, results = 'hide'}
 
 sitedo<- raster::extract(r_do_mean, inventorycoords, method='simple', df=TRUE)
-colnames(sitedo)<-c("id", "DO") #rename column names of sitedo
+carbcompletesitedo<- raster::extract(r_do_mean, carbcompletecoords, method='simple', df=TRUE)
+highfreqsitedo<- raster::extract(r_do_mean, highfreqcoords, method='simple', df=TRUE)
+# extract do value for each monitoring site cell
+
+colnames(sitedo)<-c("id", "DO")
+colnames(carbcompletesitedo)<-c("id", "DO")
+colnames(highfreqsitedo)<-c("id", "DO")
+# rename column names of sitedo
+
 polygondo<-subs(vorraster, sitedo, by="id", which="DO")
+carbcompletepolygondo<-subs(carbcompletevorraster, carbcompletesitedo, by="id", which="DO")
+highfreqpolygondo<-subs(highfreqvorraster, highfreqsitedo, by="id", which="DO")
+# substitute polygon id for monitoring site sea surface temerature of that polygon
 
 sitedorange<- raster::extract(r_do_range, inventorycoords, method='simple', df=TRUE)
-colnames(sitedorange)<-c("id", "DOrange")
-polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
+carbcompletesitedorange<- raster::extract(r_do_range, carbcompletecoords, method='simple', df=TRUE)
+highfreqsitedorange<- raster::extract(r_do_range, highfreqcoords, method='simple', df=TRUE)
+# extract do range value for each monitoring site cell
 
+colnames(sitedorange)<-c("id", "DOrange")
+colnames(carbcompletesitedorange)<-c("id", "DO")
+colnames(highfreqsitedorange)<-c("id", "DO")
+# rename column names of sitedorange
+
+polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
+carbcompletepolygondorange<-subs(carbcompletevorraster, carbcompletesitedorange, by="id", which="DO")
+highfreqpolygondorange<-subs(highfreqvorraster, highfreqsitedorange, by="id", which="DO")
+# substitute polygon id for monitoring site sea surface temerature of that polygon
 ```
   
-##Step 3. Create "oceanographic variability" layer relative to monitoring asset
+##Step 3. Create "oceanographic dissimiarity" layer relative to monitoring asset
+
+####Normalize SST, DO, and distance
+```{r normalization, message = FALSE, warning = FALSE, results = 'hide'}
+r_sst_mean_nofill<-r_sst_mean_nofill/maxValue(r_sst_mean_nofill)
+r_sst_range_nofill<-r_sst_range_nofill/maxValue(r_sst_range_nofill)
+r_do_mean_nofill<-r_do_mean_nofill/maxValue(r_do_mean_nofill)
+r_do_range_nofill<-r_do_range_nofill/maxValue(r_do_range_nofill)
+
+polygonsst<-polygonsst/maxValue(r_sst_mean_nofill)
+carbcompletepolygonsst<-carbcompletepolygonsst/maxValue(r_sst_mean_nofill)
+highfreqpolygonsst<-highfreqpolygonsst/maxValue(r_sst_mean_nofill)
+
+polygonsstrange<-polygonsstrange/maxValue(r_sst_range_nofill)
+carbcompletepolygonsstrange<-carbcompletepolygonsstrange/maxValue(r_sst_range_nofill)
+highfreqpolygonsstrange<-highfreqpolygonsstrange/maxValue(r_sst_range_nofill)
+
+polygondo<-polygondo/maxValue(r_do_mean_nofill)
+carbcompletepolygondo<-carbcompletepolygondo/maxValue(r_do_mean_nofill)
+highfreqpolygondo<-highfreqpolygondo/maxValue(r_do_mean_nofill)
+
+polygondorange<-polygondorange/maxValue(r_do_range_nofill)
+carbcompletepolygondorange<-carbcompletepolygondorange/maxValue(r_do_range_nofill)
+highfreqpolygondorange<-highfreqpolygondorange/maxValue(r_do_range_nofill)
+```
+
+####Calculate differences between each cell and the closest monitoring site
 To account for variation in both SST and DO as a combined proxy for ocean acidification variability, we use the following formula:
-variation = (imean - amean) + (imean - amean)*(irange - arange)
+
+temporal variation = ()
+
+
 where i = cell in raster of study area and a = cell containing nearest monitoring site
 ```{r calculate variability, message = FALSE, warning = FALSE, results = 'hide'}
 
-sstmeandiff <- abs(r_sst_mean_nofill - polygonsst) #difference between sst at each point and sst for area associated with closest monitoring site
-sstrangediff <- abs(r_sst_range_nofill - polygonsstrange) #difference between sst range at each point and sst range for area associated with closest monitoring site 
-sstvariation <- sstmeandiff+(sstmeandiff*sstrangediff)
+# sst mean
+sstmeandiff <- abs(r_sst_mean_nofill - polygonsst)
+carbcompletesstmeandiff <- abs(r_sst_mean_nofill - carbcompletepolygonsst)
+highfreqsstmeandiff <- abs(r_sst_mean_nofill - highfreqpolygonsst)
 
-domeandiff <- abs(r_do_mean_nofill - polygondo) #difference between DO at each point and DO for area associated with closest monitoring site
-dorangediff <- abs(r_do_range_nofill - polygondorange) #difference between DO range at each point and DO range for area associated with closest monitoring site
-dovariation <- domeandiff + (domeandiff*dorangediff)
+# sst range
+sstrangediff <- abs(r_sst_range_nofill - polygonsstrange)
+carbcompletesstrangediff <- abs(r_sst_range_nofill - carbcompletepolygonsstrange)
+highfreqsstrangediff <- abs(r_sst_range_nofill - highfreqpolygonsstrange)
 
-variation <- (sstvariation*dovariation) #total variation
+# do variation
+
+# do mean
+domeandiff <- abs(r_do_mean_nofill - polygondo)
+carbcompletedomeandiff <- abs(r_do_mean_nofill - carbcompletepolygondo)
+highfreqdomeandiff <- abs(r_do_mean_nofill - highfreqpolygondo)
+
+# do range
+dorangediff <- abs(r_do_range_nofill - polygondorange)
+carbcompletedorangediff <- abs(r_do_range_nofill - carbcompletepolygondorange)
+highfreqdorangediff <- abs(r_do_range_nofill - highfreqpolygondorange)
 
 ```
-  
-##Step 4. Identify gaps
-####Identify gaps based on distance between monitoring points, qualified by strength of variability
+
+####Determine weights
+```{r weights, message = FALSE, warning = FALSE, results = 'hide'}
+
+distanceweight = 10^-11
+temporalweight = 10
+
+```
+
+####Create oceanographic dissimilarity layer
+```{r dissimilarity, message = FALSE, warning = FALSE, results = 'hide'}
+
+dissimilarity <- sqrt((sstmeandiff^2+domeandiff^2)+temporalweight*(sstrangediff^2+dorangediff^2))
+
+carbcompletedissimilarity<- sqrt((carbcompletesstmeandiff^2+carbcompletedomeandiff^2)+temporalweight*(carbcompletesstrangediff^2+carbcompletedorangediff^2))
+
+highfreqdissimilarity <- sqrt((highfreqsstmeandiff^2+highfreqdomeandiff^2)+temporalweight*(highfreqsstrangediff^2+highfreqdorangediff^2))
+
+```
+
+
+##Step 4. Combine dissimilarity and distance to find gaps
+
 ```{r gaps, message = FALSE, warning = FALSE, results = 'hide'}
 
-distance<-distanceFromPoints(variation,inventorycoords)
-gaps <- setValues(distance, log10(getValues(distance)*(getValues(variation))))
+distance<-distanceFromPoints(dissimilarity, inventorycoords)*distanceweight
+carbcompletedistance<-distanceFromPoints(carbcompletedissimilarity, carbcompletecoords)*distanceweight
+highfreqdistance<-distanceFromPoints(highfreqdissimilarity, highfreqcoords)*distanceweight
+
+gap<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2))))
+carbcompletegap<-setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2))))
+highfreqgap<-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2))))
+
+severegaps <- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.999))
+highprioritygaps <- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.99))
+lowprioritygaps<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.75))
+finalgaps<- severegaps+lowprioritygaps+highprioritygaps
+
+carbcompleteseveregaps <- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) > quantile(carbcompletegap, (.999))
+carbcompletehighprioritygaps<- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) > quantile(carbcompletegap, (.99))
+carbcompletelowprioritygaps<- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) > quantile(carbcompletegap, (.75))
+carbcompletefinalgaps<- carbcompleteseveregaps + carbcompletelowprioritygaps+carbcompletehighprioritygaps
+
+highfreqseveregaps <- setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) > quantile(highfreqgap, (.999))
+highfreqhighprioritygaps<-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) > quantile(highfreqgap, (.99))
+highfreqlowprioritygaps<-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) > quantile(highfreqgap, (.75))
+highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps+highfreqhighprioritygaps
 
 ```
 
 ####Visualize gaps along the West Coast
 ```{r west coast, message = FALSE, warning = FALSE, results = 'hide'}
-
-#poly_coast<- readOGR(dsn=path.expand("/Users/Madi/Documents/UCSB
-#Bren/ResilienSeas/Export_Output_2"), layer="Export_Output_2")
-#poly_coast <- spTransform(poly_coast, crs(gaps))
-#gaps_clipped <- mask(gaps, poly_coast, inverse = TRUE,progress='text')
-
+plot(finalgaps)
+plot(carbcompletefinalgaps)
+plot(highfreqfinalgaps)
 ```
 
+##Step 5. Sensitivity Analysis on the weighting factors
+
+####Create matrix of possible weights for temoral weight and distance weight
+```{r matrix weight, message = FALSE, warning = FALSE, results = 'hide'}
+distanceweight = c(10^-5, 10^-6, 10^-7, 10^-8, 10^-9, 10^-10, 10^-11, 10^-12, 10^-13, 10^-14)
+temporalweight = c(2, 4, 6, 8, 10, 12, 14, 16, 18, 20)
+
+```
+####Run gap analysis through all cominations of weights to compare where high priority gaps exist
+The result is 100 rasters of the gap analysis result for where high priority gaps exist under different weighting combinations. This can be repeated for high priority gaps and low priority gaps. 
+```{r sensitivity loop, message = FALSE, warning = FALSE, results = 'hide'}
+rastersensitivity <- list()
+
+for(i in 1:length(distanceweight)){
+  for(j in 1:length(temporalweight)){
+    dissimilarity <- sqrt((sstmeandiff^2+domeandiff^2)+temporalweight[j]*(sstrangediff^2+dorangediff^2))
+    distance<-distanceFromPoints(dissimilarity, inventorycoords)*distanceweight[i]
+    gap<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2))))
+    severegaps <- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.999))
+    name = paste(temporalweight[j], distanceweight[i], sep = "_")
+    rastersensitivity[[name]] = highprioritygaps
+  }
+}
+```
+
+####Transform to raster stack
+```{r sensitivity raster stack, message = FALSE, warning = FALSE, results = 'hide'}
+sensitivitystack <- stack(rastersensitivity[[1]])
+for(i in 2:length(rastersensitivity)) sensitivitystack <- addLayer(sensitivitystack, rastersensitivity[[i]])
+```
+
+####Sum across all rasters within raster stack
+In cells where the sum is 100, severe gaps existed in all of the weighing combnations. Where the sum is 0, severe gaps were not present under any of the weighting combinations. In cells where the sum is between 0 and 100, the presence of a severe gap was sensitive to weighting factors. 
+```{r sensitivty analysis, message = FALSE, warning = FALSE, results = 'hide'}
+sum <- sum(sensitivitystack)
+plot(sum)
+freq(sum)
+```
