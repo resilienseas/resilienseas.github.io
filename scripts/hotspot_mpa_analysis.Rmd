@@ -93,50 +93,83 @@ poly_coast<- readOGR(dsn=path.expand("/Users/courtneycochran/downloads/Export_Ou
 
 poly_coast <- spTransform(poly_coast, crs(aragonite_raster_proj)) #Assign same CRS as aragonite layer
 
-estuary <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/estuaries"), layer="altb02") #Load estuary shapefile using pathway on personal computer
+estuary <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/estuaries"), layer="estuaries") #Load estuary shapefile using pathway on personal computer
 
-estuary <- spTransform(estuary, crs(aragonite_raster_prj)) #Assign same CRS as aragonite layer
+estuary <- spTransform(estuary, crs(aragonite_raster_proj)) #Assign same CRS as aragonite layer
 
 Canada <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/Canada"), layer="Canada") #Load Canada shapefile using pathway on personal computer 
 
-Canada <- spTransform(Canada, crs(aragonite_raster_prj)) #Assign same CRS as aragonite layer 
+Canada <- spTransform(Canada, crs(aragonite_raster_proj)) #Assign same CRS as aragonite layer 
 ```
 
 ####Clip rasters to coast
 ```{r clipping, message = FALSE, warning = FALSE}
 
-aragonite_clipped <- mask(aragonite_raster_proj, poly_coast, inverse = TRUE) #clip continuous raster
-aragonite_clipped <- mask(aragonite_clipped, estuary, inverse = TRUE) #clip raster layer to exclude estuaries
-aragonite_clipped <- mask(aragonite_clipped, Canada, inverse = TRUE) #clip raster layer to Canada layer
+aragonite_clipped <- mask(aragonite_raster_proj, poly_coast, inverse = TRUE) #Clip continuous raster
+aragonite_clipped <- mask(aragonite_clipped, estuary, inverse = TRUE) #Clip raster layer to exclude estuaries
+aragonite_clipped <- mask(aragonite_clipped, Canada, inverse = TRUE) #Clip raster layer to Canada layer
 
 
-hotspot_clipped <- mask(hotspotmask, poly_coast, inverse = TRUE) #clip hotspot mask to the coast
-hostspot_clipped <- mask(hotspot_clipped, estuary, inverse = TRUE) #clip hotspot layer to exclude estuaries
-hotspot_clipped <- mask(hotspot_clipped, Canada, inverse = TRUE) #clip hotspot layer to Canada layer
+hotspot_clipped <- mask(hotspotmask, poly_coast, inverse = TRUE) #Clip hotspot mask to the coast
+hostspot_clipped <- mask(hotspot_clipped, estuary, inverse = TRUE) #Clip hotspot layer to exclude estuaries
+hotspot_clipped <- mask(hotspot_clipped, Canada, inverse = TRUE) #Clip hotspot layer to Canada layer
 
 ```
 
 ####Zonal statistics - mean saturation state
 ```{r mean saturation state, message = FALSE, warning = FALSE}
 
-aragonite_mean<- raster::extract(aragonite_clipped, poly_MPA, fun=mean, na.rm=TRUE, df=TRUE) #calculate mean aragonite saturation state from continuous layer and export as dataframe
-colnames(aragonite_mean) <- c("OBJECTID", "ARAGONITE_MEAN")
+aragonite_mean<- raster::extract(aragonite_clipped, poly_MPA, fun=mean, na.rm=TRUE, df=TRUE) #Calculate mean aragonite saturation state of each MPA from continuous aragonite layer and export as dataframe
+colnames(aragonite_mean) <- c("OBJECTID", "ARAGONITE_MEAN") #Create column names for new dataframe
 
 poly_MPA@data[,1] <- seq(1, length(poly_MPA@data[,1])) #Replace "OBJECTID" with sequenced list to remove duplicates and change from factor to integer form
 poly_MPA@data <- poly_MPA@data %>% 
-  left_join(aragonite_mean, by = 'OBJECTID')
+  left_join(aragonite_mean, by = 'OBJECTID') #Merge dataframes to add mean aragonite saturation state to poly_MPA dataframe
 
 ```
 
 ####Zonal statistics - percent cover of hotspot
 ```{r percent hotspot cover, message = FALSE, warning = FALSE}
 
-pctcover <- raster::extract(hotspot_clipped, poly_MPA, fun=function(x, ...) length(na.omit(x))/length(x), df=TRUE) #calculate percentage of total MPA area covered by threshold of concern
+pctcover <- raster::extract(hotspot_clipped, poly_MPA, fun=function(x, ...) length(na.omit(x))/length(x), df=TRUE) #Calculate percentage of total MPA area covered by threshold of concern
 colnames(pctcover) <- c("OBJECTID", "PCT_HOTSPOTCOVER")
 
 poly_MPA@data <- poly_MPA@data %>% 
-  left_join(pctcover, by = 'OBJECTID')
+  left_join(pctcover, by = 'OBJECTID') #Merge dataframes to add the percentage of MPA covered by a hotspot to MPA dataframe
 
 ```
 
-##Part 4. Evaluate aragaonite saturation state threat relative to habitat cover
+##Part 4. Visualizing Aragonite Saturation, Hotspots and MPA Zonal Statistics
+```{r}
+pal <- colorRampPalette(c("red", "white", "royalblue2")) 
+pal2 <- colorRampPalette(c("red", "darkorange1", "gold")) #Color palettes used for maps
+
+tmap_mode("view")
+
+
+tm_shape(aragonite_clipped) +
+  tm_raster(palette = pal(3),  breaks = seq(0.8,3, by=0.2),
+             title="Aragonite Saturation State") + 
+  tm_layout(basemaps = c('OpenStreetMap')) #Map of aragonite saturation state layer, showing range of values from 0.8 to 3 by 0.2 increments 
+
+
+tm_shape(hotspot_clipped) +
+  tm_raster(hotspot_clipped, breaks= c(0, 1.1, 1.8, 2.1),
+            palette = pal2(2), title="Aragonite Saturation State") +
+  tm_layout(basemaps=c('OpenStreetMap')) #Map of hotspots, displays the three thresholds displayed by our group of less than 2, less than 1.7 and less than 1 
+
+
+tm_shape(poly_MPA) + tm_polygons("ARAGONITE_MEAN", palette=pal(3), colorNA=NULL,
+                                 breaks=seq(.8,3, by=0.2),
+                                 title="Mean Aragonite \nSaturation State") +
+  tm_layout(basemaps = c('OpenStreetMap')) #Map of MPAs with their fill corresponding to the mean aragonite saturation state within their boundaries
+
+
+tm_shape(poly_MPA) + tm_polygons("PCT_HOTSPOTCOVER", palette=pal(7),
+                                 breaks=seq(0, 1, by=0.1),
+                                 title="Percent of MPA Covered by Hotspot") +
+  tm_layout(basemaps=c('OpenStreetMap')) #Map of MPAs with their fill corresponding to the percent of the MPA covered by a hotspot
+
+
+```
+

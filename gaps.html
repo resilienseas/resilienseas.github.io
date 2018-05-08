@@ -225,10 +225,464 @@ $(document).ready(function () {
 </div>
 
 
-<div id="methodology" class="section level2">
-<h2>Methodology</h2>
-<p><em>To be updated</em></p>
+<div id="step-1.-manipulate-sea-surface-temperature-and-dissolved-oxygen-as-proxies-for-ocean-acidificiation-change" class="section level2">
+<h2>Step 1. Manipulate sea surface temperature and dissolved oxygen as proxies for ocean acidificiation change</h2>
+<div id="load-packages" class="section level4">
+<h4>Load packages</h4>
+<pre class="r"><code>if (!require(pacman)) install.packages(&quot;pacman&quot;)
+library(pacman)
+p_load(
+  tidyverse, here, glue,
+  raster,
+  sdmpredictors, dismo, 
+  deldir, 
+  mapview,
+  tmap)
+
+devtools::load_all(here(&quot;../oatools&quot;))</code></pre>
+</div>
+<div id="set-paths-and-variables" class="section level4">
+<h4>Set paths and variables</h4>
+<pre class="r"><code>dir_data        &lt;- here(&quot;data&quot;)
+dir_sdmdata_old &lt;- here(&quot;data/sdmpredictors&quot;)
+dir_cache       &lt;- here(&quot;cache&quot;)
+dir_sdmdata     &lt;- here(&quot;cache/sdmpredictors&quot;)
+
+SST_tif &lt;- here(&quot;data/sst_mean.tif&quot;)
+DO_tif  &lt;- here(&quot;data/do_mean.tif&quot;)</code></pre>
+</div>
+<div id="set-cache" class="section level4">
+<h4>Set cache</h4>
+<pre class="r"><code>if (!dir.exists(dir_data))    dir.create(dir_data)
+if (!dir.exists(dir_cache))   dir.create(dir_cache)
+if (!dir.exists(dir_sdmdata) &amp; dir.exists(dir_sdmdata_old))
+  file.rename(dir_sdmdata_old, dir_sdmdata)
+if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)</code></pre>
+</div>
+<div id="set-extent-and-coordinate-reference-system" class="section level4">
+<h4>Set extent and coordinate reference system</h4>
+<p>This is specific to our study area. We used NAD 83 California Teale Albers and used an extent that included waters off all three West Coast States.</p>
+<pre class="r"><code>ext_study &lt;- extent(-670000, 350000, -885000, 1400000)
+crs_study &lt;- &#39;+init=EPSG:6414&#39;</code></pre>
+</div>
+<div id="create-sea-surface-temperature-layer-mean-and-range" class="section level4">
+<h4>Create sea surface temperature layer (mean and range)</h4>
+<p>We used filled and _nofill to ensure non NA values for cells near the coast</p>
+<pre class="r"><code>r_sst_mean_nofill &lt;- lyr_to_tif(
+  lyr = &quot;BO_sstmean&quot;, 
+  tif = here(&quot;data/sst_mean.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE)
+
+r_sst_mean &lt;- lyr_to_tif(
+  lyr = &quot;BO_sstmean&quot;, 
+  tif = here(&quot;data/sst_mean.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11) #caclulate mean
+
+n_na_nofill &lt;- sum(is.na(raster::getValues(r_sst_mean_nofill)))
+n_na        &lt;- sum(is.na(raster::getValues(r_sst_mean)))
+
+r_sst_range_nofill &lt;- lyr_to_tif(
+  lyr = &quot;BO_sstrange&quot;, 
+  tif = here(&quot;data/sst_range.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE)
+
+r_sst_range &lt;- lyr_to_tif(
+  lyr = &quot;BO_sstrange&quot;, 
+  tif = here(&quot;data/sst_range.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)</code></pre>
+</div>
+<div id="create-dissolved-oxygen-layer-mean-and-range" class="section level4">
+<h4>Create dissolved oxygen layer (mean and range)</h4>
+<pre class="r"><code>r_do_mean_nofill &lt;- lyr_to_tif(
+  lyr = &quot;BO_dissox&quot;, 
+  tif = here(&quot;data/do_mean.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE)
+
+r_do_mean &lt;- lyr_to_tif(
+  lyr = &quot;BO_dissox&quot;, 
+  tif = here(&quot;data/do_mean.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11) #calculate mean
+
+r_do_range_nofill &lt;- lyr_to_tif(
+  lyr = &quot;BO2_dissoxrange_bdmin&quot;, 
+  tif = here(&quot;data/do_range.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE)
+
+r_do_range &lt;- lyr_to_tif(
+  lyr = &quot;BO2_dissoxrange_bdmin&quot;, 
+  tif = here(&quot;data/do_range.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)</code></pre>
+</div>
+</div>
+<div id="step-2.-relate-sst-and-do-trends-to-each-monitoring-site" class="section level2">
+<h2>Step 2. Relate SST and DO trends to each monitoring site</h2>
+<div id="load-monitoring-inventory" class="section level4">
+<h4>Load monitoring inventory</h4>
+<p>This step can be done locally when updated versions of the monitoring inventory are available</p>
+<pre class="r"><code>inventory &lt;- read_csv(here(&quot;data/inventory.csv&quot;))</code></pre>
+</div>
+<div id="tidy-inventory" class="section level4">
+<h4>Tidy Inventory</h4>
+<ol style="list-style-type: decimal">
+<li>Isolate OAH Focus Data Collection</li>
+<li>Quantify Data Collection Frequency (measurements/year)</li>
+<li>Remove NA coordinate entries from gliders</li>
+<li>Transform latitude and longitude to numeric</li>
+<li>Create subsets of data</li>
+</ol>
+<pre class="r"><code># remove non OAH focus entries
+oahfocus &lt;- subset(inventory, OAHFocus == &quot;OA&quot; | OAHFocus == &quot;H&quot; | OAHFocus == &quot;OAH&quot;) 
+
+# quantify frequencies
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Once&quot;] &lt;- 0
+oahfocus$MeasFreq[oahfocus$MeasFreq == 10] &lt;- 52560
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;&lt; 6 hours&quot;] &lt;- 1460
+oahfocus$MeasFreq[oahfocus$MeasFreq == 60] &lt;- 8760
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Daily&quot;] &lt;- 365
+oahfocus$MeasFreq[oahfocus$MeasFreq ==30] &lt;- 17520
+oahfocus$MeasFreq[oahfocus$MeasFreq == 20] &lt;- 26280
+oahfocus$MeasFreq[oahfocus$MeasFreq == 15] &lt;- 35040
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Quarterly&quot;] &lt;- 4
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Annual&quot;] &lt;- 1
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Monthly&quot;] &lt;- 12
+oahfocus$MeasFreq[oahfocus$MeasFreq == 5] &lt;- 105120
+oahfocus$MeasFreq[oahfocus$MeasFreq == 6] &lt;- 87600
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Semi-annual&quot;] &lt;- 2
+oahfocus$MeasFreq[oahfocus$MeasFreq == 180] &lt;- 2920
+oahfocus$MeasFreq[oahfocus$MeasFreq == 2] &lt;- 262800
+oahfocus$MeasFreq[oahfocus$MeasFreq == 0.25] &lt;- 2102400
+oahfocus$MeasFreq[oahfocus$MeasFreq == 3] &lt;- 175200
+oahfocus$MeasFreq[oahfocus$MeasFreq == 1] &lt;- 525600
+oahfocus$MeasFreq[oahfocus$MeasFreq == 120] &lt;- 2920
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Bi-weekly&quot;] &lt;- 26
+oahfocus$MeasFreq[oahfocus$MeasFreq == 360] &lt;- 1460
+oahfocus$MeasFreq[oahfocus$MeasFreq == 720] &lt;- 730
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Seasonally&quot;] &lt;- 1
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;1/4 second&quot;] &lt;- 126144000
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Bi-monthly&quot;] &lt;- 6
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;5  Years&quot;] &lt;- 0.2
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Bi-weekly&quot;] &lt;- 26
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Variable&quot;] &lt;- 0
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Decadal&quot;] &lt;- 0.1
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Biennial&quot;] &lt;- 0.5
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Weekly&quot;] &lt;- 52
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Triennial&quot;] &lt;- 0.33333
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Trimester&quot;] &lt;- 3
+
+# use this to check to make sure all frequencies were quantified
+# unique(oahfocus$MeasFreq)
+
+# remove NA coordinates
+oahfocus &lt;- oahfocus[!is.na(oahfocus$Latitude), ]
+oahfocus &lt;- oahfocus[!is.na(oahfocus$Longitude), ]
+
+# remove spaces and transform to numeric
+gsub(&quot; &quot;, &quot;&quot;, oahfocus$Latitude)
+gsub(&quot; &quot;, &quot;&quot;, oahfocus$Longitude)
+gsub(&quot;&#39;&lt;ca&gt;&#39;&quot;, &quot;&quot;, oahfocus$Longitude)
+oahfocus$Longitude&lt;-as.numeric(oahfocus$Longitude)
+oahfocus$Latitude&lt;-as.numeric(oahfocus$Latitude)
+
+# subset data
+carbcomplete&lt;-subset(oahfocus, DisCrbPmtr&gt;1 | ISCrbPmtr &gt; 1)
+incomplete &lt;- subset(oahfocus, DisCrbPmtr&lt;2 &amp; ISCrbPmtr &lt; 2)
+highfrequency&lt;-subset(oahfocus, MeasFreq &gt; 364)
+highfreqcarbcomplete&lt;-subset(oahfocus, MeasFreq &gt; 364 &amp; DisCrbPmtr&gt;1 | MeasFreq &gt; 364 &amp; ISCrbPmtr &gt; 1)
+lowfrequency &lt;- subset(oahfocus, MeasFreq &lt; 365)</code></pre>
+</div>
+<div id="transform-into-spatial-data" class="section level4">
+<h4>Transform into spatial data</h4>
+<pre class="r"><code># isolate coordinate columns
+coords &lt;- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude) 
+
+# remove duplicate locations
+deduped.coords&lt;-unique(coords) 
+
+# create spatial points objects
+inventorycoords &lt;- SpatialPoints(deduped.coords, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+inventorycoords &lt;- spTransform(inventorycoords, CRS(&#39;+init=EPSG:6414&#39;))
+
+# isolate coordinate columns
+coords &lt;- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
+carbcompletecoords &lt;- cbind.data.frame(carbcomplete$Longitude, carbcomplete$Latitude)
+incompletecoords &lt;- cbind.data.frame(incomplete$Longitude, incomplete$Latitude)
+highfrequencycoords &lt;- cbind.data.frame(highfrequency$Longitude, highfrequency$Latitude)
+lowfrequencycoords &lt;- cbind.data.frame(lowfrequency$Longitude, lowfrequency$Latitude)
+highfreqcarbcompletecoords &lt;- cbind.data.frame(highfreqcarbcomplete$Longitude, highfreqcarbcomplete$Latitude)
+
+# remove duplicate locations
+deduped.coords&lt;-unique(coords)
+deduped.carbcomplete &lt;- unique(carbcompletecoords)
+deduped.incomplete &lt;- unique(incompletecoords)
+deduped.highfrequency &lt;- unique(highfrequencycoords)
+deduped.lowfrequency &lt;- unique(lowfrequencycoords)
+deduped.highfreqcarbcomplete &lt;- unique(highfreqcarbcompletecoords)
+
+# create spatial points objects
+inventorycoords &lt;- SpatialPoints(deduped.coords, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+inventorycoords &lt;- spTransform(inventorycoords, CRS(&#39;+init=EPSG:6414&#39;))
+
+carbcompletecoords &lt;- SpatialPoints(deduped.carbcomplete, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+carbcompletecoords &lt;- spTransform(carbcompletecoords, CRS(&#39;+init=EPSG:6414&#39;))
+
+incompletecoords &lt;- SpatialPoints(deduped.incomplete, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+incompletecoords &lt;- spTransform(incompletecoords, CRS(&#39;+init=EPSG:6414&#39;))
+
+highfreqcoords &lt;- SpatialPoints(deduped.highfrequency, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+highfreqcoords &lt;- spTransform(highfreqcoords, CRS(&#39;+init=EPSG:6414&#39;))
+
+lowfreqcoords &lt;- SpatialPoints(deduped.lowfrequency, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+lowfreqcoords &lt;- spTransform(lowfreqcoords, CRS(&#39;+init=EPSG:6414&#39;))</code></pre>
+</div>
+<div id="create-voronoi-polygons-and-rasterize-the-results" class="section level4">
+<h4>Create voronoi polygons and rasterize the results</h4>
+<p>This groups all cells that are nearest to a given monitoring site into a polygon. Rasterizing the result transforms the result from vector data to continuous raster data.</p>
+<pre class="r"><code>vor &lt;-voronoi(inventorycoords)
+carbcompletevor &lt;- voronoi(carbcompletecoords)
+incompletevor &lt;- voronoi(incompletecoords)
+highfreqvor &lt;- voronoi(highfreqcoords)
+lowfreqvor &lt;- voronoi(lowfreqcoords)
+
+vorraster&lt;- rasterize(vor, r_sst_mean, &quot;id&quot;)
+carbcompletevorraster&lt;- rasterize(carbcompletevor, r_sst_mean, &quot;id&quot;)
+incompletevorraster&lt;- rasterize(incompletevor, r_sst_mean, &quot;id&quot;)
+highfreqvorraster&lt;- rasterize(highfreqvor, r_sst_mean, &quot;id&quot;)
+lowfreqvorraster&lt;- rasterize(lowfreqvor, r_sst_mean, &quot;id&quot;)
+
+plot(vor)</code></pre>
+<p><img src="gaps_files/figure-html/voronoi-1.png" width="672" /></p>
+</div>
+<div id="extract-sst-mean-and-range-for-each-monitoring-site-cell-and-substitute-value-for-each-voronoi-polygon" class="section level4">
+<h4>Extract SST mean and range for each monitoring site cell and substitute value for each voronoi polygon</h4>
+<p>This assigns SST mean and range values to all cells closest to a given monitoring site with the SST mean and range values measured at the monitoring site.</p>
+<pre class="r"><code>sitesst&lt;- raster::extract(r_sst_mean, inventorycoords, method=&#39;simple&#39;, df=TRUE)
+carbcompletesitesst&lt;- raster::extract(r_sst_mean, carbcompletecoords, method=&#39;simple&#39;, df=TRUE)
+highfreqsitesst&lt;- raster::extract(r_sst_mean, highfreqcoords, method=&#39;simple&#39;, df=TRUE)
+# extract sst value for each monitoring site cell
+
+colnames(sitesst)&lt;-c(&quot;id&quot;, &quot;SST&quot;)
+colnames(carbcompletesitesst)&lt;-c(&quot;id&quot;, &quot;SST&quot;)
+colnames(highfreqsitesst)&lt;-c(&quot;id&quot;, &quot;SST&quot;)
+# rename column names of sitesst
+
+polygonsst &lt;- subs(vorraster, sitesst, by=&quot;id&quot;, which=&quot;SST&quot;, subsWithNA=FALSE)
+carbcompletepolygonsst &lt;- subs(carbcompletevorraster, carbcompletesitesst, by=&quot;id&quot;, which=&quot;SST&quot;, subsWithNA=FALSE)
+highfreqpolygonsst &lt;- subs(highfreqvorraster, highfreqsitesst, by=&quot;id&quot;, which=&quot;SST&quot;, subsWithNA=FALSE)
+# substitute polygon id for monitoring site sea surface temerature of that polygon
+
+sitesstrange&lt;- raster::extract(r_sst_range, inventorycoords, method=&#39;simple&#39;, df=TRUE)
+carbcompletesitesstrange&lt;- raster::extract(r_sst_range, carbcompletecoords, method=&#39;simple&#39;, df=TRUE)
+highfreqsitesstrange&lt;- raster::extract(r_sst_range, highfreqcoords, method=&#39;simple&#39;, df=TRUE)
+# extract sst range value for each monitoring site cell
+
+colnames(sitesstrange)&lt;-c(&quot;id&quot;, &quot;SSTrange&quot;)
+colnames(carbcompletesitesstrange)&lt;-c(&quot;id&quot;, &quot;SSTrange&quot;)
+colnames(highfreqsitesstrange)&lt;-c(&quot;id&quot;, &quot;SSTrange&quot;)
+# rename column names of sitesstrange
+
+polygonsstrange&lt;-subs(vorraster, sitesstrange, by=&quot;id&quot;, which=&quot;SSTrange&quot;, subsWithNA=FALSE)
+carbcompletepolygonsstrange &lt;- subs(carbcompletevorraster, carbcompletesitesstrange, by=&quot;id&quot;, which=&quot;SSTrange&quot;, subsWithNA=FALSE)
+highfreqpolygonsstrange &lt;- subs(highfreqvorraster, highfreqsitesstrange, by=&quot;id&quot;, which=&quot;SSTrange&quot;, subsWithNA=FALSE)
+# substitute polygon id for monitoring site sea surface temerature of that polygon</code></pre>
+</div>
+<div id="repeat-with-do" class="section level4">
+<h4>Repeat with DO</h4>
+<pre class="r"><code># extract do value for each monitoring site cell
+sitedo&lt;- raster::extract(r_do_mean, inventorycoords, method=&#39;simple&#39;, df=TRUE)
+carbcompletesitedo&lt;- raster::extract(r_do_mean, carbcompletecoords, method=&#39;simple&#39;, df=TRUE)
+highfreqsitedo&lt;- raster::extract(r_do_mean, highfreqcoords, method=&#39;simple&#39;, df=TRUE)
+
+# rename column names of sitedo
+colnames(sitedo)&lt;-c(&quot;id&quot;, &quot;DO&quot;)
+colnames(carbcompletesitedo)&lt;-c(&quot;id&quot;, &quot;DO&quot;)
+colnames(highfreqsitedo)&lt;-c(&quot;id&quot;, &quot;DO&quot;)
+
+# substitute polygon id for monitoring site sea surface temerature of that polygon
+polygondo&lt;-subs(vorraster, sitedo, by=&quot;id&quot;, which=&quot;DO&quot;)
+carbcompletepolygondo&lt;-subs(carbcompletevorraster, carbcompletesitedo, by=&quot;id&quot;, which=&quot;DO&quot;)
+highfreqpolygondo&lt;-subs(highfreqvorraster, highfreqsitedo, by=&quot;id&quot;, which=&quot;DO&quot;)
+
+# extract do range value for each monitoring site cell
+sitedorange&lt;- raster::extract(r_do_range, inventorycoords, method=&#39;simple&#39;, df=TRUE)
+carbcompletesitedorange&lt;- raster::extract(r_do_range, carbcompletecoords, method=&#39;simple&#39;, df=TRUE)
+highfreqsitedorange&lt;- raster::extract(r_do_range, highfreqcoords, method=&#39;simple&#39;, df=TRUE)
+
+# rename column names of sitedorange
+colnames(sitedorange)&lt;-c(&quot;id&quot;, &quot;DOrange&quot;)
+colnames(carbcompletesitedorange)&lt;-c(&quot;id&quot;, &quot;DO&quot;)
+colnames(highfreqsitedorange)&lt;-c(&quot;id&quot;, &quot;DO&quot;)
+
+# substitute polygon id for monitoring site sea surface temerature of that polygon
+polygondorange&lt;-subs(vorraster, sitedorange, by=&quot;id&quot;, which=&quot;DOrange&quot;)
+carbcompletepolygondorange&lt;-subs(carbcompletevorraster, carbcompletesitedorange, by=&quot;id&quot;, which=&quot;DO&quot;)
+highfreqpolygondorange&lt;-subs(highfreqvorraster, highfreqsitedorange, by=&quot;id&quot;, which=&quot;DO&quot;)</code></pre>
+</div>
+</div>
+<div id="step-3.-create-oceanographic-dissimiarity-layer-relative-to-monitoring-asset" class="section level2">
+<h2>Step 3. Create “oceanographic dissimiarity” layer relative to monitoring asset</h2>
+<div id="normalize-sst-do-and-distance" class="section level4">
+<h4>Normalize SST, DO, and distance</h4>
+<p>Normalize by dividing each raster by the maximum ovbserved value in that raster. Now each raster contains values between 0 and 1.</p>
+<pre class="r"><code>r_sst_mean_nofill&lt;-r_sst_mean_nofill/maxValue(r_sst_mean_nofill)
+r_sst_range_nofill&lt;-r_sst_range_nofill/maxValue(r_sst_range_nofill)
+r_do_mean_nofill&lt;-r_do_mean_nofill/maxValue(r_do_mean_nofill)
+r_do_range_nofill&lt;-r_do_range_nofill/maxValue(r_do_range_nofill)
+
+polygonsst&lt;-polygonsst/maxValue(r_sst_mean_nofill)
+carbcompletepolygonsst&lt;-carbcompletepolygonsst/maxValue(r_sst_mean_nofill)
+highfreqpolygonsst&lt;-highfreqpolygonsst/maxValue(r_sst_mean_nofill)
+
+polygonsstrange&lt;-polygonsstrange/maxValue(r_sst_range_nofill)
+carbcompletepolygonsstrange&lt;-carbcompletepolygonsstrange/maxValue(r_sst_range_nofill)
+highfreqpolygonsstrange&lt;-highfreqpolygonsstrange/maxValue(r_sst_range_nofill)
+
+polygondo&lt;-polygondo/maxValue(r_do_mean_nofill)
+carbcompletepolygondo&lt;-carbcompletepolygondo/maxValue(r_do_mean_nofill)
+highfreqpolygondo&lt;-highfreqpolygondo/maxValue(r_do_mean_nofill)
+
+polygondorange&lt;-polygondorange/maxValue(r_do_range_nofill)
+carbcompletepolygondorange&lt;-carbcompletepolygondorange/maxValue(r_do_range_nofill)
+highfreqpolygondorange&lt;-highfreqpolygondorange/maxValue(r_do_range_nofill)</code></pre>
+</div>
+<div id="calculate-differences-between-each-cell-and-the-closest-monitoring-site" class="section level4">
+<h4>Calculate differences between each cell and the closest monitoring site</h4>
+<pre class="r"><code># sst mean
+sstmeandiff &lt;- abs(r_sst_mean_nofill - polygonsst)
+carbcompletesstmeandiff &lt;- abs(r_sst_mean_nofill - carbcompletepolygonsst)
+highfreqsstmeandiff &lt;- abs(r_sst_mean_nofill - highfreqpolygonsst)
+
+# sst range
+sstrangediff &lt;- abs(r_sst_range_nofill - polygonsstrange)
+carbcompletesstrangediff &lt;- abs(r_sst_range_nofill - carbcompletepolygonsstrange)
+highfreqsstrangediff &lt;- abs(r_sst_range_nofill - highfreqpolygonsstrange)
+
+# do mean
+domeandiff &lt;- abs(r_do_mean_nofill - polygondo)
+carbcompletedomeandiff &lt;- abs(r_do_mean_nofill - carbcompletepolygondo)
+highfreqdomeandiff &lt;- abs(r_do_mean_nofill - highfreqpolygondo)
+
+# do range
+dorangediff &lt;- abs(r_do_range_nofill - polygondorange)
+carbcompletedorangediff &lt;- abs(r_do_range_nofill - carbcompletepolygondorange)
+highfreqdorangediff &lt;- abs(r_do_range_nofill - highfreqpolygondorange)</code></pre>
+</div>
+<div id="determine-weights" class="section level4">
+<h4>Determine weights</h4>
+<p>We chose these weights because we want to be sure to capture the “extreme” acidification events, influenced more by the range (temporal variation) than by the mean. We chose the distance weight because the other aspects of our analysis are all normalized between 0 and 1, so the distance values must we weighted such that they are on the same order. A sensitivity analysis on these weighting factors follows.</p>
+<pre class="r"><code>distanceweight = 10^-11
+temporalweight = 10</code></pre>
+</div>
+<div id="create-oceanographic-dissimilarity-layer" class="section level4">
+<h4>Create oceanographic dissimilarity layer</h4>
+<p>To account for variation in both SST and DO as a combined proxy for ocean acidification variability, we use the following formula:</p>
+<p>spatial dissimilarity = (normalized difference between mean sst in cell and at nearest monitoring site)^2 + (normalized difference between mean do in cell and at nearest monitoring site)^2</p>
+<p>temporal dissimilarity = (normalized difference between range sst in cell and at nearest monitoring site)^2 + (normalized difference between range do in cell and at nearest monitoring site)^2</p>
+<p>oceanographic dissimilarity = sqrt(spatial dissimilarity + weighted temporal dissimilarity)</p>
+<pre class="r"><code>dissimilarity &lt;- sqrt((sstmeandiff^2+domeandiff^2)+temporalweight*(sstrangediff^2+dorangediff^2))
+
+carbcompletedissimilarity&lt;- sqrt((carbcompletesstmeandiff^2+carbcompletedomeandiff^2)+temporalweight*(carbcompletesstrangediff^2+carbcompletedorangediff^2))
+
+highfreqdissimilarity &lt;- sqrt((highfreqsstmeandiff^2+highfreqdomeandiff^2)+temporalweight*(highfreqsstrangediff^2+highfreqdorangediff^2))</code></pre>
+</div>
+</div>
+<div id="step-4.-combine-dissimilarity-and-distance-to-find-gaps" class="section level2">
+<h2>Step 4. Combine dissimilarity and distance to find gaps</h2>
+<p>To combine oceanigraphic dissimilarity and distnce, we use the following formula:</p>
+<p>gap = sqrt(oceanographic dissimilarity^2 + weighted geographic distance^2)</p>
+<pre class="r"><code>distance&lt;-distanceFromPoints(dissimilarity, inventorycoords)*distanceweight
+carbcompletedistance&lt;-distanceFromPoints(carbcompletedissimilarity, carbcompletecoords)*distanceweight
+highfreqdistance&lt;-distanceFromPoints(highfreqdissimilarity, highfreqcoords)*distanceweight
+
+gap&lt;-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2))))
+carbcompletegap&lt;-setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2))))
+highfreqgap&lt;-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2))))
+
+severegaps &lt;- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) &gt; quantile(gap, (.999))
+highprioritygaps &lt;- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) &gt; quantile(gap, (.99))
+lowprioritygaps&lt;-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) &gt; quantile(gap, (.75))
+finalgaps&lt;- severegaps+lowprioritygaps+highprioritygaps
+
+carbcompleteseveregaps &lt;- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) &gt; quantile(carbcompletegap, (.999))
+carbcompletehighprioritygaps&lt;- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) &gt; quantile(carbcompletegap, (.99))
+carbcompletelowprioritygaps&lt;- setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2)))) &gt; quantile(carbcompletegap, (.75))
+carbcompletefinalgaps&lt;- carbcompleteseveregaps + carbcompletelowprioritygaps+carbcompletehighprioritygaps
+
+highfreqseveregaps &lt;- setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) &gt; quantile(highfreqgap, (.999))
+highfreqhighprioritygaps&lt;-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) &gt; quantile(highfreqgap, (.99))
+highfreqlowprioritygaps&lt;-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2)))) &gt; quantile(highfreqgap, (.75))
+highfreqfinalgaps&lt;- highfreqseveregaps+highfreqlowprioritygaps+highfreqhighprioritygaps</code></pre>
+<div id="visualize-gaps-along-the-west-coast" class="section level4">
+<h4>Visualize gaps along the West Coast</h4>
+<p>Here, severe gaps, or the top 0.1% of gaps will have a value of 3, high priority gaps, or the top 1% of gaps will have a value of 2, and low priority gaps, or the top 25% of gaps will have a value of 1.</p>
+<pre class="r"><code>plot(finalgaps)</code></pre>
+<p><img src="gaps_files/figure-html/west%20coast-1.png" width="672" /></p>
+<pre class="r"><code>plot(carbcompletefinalgaps)</code></pre>
+<p><img src="gaps_files/figure-html/west%20coast-2.png" width="672" /></p>
+<pre class="r"><code>plot(highfreqfinalgaps)</code></pre>
+<p><img src="gaps_files/figure-html/west%20coast-3.png" width="672" /></p>
+</div>
+</div>
+<div id="step-5.-sensitivity-analysis-on-the-weighting-factors" class="section level2">
+<h2>Step 5. Sensitivity Analysis on the weighting factors</h2>
+<div id="create-matrix-of-possible-weights-for-temoral-weight-and-distance-weight" class="section level4">
+<h4>Create matrix of possible weights for temoral weight and distance weight</h4>
+<pre class="r"><code>distanceweight = c(10^-5, 10^-6, 10^-7, 10^-8, 10^-9, 10^-10, 10^-11, 10^-12, 10^-13, 10^-14)
+temporalweight = c(2, 4, 6, 8, 10, 12, 14, 16, 18, 20)</code></pre>
+</div>
+<div id="run-gap-analysis-through-all-cominations-of-weights-to-compare-where-high-priority-gaps-exist" class="section level4">
+<h4>Run gap analysis through all cominations of weights to compare where high priority gaps exist</h4>
+<p>The result is 100 rasters of the gap analysis result for where high priority gaps exist under different weighting combinations. This can be repeated for high priority gaps and low priority gaps.</p>
+<pre class="r"><code>rastersensitivity &lt;- list()
+
+for(i in 1:length(distanceweight)){
+  for(j in 1:length(temporalweight)){
+    dissimilarity &lt;- sqrt((sstmeandiff^2+domeandiff^2)+temporalweight[j]*(sstrangediff^2+dorangediff^2))
+    distance&lt;-distanceFromPoints(dissimilarity, inventorycoords)*distanceweight[i]
+    gap&lt;-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2))))
+    severegaps &lt;- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) &gt; quantile(gap, (.999))
+    name = paste(temporalweight[j], distanceweight[i], sep = &quot;_&quot;)
+    rastersensitivity[[name]] = highprioritygaps
+  }
+}</code></pre>
+</div>
+<div id="transform-to-raster-stack" class="section level4">
+<h4>Transform to raster stack</h4>
+<pre class="r"><code>sensitivitystack &lt;- stack(rastersensitivity[[1]])
+for(i in 2:length(rastersensitivity)) sensitivitystack &lt;- addLayer(sensitivitystack, rastersensitivity[[i]])</code></pre>
+</div>
+<div id="sum-across-all-rasters-within-raster-stack" class="section level4">
+<h4>Sum across all rasters within raster stack</h4>
+<p>In cells where the sum is 100, severe gaps existed in all of the weighing combnations. Where the sum is 0, severe gaps were not present under any of the weighting combinations. In cells where the sum is between 0 and 100, the presence of a severe gap was sensitive to weighting factors.</p>
+<pre class="r"><code>sum &lt;- sum(sensitivitystack)
+plot(sum)</code></pre>
+<p><img src="gaps_files/figure-html/sensitivty%20analysis-1.png" width="672" /></p>
+<pre class="r"><code>freq(sum)</code></pre>
 <p>…</p>
+</div>
 </div>
 
 
