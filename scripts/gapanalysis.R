@@ -509,13 +509,16 @@ save_tmap(inventory_map, filename="visualizations/inventory_map.png", width = 19
 save_tmap(inventory_map, "inventory_map.html")
 # saves inventory_map as an html file -- still trying to figure out if we can integrate this w/ arcgis online
 
-# convert to spdf object
+# convert inventory coords to spdf object
 inventorycoords_spdf <- SpatialPointsDataFrame(inventorycoords, deduped.coords)
-dir.create("shapefiles") # create a directory for inventorycoords shapefiles
-
+#dir.create("shapefiles") # create a directory for inventorycoords shapefiles
 writeOGR(inventorycoords_spdf, dsn="shapefiles", layer="inventorycoords_spdf", driver="ESRI Shapefile") # export inventorycoords as shapefile
 
+highfreqcoords_spdf <- SpatialPointsDataFrame(highfreqcoords, deduped.highfrequency)
+writeOGR(highfreqcoords_spdf, dsn="shapefiles", layer="highfreqcoords_spdf", driver="ESRI Shapefile") # export highfreqcoords as shapefile
 
+highfreqcarbcompletecoords_spdf <- SpatialPointsDataFrame(highfreqcarbcompletecoords, deduped.highfreqcarbcomplete)
+writeOGR(highfreqcarbcompletecoords_spdf, dsn="shapefiles", layer="highfreqcarbcompletecoords_spdf", driver="ESRI Shapefile") # export highfreqcoords as shapefile
 
 
 #data viz final project
