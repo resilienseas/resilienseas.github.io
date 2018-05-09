@@ -82,7 +82,7 @@ hotspotmask <- reclassify(aragonite_raster_proj, thresholdsmatrix)
 ```
 
 ##Part 3. Compare predicted aragonite saturation state and hotspots to MPA Location
-####Load shapefiles
+####Load shapefiles using pathways to your computer
 ```{r shapefiles, message = FALSE, warning = FALSE, results = 'hide'}
 
 poly_MPA <- readOGR(dsn=path.expand("/Users/courtneycochran/downloads/all_mpas_update"), layer="all_mpas_update") #Load MPA shapefile using pathway on personal computer
