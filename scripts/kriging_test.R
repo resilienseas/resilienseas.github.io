@@ -293,6 +293,11 @@ poly_MPA@data <- poly_MPA@data %>%
   left_join(pctcover, by = 'OBJECTID')
 View(poly_MPA@data)
 
+#poly_MPA@data$ARAGONITE_MEAN[is.na(poly_MPA@data$ARAGONITE_MEAN)]<- NaN    
+#Replaces Na values to become NaN
+#poly_MPA@data$ARAGONITE_MEAN <- as.numeric(as.character(poly_MPA@data$ARAGONITE_MEAN))
+#Makes values numeric 
+
 write.csv(poly_MPA@data, file= path.expand("/Users/courtneycochran/mpapercentcover.csv"))
 
 plot(poly_MPA,col=(poly_MPA@data[,6]))  
