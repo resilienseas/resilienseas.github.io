@@ -10,7 +10,8 @@ p_load(
   deldir, 
   mapview,
   tmap,
-  ggplot2)
+  ggplot2,
+  rgdal)
 
 # custom R package: oatools
 devtools::load_all(here("../oatools")) # for developing
@@ -451,16 +452,6 @@ pal <- colorRampPalette(c("slateblue4", "slateblue", "plum", "orangered2"))
 tm_shape(finalgaps)+
   tm_raster(palette = pal(3))
 
-inventory_map <- tm_shape(inventorycoords)+
-  tm_dots(col = "black")+
-  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 1)
-
-save_tmap(inventory_map, filename="visualizations/inventory_map.png", width = 1920, height = 1080)
-# even though the mode is set to view, this function saves the "plot" view version of the map
-
-save_tmap(inventory_map, "inventory_map.html")
-# saves inventory_map as an html file -- still trying to figure out if we can integrate this w/ arcgis online
-
 tm_shape(inventorycoords)+
   tm_dots(col = "black")+
   tm_shape(highfreqcoords)+
@@ -496,11 +487,28 @@ tm_shape(highfreqcoords)+
 
 #tmap_mode("plot")
 
+###### saving maps for use in storymap
 
+inventory_map <- tm_shape(inventorycoords)+
+  tm_dots(col = "black")+
+  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 1)
 
+save_tmap(inventory_map, filename="visualizations/inventory_map.png", width = 1920, height = 1080)
+# even though the mode is set to view, this function saves the "plot" view version of the map
 
+save_tmap(inventory_map, "inventory_map.html")
+# saves inventory_map as an html file -- still trying to figure out if we can integrate this w/ arcgis online
 
+# convert inventory coords to spdf object
+inventorycoords_spdf <- SpatialPointsDataFrame(inventorycoords, deduped.coords)
+#dir.create("shapefiles") # create a directory for inventorycoords shapefiles
+writeOGR(inventorycoords_spdf, dsn="shapefiles", layer="inventorycoords_spdf", driver="ESRI Shapefile") # export inventorycoords as shapefile
 
+highfreqcoords_spdf <- SpatialPointsDataFrame(highfreqcoords, deduped.highfrequency)
+writeOGR(highfreqcoords_spdf, dsn="shapefiles", layer="highfreqcoords_spdf", driver="ESRI Shapefile") # export highfreqcoords as shapefile
+
+highfreqcarbcompletecoords_spdf <- SpatialPointsDataFrame(highfreqcarbcompletecoords, deduped.highfreqcarbcomplete)
+writeOGR(highfreqcarbcompletecoords_spdf, dsn="shapefiles", layer="highfreqcarbcompletecoords_spdf", driver="ESRI Shapefile") # export highfreqcoords as shapefile
 
 
 #data viz final project

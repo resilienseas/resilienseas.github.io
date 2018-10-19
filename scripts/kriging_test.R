@@ -216,6 +216,7 @@ plot(hotspot_clipped)
 ############Estuary .shp saved in hotspot interpolation folder on G drive
 #Load Estuary Data 
 estuary <- readOGR(dsn='G:/Hotspot_Interpolation/estuaries', layer='estuaries')
+estuary <- readOGR(dsn='/Users/madisonharris/Documents/ResilienSeas/estuaries', layer='estuaries')
 estuary <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/estuaries"), layer="altb02")
 
 #Set same projection as rasters
@@ -235,7 +236,7 @@ mapview(hotspot_clipped_2)
 
 ##############Canada 
 Canada <- readOGR(dsn='G:/Final_MPA_shapefiles/Canada', layer='Canada')
-#Canada <- readOGR(dsn = path.expand("/Users/madisonharris/Documents/ResilienSeas/Canada"), layer="Canada")
+Canada <- readOGR(dsn = path.expand("/Users/madisonharris/Documents/ResilienSeas/Canada"), layer="Canada")
 Canada <- spTransform(Canada, crs(aragonite_raster_prj))
 Canada <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/Canada"), layer="Canada")
 #aragonite_clipped <- mask(aragonite_clipped, Canada, inverse = TRUE)
@@ -245,6 +246,7 @@ aragonite_clipped_2B <- mask(aragonite_clipped_2B, Canada, inverse= TRUE, progre
 hotspot_clipped_2B <- mask(hotspot_clipped_2B, Canada, inverse=TRUE)
 #############Puget sound
 pugetsound <- readOGR(dsn='G:/Habitat/hotspot_square', layer='hotspot_square')
+pugetsound <- readOGR(dsn='/Users/madisonharris/Documents/ResilienSeas/hotspot_square', layer='hotspot_square')
 pugetsound <- spTransform(pugetsound, crs(hotspotmask))
 pugetsound <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/hotspot_square"), layer="hotspot_square")
 aragonite_clipped_2 <- mask(aragonite_clipped_2, pugetsound, inverse= TRUE, progress='text')
@@ -252,13 +254,16 @@ hotspot_clipped_2 <- mask(hotspot_clipped_2, pugetsound, inverse=TRUE)
 aragonite_clipped_2B <- mask(aragonite_clipped_2B, pugetsound, inverse= TRUE, progress='text')
 hotspot_clipped_2B <- mask(hotspot_clipped_2B, pugetsound, inverse=TRUE)
 
+#hotspot_shp <- rasterToPolygons(hotspot_clipped_2, dissolve = FALSE)
+#writeOGR(hotspot_shp, dsn = "/Users/madisonharris/Documents/ResilienSeas", layer = "hotspot_shp", driver = "ESRI Shapefile")
+
 #writeRaster(aragonite_clipped, "WCOA13_aragonite_raster_clipped", format="GTiff",overwrite=TRUE)
 ##############################################################
 #PART VII. ZONAL STATISTICS
 #############################################################
 
 #Calculate mean aragonite saturation state for each MPA and export as data frame
-aragonite_mean<- raster::extract(aragonite_clipped, poly_MPA, fun=mean, na.rm=TRUE, df=TRUE)
+aragonite_mean<- raster::extract(aragonite_clipped_2, poly_MPA, fun=mean, na.rm=TRUE, df=TRUE)
 View(aragonite_mean)
 colnames(aragonite_mean) <- c("OBJECTID", "ARAGONITE_MEAN")
 
@@ -288,13 +293,18 @@ poly_MPA@data <- poly_MPA@data %>%
   left_join(pctcover, by = 'OBJECTID')
 View(poly_MPA@data)
 
+#poly_MPA@data$ARAGONITE_MEAN[is.na(poly_MPA@data$ARAGONITE_MEAN)]<- NaN    
+#Replaces Na values to become NaN
+#poly_MPA@data$ARAGONITE_MEAN <- as.numeric(as.character(poly_MPA@data$ARAGONITE_MEAN))
+#Makes values numeric 
+
 write.csv(poly_MPA@data, file= path.expand("/Users/courtneycochran/mpapercentcover.csv"))
 
 plot(poly_MPA,col=(poly_MPA@data[,6]))  
 plot(poly_MPA) 
 mapview(poly_MPA)
 
-writeOGR(poly_MPA, dsn = '.', layer = "mpa_mean", driver = "ESRI Shapefile", overwrite_layer = TRUE)
+#mpa_mean_pct_shp <- writeOGR(poly_MPA, dsn = "/Users/madisonharris/Documents/ResilienSeas", layer = "mpa_mean_pct_shp", driver = "ESRI Shapefile", overwrite_layer = TRUE)
 ######################################################
 #Visualizing MPA Zonal statistics
 ##########################################################
