@@ -469,10 +469,6 @@ tm_shape(inventorycoords)+
   tm_dots(col = "black")+
   tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 1)
 
-tm_shape(r_sst_mean_nofill)+
-  tm_raster(palette = pal(50))+ 
-  tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 0.5)
-
 tm_shape(finalgaps)+
   tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
@@ -487,12 +483,6 @@ tm_shape(carbcompletefinalgaps)+
   tm_layout(basemaps = c('OpenStreetMap'))+
   tm_shape(incompletecoords)+
   tm_dots(col = "black")
-
-
-tm_shape(carbcompletefinalgaps)+
-  tm_raster()
-
-
 
 tm_shape(highfreqfinalgaps)+
   tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "High Frequency Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+

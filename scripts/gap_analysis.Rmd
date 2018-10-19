@@ -434,7 +434,7 @@ highfreqdissimilarity <- sqrt((highfreqsstmeandiff^2+highfreqdomeandiff^2)+tempo
 
 ##Step 4. Combine dissimilarity and distance to find gaps
 
-To combine oceanigraphic dissimilarity and distnce, we use the following formula:
+To combine oceanographic dissimilarity and distance, we use the following formula:
 
 gap = sqrt(oceanographic dissimilarity^2 + weighted geographic distance^2)
 
