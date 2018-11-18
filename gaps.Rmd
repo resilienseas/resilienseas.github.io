@@ -39,7 +39,7 @@ Only have to do this once:
 
 ```{r, eval=FALSE}
 # when developing the functions with oatools folder, use this:
-#devtools::load_all(here("../oatools"))
+devtools::load_all(here("../oatools"))
 
 # versus when normally using the R library:
 library(oatools)

@@ -39,8 +39,8 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
 # list_layers()
 # list_layers("Bio-ORACLE") %>% View()
 # list_layers("MARSPEC") %>% View()
-# list_layers("WorldClim") %>% View()
-# list<- list_layers("Bio-ORACLE")
+ list_layers("WorldClim") %>% View()
+ list<- list_layers("Bio-ORACLE")
 
 # layer manipulation ----
 
@@ -193,10 +193,11 @@ oahfocus$Latitude<-as.numeric(oahfocus$Latitude)
 
 #subsets
 carbcomplete<-subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
-incomplete <- subset(oahfocus, DisCrbPmtr<2 & ISCrbPmtr < 2)
+incomplete <- subset(oahfocus, DisCrbPmtr<2 & ISCrbPmtr < 2 & AssetType == "Mooring" | AssetType == "Shoreside Sensor" | AssetType == "Samplesite" | AssetType == "Shoreside sensor" | AssetType == NA)
+
 highfrequency<-subset(oahfocus, MeasFreq > 364)
 highfreqcarbcomplete<-subset(oahfocus, MeasFreq > 364 & DisCrbPmtr>1 | MeasFreq > 364 & ISCrbPmtr > 1)
-lowfrequency <- subset(oahfocus, MeasFreq < 365)
+lowfrequency <- subset(oahfocus, MeasFreq < 365 & AssetType == "Mooring" | AssetType == "Shoreside Sensor" | AssetType == "Samplesite" | AssetType == "Shoreside sensor" | AssetType == NA)
 
 # isolate coordinate columns
 coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
@@ -324,10 +325,10 @@ carbcompletepolygondorange<-subs(carbcompletevorraster, carbcompletesitedorange,
 highfreqpolygondorange<-subs(highfreqvorraster, highfreqsitedorange, by="id", which="DO")
 
 # normalization process ----
-r_sst_mean_nofill<-r_sst_mean_nofill/maxValue(r_sst_mean_nofill)
-r_sst_range_nofill<-r_sst_range_nofill/maxValue(r_sst_range_nofill)
-r_do_mean_nofill<-r_do_mean_nofill/maxValue(r_do_mean_nofill)
-r_do_range_nofill<-r_do_range_nofill/maxValue(r_do_range_nofill)
+r_sst_mean_nofill_norm<-r_sst_mean_nofill/maxValue(r_sst_mean_nofill)
+r_sst_range_nofill_norm<-r_sst_range_nofill/maxValue(r_sst_range_nofill)
+r_do_mean_nofill_norm<-r_do_mean_nofill/maxValue(r_do_mean_nofill)
+r_do_range_nofill_norm<-r_do_range_nofill/maxValue(r_do_range_nofill)
 
 polygonsst<-polygonsst/maxValue(r_sst_mean_nofill)
 carbcompletepolygonsst<-carbcompletepolygonsst/maxValue(r_sst_mean_nofill)
@@ -353,33 +354,39 @@ highfreqpolygondorange<-highfreqpolygondorange/maxValue(r_do_range_nofill)
 # sst variation
 
 # sst mean
-sstmeandiff <- abs(r_sst_mean_nofill - polygonsst)
-carbcompletesstmeandiff <- abs(r_sst_mean_nofill - carbcompletepolygonsst)
-highfreqsstmeandiff <- abs(r_sst_mean_nofill - highfreqpolygonsst)
+sstmeandiff <- abs(r_sst_mean_nofill_norm - polygonsst)
+carbcompletesstmeandiff <- abs(r_sst_mean_nofill_norm - carbcompletepolygonsst)
+highfreqsstmeandiff <- abs(r_sst_mean_nofill_norm - highfreqpolygonsst)
 
 # sst range
-sstrangediff <- abs(r_sst_range_nofill - polygonsstrange)
-carbcompletesstrangediff <- abs(r_sst_range_nofill - carbcompletepolygonsstrange)
-highfreqsstrangediff <- abs(r_sst_range_nofill - highfreqpolygonsstrange)
+sstrangediff <- abs(r_sst_range_nofill_norm - polygonsstrange)
+carbcompletesstrangediff <- abs(r_sst_range_nofill_norm - carbcompletepolygonsstrange)
+highfreqsstrangediff <- abs(r_sst_range_nofill_norm - highfreqpolygonsstrange)
 
 # do variation
 
 # do mean
-domeandiff <- abs(r_do_mean_nofill - polygondo)
-carbcompletedomeandiff <- abs(r_do_mean_nofill - carbcompletepolygondo)
-highfreqdomeandiff <- abs(r_do_mean_nofill - highfreqpolygondo)
+domeandiff <- abs(r_do_mean_nofill_norm - polygondo)
+carbcompletedomeandiff <- abs(r_do_mean_nofill_norm - carbcompletepolygondo)
+highfreqdomeandiff <- abs(r_do_mean_nofill_norm - highfreqpolygondo)
+
 
 # do range
-dorangediff <- abs(r_do_range_nofill - polygondorange)
-carbcompletedorangediff <- abs(r_do_range_nofill - carbcompletepolygondorange)
-highfreqdorangediff <- abs(r_do_range_nofill - highfreqpolygondorange)
+dorangediff <- abs(r_do_range_nofill_norm - polygondorange)
+carbcompletedorangediff <- abs(r_do_range_nofill_norm - carbcompletepolygondorange)
+highfreqdorangediff <- abs(r_do_range_nofill_norm - highfreqpolygondorange)
 
 # gap analysis ----
 
-distanceweight = 10^-11
+distanceweight = 10^-6
 temporalweight = 10
 
 #oceanographic dissimilarity
+
+spatial <-sstmeandiff^2+domeandiff^2
+temporal <- sstrangediff^2+dorangediff^2
+          
+
 dissimilarity <- sqrt((sstmeandiff^2+domeandiff^2)+temporalweight*(sstrangediff^2+dorangediff^2))
 
 carbcompletedissimilarity<- sqrt((carbcompletesstmeandiff^2+carbcompletedomeandiff^2)+temporalweight*(carbcompletesstrangediff^2+carbcompletedorangediff^2))
@@ -396,6 +403,103 @@ gap<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2
 carbcompletegap<-setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(carbcompletedissimilarity)^2))))
 highfreqgap<-setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(highfreqdissimilarity)^2))))
 
+#FOR JOURNAL
+tmap_mode("view")
+
+pal <- colorRampPalette(c("royalblue2", "white", "red"))
+
+tm_shape(polygondorange)+
+  tm_raster(palette = pal(5), colorNA = NULL, title = "Difference in DO Range <br>from Nearest Monitoring")+
+  tm_layout(main.title = "Difference in DO rangefrom nearest monitoring", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))
+
+
+tm_shape(polygondorange)+
+  tm_raster(palette = pal(5), colorNA = NULL, title = "Difference in DO Range <br>from Nearest Monitoring")+
+  tm_layout(main.title = "Difference in DO rangefrom nearest monitoring", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))
+
+
+tm_shape(domeandiff)+
+  tm_raster(palette = pal(5), colorNA = NULL, title = "Difference in DO Mean <br>from Nearest Monitoring")+
+  tm_layout(main.title = "Difference in DO Mean from Nearest Monitoring", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))
+
+tm_shape(sstrangediff)+
+  tm_raster(palette = pal(5), colorNA = NULL, title = "Difference in SST Range <br>from Nearest Monitoring")+
+  tm_layout(main.title = "Difference in SST Range from Nearest Monitoring", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))
+
+tm_shape(sstmeandiff)+
+  tm_raster(palette = pal(5), colorNA = NULL, title = "Difference in SST Mean <br>from Nearest Monitoring")+
+  tm_layout(main.title = "Difference in SST mean from nearest monitoring", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))
+
+
+tm_shape(spatial)+
+  tm_raster(palette = pal(5), colorNA = NULL, title = "Spatial Dissimilarity")+
+  tm_layout(main.title = "Difference in DO rangefrom nearest monitoring", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))
+
+tm_shape(temporal)+
+  tm_raster(palette = pal(5), colorNA = NULL, title = "Temporal Dissimilarity")+
+  tm_layout(main.title = "Difference in DO rangefrom nearest monitoring", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))
+
+
+
+
+tm_shape(dissimilarity)+
+  tm_raster(palette = pal(5), colorNA = NULL, title = "Oceanographic Dissimilarity", auto.palette.mapping = FALSE)+
+  tm_layout(main.title = "Oceanographic Dissimilarity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))
+
+tm_shape(gap)+
+  tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gap Severity", breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4), auto.palette.mapping = FALSE)+
+  tm_layout(main.title = "Ocean Acificitation Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))+
+  tm_shape(inventorycoords)+
+  tm_dots(col = "black")+  
+  tm_shape(vor)+
+  tm_polygons()
+
+tm_shape(carbcompletegap)+
+  tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gap Severity", breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4), auto.palette.mapping = FALSE)+
+  tm_layout(main.title = "Carbonate Complete Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1,fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))+
+  tm_shape(incompletecoords)+
+  tm_dots(col = "black")
+
+tm_shape(carbcompletegap)+
+  tm_raster(palette = pal(10), colorNA = NULL, title = "Carbonate Complete Data Gaps", breaks = c(0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4), auto.palette.mapping = FALSE)+
+  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))+
+  tm_shape(carbcompletecoords)+
+  tm_dots(col = "black")+  
+  tm_shape(carbcompletevor)+
+  tm_polygons()
+
+
+tm_shape(highfreqgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gap Severity", breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4), auto.palette.mapping = FALSE)+
+  tm_layout(main.title = "High Frequency Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))+
+  tm_shape(lowfreqcoords)+
+  tm_dots(col = "black")
+
+
+
+
+
+
+
+
+
+
+
+
+
+#FOR CLIENTS
 severegaps <- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.999))
 highprioritygaps <- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.99))
 lowprioritygaps<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.75))
@@ -515,7 +619,6 @@ writeOGR(highfreqcarbcompletecoords_spdf, dsn="shapefiles", layer="highfreqcarbc
 
 pal <- colorRampPalette(c("white", "red"))
 
-
 poly_coast<- readOGR(dsn=path.expand("Export_Output_2"), layer="Export_Output_2")
 poly_coast <- spTransform(poly_coast, crs(distance))
 
@@ -627,3 +730,31 @@ tm_shape(dissimilarity)+
   tm_raster(palette = pal(100), title = "Oceanographic Variability")+
   tm_layout(basemaps = c('OpenStreetMap'))
 
+
+
+###sensitivity analysis
+
+distanceweight = c(0.2*10^-6, 0.4*10^-6, 0.6*10^-6, 0.8*10^-6, 10^-6, 1.2*10^-6, 1.4*10^-6, 1.6*10^-6, 1.8*10^-6, 2*10^-6)
+temporalweight = c(2, 4, 6, 8, 10, 12, 14, 16, 18, 20)
+
+
+rastersensitivity <- list()
+
+for(i in 1:length(distanceweight)){
+  for(j in 1:length(temporalweight)){
+    dissimilarity <- sqrt((sstmeandiff^2+domeandiff^2)+temporalweight[j]*(sstrangediff^2+dorangediff^2))
+    distance<-distanceFromPoints(dissimilarity, inventorycoords)*distanceweight[i]
+    gap<-setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2))))
+    severegaps <- setValues(distance, sqrt((getValues(distance)^2+(getValues(dissimilarity)^2)))) > quantile(gap, (.25))
+    name = paste(temporalweight[j], distanceweight[i], sep = "_")
+    rastersensitivity[[name]] = severegaps
+  }
+}
+
+sensitivitystack <- stack(rastersensitivity[[1]])
+for(i in 2:length(rastersensitivity)) sensitivitystack <- addLayer(sensitivitystack, rastersensitivity[[i]])
+
+
+sum <- sum(sensitivitystack)
+plot(sum)
+freq(sum)
