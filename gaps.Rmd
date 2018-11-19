@@ -215,7 +215,7 @@ lowfrequency <- subset(oahfocus, MeasFreq < 365)
 
 ####Transform into spatial data
 
-```{r tidy, message = FALSE, warning = FALSE, results = 'hide'}
+```{r spatial, message = FALSE, warning = FALSE, results = 'hide'}
 
 # isolate coordinate columns
 coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude) 
@@ -285,7 +285,7 @@ plot(vor)
 
 This assigns SST mean and range values to all cells closest to a given monitoring site with the SST mean and range values measured at the monitoring site.
 
-```{r tidy, message = FALSE, warning = FALSE, results = 'hide'}
+```{r substitute sst, message = FALSE, warning = FALSE, results = 'hide'}
 
 sitesst<- raster::extract(r_sst_mean, inventorycoords, method='simple', df=TRUE)
 carbcompletesitesst<- raster::extract(r_sst_mean, carbcompletecoords, method='simple', df=TRUE)
@@ -322,7 +322,7 @@ highfreqpolygonsstrange <- subs(highfreqvorraster, highfreqsitesstrange, by="id"
 
 ####Repeat with DO
 
-```{r tidy, message = FALSE, warning = FALSE, results = 'hide'}
+```{r substitute do, message = FALSE, warning = FALSE, results = 'hide'}
 
 # extract do value for each monitoring site cell
 sitedo<- raster::extract(r_do_mean, inventorycoords, method='simple', df=TRUE)
@@ -361,7 +361,7 @@ highfreqpolygondorange<-subs(highfreqvorraster, highfreqsitedorange, by="id", wh
 ####Normalize SST, DO, and distance
 Normalize by dividing each raster by the maximum ovbserved value in that raster. Now each raster contains values between 0 and 1.
 
-```{r tidy, message = FALSE, warning = FALSE, results = 'hide'}
+```{r dissimilarity, message = FALSE, warning = FALSE, results = 'hide'}
 
 r_sst_mean_nofill_norm<-r_sst_mean_nofill/maxValue(r_sst_mean_nofill)
 r_sst_range_nofill_norm<-r_sst_range_nofill/maxValue(r_sst_range_nofill)
@@ -389,7 +389,7 @@ highfreqpolygondorange<-highfreqpolygondorange/maxValue(r_do_range_nofill)
 
 ####Calculate differences between each cell and the closest monitoring site
 
-```{r tidy, message = FALSE, warning = FALSE, results = 'hide'}
+```{r difference, message = FALSE, warning = FALSE, results = 'hide'}
 
 # sst mean
 sstmeandiff <- abs(r_sst_mean_nofill_norm - polygonsst)
@@ -416,7 +416,7 @@ highfreqdorangediff <- abs(r_do_range_nofill_norm - highfreqpolygondorange)
 ####Determine Weights
 We chose these weights because we want to be sure to capture the “extreme” acidification events, influenced more by the range (temporal variation) than by the mean. We chose the distance weight because the other aspects of our analysis are all normalized between 0 and 1, so the distance values must we weighted such that they are on the same order. A sensitivity analysis on these weighting factors follows.
 
-```{r tidy, message = FALSE, warning = FALSE, results = 'hide'}
+```{r weights, message = FALSE, warning = FALSE, results = 'hide'}
 
 distanceweight = 10^-6
 temporalweight = 10
@@ -432,7 +432,7 @@ temporal dissimilarity = (normalized difference between range sst in cell and at
 
 oceanographic dissimilarity = sqrt(spatial dissimilarity + weighted temporal dissimilarity)
 
-```{r tidy, message = FALSE, warning = FALSE, results = 'hide'}
+```{r dissimilarity layer, message = FALSE, warning = FALSE, results = 'hide'}
 
 dissimilarity <- sqrt((sstmeandiff^2+domeandiff^2)+temporalweight*(sstrangediff^2+dorangediff^2))
 
@@ -447,7 +447,7 @@ To combine oceanigraphic dissimilarity and distnce, we use the following formula
 
 gap = sqrt(oceanographic dissimilarity^2 + weighted geographic distance^2)
 
-```{r tidy, message = FALSE, warning = FALSE, results = 'hide'}
+```{r gaps, message = FALSE, warning = FALSE, results = 'hide'}
 
 distance<-distanceFromPoints(dissimilarity, inventorycoords)*distanceweight
 carbcompletedistance<-distanceFromPoints(carbcompletedissimilarity, carbcompletecoords)*distanceweight
@@ -478,7 +478,7 @@ highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps+highfreqhighprior
 ####Visualize gaps along the West Coast
 Here, severe gaps, or the top 0.1% of gaps will have a value of 3, high priority gaps, or the top 1% of gaps will have a value of 2, and low priority gaps, or the top 25% of gaps will have a value of 1. 
 
-```{r}
+```{r maps, message = FALSE, warning = FALSE, results = 'hide}
 
 tm_shape(finalgaps)+
   tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
