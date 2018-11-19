@@ -70,7 +70,7 @@ r_sst_mean_nofill <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=FALSE)
+  redo=T, fill_na=FALSE)
 
 r_sst_mean <- lyr_to_tif(
   lyr = "BO_sstmean", 
@@ -78,7 +78,7 @@ r_sst_mean <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=TRUE, fill_window=11) #caclulate mean
+  redo=T, fill_na=TRUE, fill_window=11) #caclulate mean
 
 n_na_nofill <- sum(is.na(raster::getValues(r_sst_mean_nofill)))
 n_na        <- sum(is.na(raster::getValues(r_sst_mean)))
@@ -89,7 +89,7 @@ r_sst_range_nofill <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=FALSE)
+  redo=T, fill_na=FALSE)
 
 r_sst_range <- lyr_to_tif(
   lyr = "BO_sstrange", 
@@ -97,7 +97,7 @@ r_sst_range <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=TRUE, fill_window=11)
+  redo=T, fill_na=TRUE, fill_window=11)
 
 ```
   
@@ -109,7 +109,7 @@ r_do_mean_nofill <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=FALSE)
+  redo=T, fill_na=FALSE)
 
 r_do_mean <- lyr_to_tif(
   lyr = "BO_dissox", 
@@ -117,7 +117,7 @@ r_do_mean <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=TRUE, fill_window=11) #calculate mean
+  redo=T, fill_na=TRUE, fill_window=11) #calculate mean
 
 r_do_range_nofill <- lyr_to_tif(
   lyr = "BO2_dissoxrange_bdmin", 
@@ -125,7 +125,7 @@ r_do_range_nofill <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=FALSE)
+  redo=T, fill_na=FALSE)
 
 r_do_range <- lyr_to_tif(
   lyr = "BO2_dissoxrange_bdmin", 
@@ -133,7 +133,7 @@ r_do_range <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=TRUE, fill_window=11)
+  redo=T, fill_na=TRUE, fill_window=11)
 
 ```
   
