@@ -275,7 +275,7 @@ crs_study &lt;- &#39;+init=EPSG:6414&#39;</code></pre>
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=FALSE)
+  redo=T, fill_na=FALSE)
 
 r_sst_mean &lt;- lyr_to_tif(
   lyr = &quot;BO_sstmean&quot;, 
@@ -283,7 +283,7 @@ r_sst_mean &lt;- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=TRUE, fill_window=11) #caclulate mean
+  redo=T, fill_na=TRUE, fill_window=11) #caclulate mean
 
 n_na_nofill &lt;- sum(is.na(raster::getValues(r_sst_mean_nofill)))
 n_na        &lt;- sum(is.na(raster::getValues(r_sst_mean)))
@@ -294,7 +294,7 @@ r_sst_range_nofill &lt;- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=FALSE)
+  redo=T, fill_na=FALSE)
 
 r_sst_range &lt;- lyr_to_tif(
   lyr = &quot;BO_sstrange&quot;, 
@@ -302,7 +302,7 @@ r_sst_range &lt;- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=TRUE, fill_window=11)</code></pre>
+  redo=T, fill_na=TRUE, fill_window=11)</code></pre>
 </div>
 <div id="create-dissolved-oxygen-layer-mean-and-range" class="section level4">
 <h4>Create dissolved oxygen layer (mean and range)</h4>
@@ -312,7 +312,7 @@ r_sst_range &lt;- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=FALSE)
+  redo=T, fill_na=FALSE)
 
 r_do_mean &lt;- lyr_to_tif(
   lyr = &quot;BO_dissox&quot;, 
@@ -320,7 +320,7 @@ r_do_mean &lt;- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=TRUE, fill_window=11) #calculate mean
+  redo=T, fill_na=TRUE, fill_window=11) #calculate mean
 
 r_do_range_nofill &lt;- lyr_to_tif(
   lyr = &quot;BO2_dissoxrange_bdmin&quot;, 
@@ -328,7 +328,7 @@ r_do_range_nofill &lt;- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=FALSE)
+  redo=T, fill_na=FALSE)
 
 r_do_range &lt;- lyr_to_tif(
   lyr = &quot;BO2_dissoxrange_bdmin&quot;, 
@@ -336,7 +336,7 @@ r_do_range &lt;- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=TRUE, fill_window=11)</code></pre>
+  redo=T, fill_na=TRUE, fill_window=11)</code></pre>
 </div>
 </div>
 <div id="step-2.-relate-sst-and-do-trends-to-each-monitoring-site" class="section level2">
