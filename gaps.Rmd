@@ -480,29 +480,10 @@ Here, severe gaps, or the top 0.1% of gaps will have a value of 3, high priority
 
 ```{r maps, message = FALSE, warning = FALSE, results = 'hide'}
 
-pal <- colorRampPalette(c("royalblue2", "white", "red"))
 
-tm_shape(finalgaps)+
-  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
-  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
-  tm_layout(basemaps = c('OpenStreetMap'))+
-  tm_legend()+
-  tm_shape(inventorycoords)+
-  tm_dots(col = "black")
-
-tm_shape(carbcompletefinalgaps)+
-  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "Aragonite Measurement Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
-  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
-  tm_layout(basemaps = c('OpenStreetMap'))+
-  tm_shape(incompletecoords)+
-  tm_dots(col = "black")
-
-tm_shape(highfreqfinalgaps)+
-  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "High Frequency Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
-  tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+
-  tm_layout(basemaps = c('OpenStreetMap'))+
-tm_shape(highfreqcoords)+
-  tm_dots(col = "black")
+plot(gap)
+plot(highfreqgap)
+plot(carbcompletegap)
 
 ```
 

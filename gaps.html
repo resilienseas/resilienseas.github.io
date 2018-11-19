@@ -233,6 +233,7 @@ $(document).ready(function () {
 library(pacman)
 p_load(
   tidyverse, here, glue,
+  devtools,
   raster,
   sdmpredictors, dismo, 
   deldir, 
@@ -274,7 +275,7 @@ crs_study &lt;- &#39;+init=EPSG:6414&#39;</code></pre>
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=T, fill_na=FALSE)
+  redo=F, fill_na=FALSE)
 
 r_sst_mean &lt;- lyr_to_tif(
   lyr = &quot;BO_sstmean&quot;, 
@@ -282,7 +283,7 @@ r_sst_mean &lt;- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=T, fill_na=TRUE, fill_window=11) #caclulate mean
+  redo=F, fill_na=TRUE, fill_window=11) #caclulate mean
 
 n_na_nofill &lt;- sum(is.na(raster::getValues(r_sst_mean_nofill)))
 n_na        &lt;- sum(is.na(raster::getValues(r_sst_mean)))
@@ -293,7 +294,7 @@ r_sst_range_nofill &lt;- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=T, fill_na=FALSE)
+  redo=F, fill_na=FALSE)
 
 r_sst_range &lt;- lyr_to_tif(
   lyr = &quot;BO_sstrange&quot;, 
@@ -301,7 +302,7 @@ r_sst_range &lt;- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=T, fill_na=TRUE, fill_window=11)</code></pre>
+  redo=F, fill_na=TRUE, fill_window=11)</code></pre>
 </div>
 <div id="create-dissolved-oxygen-layer-mean-and-range" class="section level4">
 <h4>Create dissolved oxygen layer (mean and range)</h4>
@@ -311,7 +312,7 @@ r_sst_range &lt;- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=T, fill_na=FALSE)
+  redo=F, fill_na=FALSE)
 
 r_do_mean &lt;- lyr_to_tif(
   lyr = &quot;BO_dissox&quot;, 
@@ -319,7 +320,7 @@ r_do_mean &lt;- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=T, fill_na=TRUE, fill_window=11) #calculate mean
+  redo=F, fill_na=TRUE, fill_window=11) #calculate mean
 
 r_do_range_nofill &lt;- lyr_to_tif(
   lyr = &quot;BO2_dissoxrange_bdmin&quot;, 
@@ -327,7 +328,7 @@ r_do_range_nofill &lt;- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=T, fill_na=FALSE)
+  redo=F, fill_na=FALSE)
 
 r_do_range &lt;- lyr_to_tif(
   lyr = &quot;BO2_dissoxrange_bdmin&quot;, 
@@ -335,7 +336,7 @@ r_do_range &lt;- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=T, fill_na=TRUE, fill_window=11)</code></pre>
+  redo=F, fill_na=TRUE, fill_window=11)</code></pre>
 </div>
 </div>
 <div id="step-2.-relate-sst-and-do-trends-to-each-monitoring-site" class="section level2">
@@ -357,7 +358,7 @@ r_do_range &lt;- lyr_to_tif(
 <pre class="r"><code># remove non OAH focus entries
 oahfocus &lt;- subset(inventory, OAHFocus == &quot;OA&quot; | OAHFocus == &quot;H&quot; | OAHFocus == &quot;OAH&quot;) 
 
-# quantify frequencies
+# convert frequencies into numeric values with lookup table
 oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Once&quot;] &lt;- 0
 oahfocus$MeasFreq[oahfocus$MeasFreq == 10] &lt;- 52560
 oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;&lt; 6 hours&quot;] &lt;- 1460
@@ -474,7 +475,7 @@ highfreqvorraster&lt;- rasterize(highfreqvor, r_sst_mean, &quot;id&quot;)
 lowfreqvorraster&lt;- rasterize(lowfreqvor, r_sst_mean, &quot;id&quot;)
 
 plot(vor)</code></pre>
-<p><img src="gaps_files/figure-html/voronoi-1.png" width="672" /></p>
+<p><img src="gaps_files/figure-html/polygons-1.png" width="672" /></p>
 </div>
 <div id="extract-sst-mean-and-range-for-each-monitoring-site-cell-and-substitute-value-for-each-voronoi-polygon" class="section level4">
 <h4>Extract SST mean and range for each monitoring site cell and substitute value for each voronoi polygon</h4>
@@ -547,10 +548,10 @@ highfreqpolygondorange&lt;-subs(highfreqvorraster, highfreqsitedorange, by=&quot
 <div id="normalize-sst-do-and-distance" class="section level4">
 <h4>Normalize SST, DO, and distance</h4>
 <p>Normalize by dividing each raster by the maximum ovbserved value in that raster. Now each raster contains values between 0 and 1.</p>
-<pre class="r"><code>r_sst_mean_nofill&lt;-r_sst_mean_nofill/maxValue(r_sst_mean_nofill)
-r_sst_range_nofill&lt;-r_sst_range_nofill/maxValue(r_sst_range_nofill)
-r_do_mean_nofill&lt;-r_do_mean_nofill/maxValue(r_do_mean_nofill)
-r_do_range_nofill&lt;-r_do_range_nofill/maxValue(r_do_range_nofill)
+<pre class="r"><code>r_sst_mean_nofill_norm&lt;-r_sst_mean_nofill/maxValue(r_sst_mean_nofill)
+r_sst_range_nofill_norm&lt;-r_sst_range_nofill/maxValue(r_sst_range_nofill)
+r_do_mean_nofill_norm&lt;-r_do_mean_nofill/maxValue(r_do_mean_nofill)
+r_do_range_nofill_norm&lt;-r_do_range_nofill/maxValue(r_do_range_nofill)
 
 polygonsst&lt;-polygonsst/maxValue(r_sst_mean_nofill)
 carbcompletepolygonsst&lt;-carbcompletepolygonsst/maxValue(r_sst_mean_nofill)
@@ -571,29 +572,29 @@ highfreqpolygondorange&lt;-highfreqpolygondorange/maxValue(r_do_range_nofill)</c
 <div id="calculate-differences-between-each-cell-and-the-closest-monitoring-site" class="section level4">
 <h4>Calculate differences between each cell and the closest monitoring site</h4>
 <pre class="r"><code># sst mean
-sstmeandiff &lt;- abs(r_sst_mean_nofill - polygonsst)
-carbcompletesstmeandiff &lt;- abs(r_sst_mean_nofill - carbcompletepolygonsst)
-highfreqsstmeandiff &lt;- abs(r_sst_mean_nofill - highfreqpolygonsst)
+sstmeandiff &lt;- abs(r_sst_mean_nofill_norm - polygonsst)
+carbcompletesstmeandiff &lt;- abs(r_sst_mean_nofill_norm - carbcompletepolygonsst)
+highfreqsstmeandiff &lt;- abs(r_sst_mean_nofill_norm - highfreqpolygonsst)
 
 # sst range
-sstrangediff &lt;- abs(r_sst_range_nofill - polygonsstrange)
-carbcompletesstrangediff &lt;- abs(r_sst_range_nofill - carbcompletepolygonsstrange)
-highfreqsstrangediff &lt;- abs(r_sst_range_nofill - highfreqpolygonsstrange)
+sstrangediff &lt;- abs(r_sst_range_nofill_norm - polygonsstrange)
+carbcompletesstrangediff &lt;- abs(r_sst_range_nofill_norm - carbcompletepolygonsstrange)
+highfreqsstrangediff &lt;- abs(r_sst_range_nofill_norm - highfreqpolygonsstrange)
 
 # do mean
-domeandiff &lt;- abs(r_do_mean_nofill - polygondo)
-carbcompletedomeandiff &lt;- abs(r_do_mean_nofill - carbcompletepolygondo)
-highfreqdomeandiff &lt;- abs(r_do_mean_nofill - highfreqpolygondo)
+domeandiff &lt;- abs(r_do_mean_nofill_norm - polygondo)
+carbcompletedomeandiff &lt;- abs(r_do_mean_nofill_norm - carbcompletepolygondo)
+highfreqdomeandiff &lt;- abs(r_do_mean_nofill_norm - highfreqpolygondo)
 
 # do range
-dorangediff &lt;- abs(r_do_range_nofill - polygondorange)
-carbcompletedorangediff &lt;- abs(r_do_range_nofill - carbcompletepolygondorange)
-highfreqdorangediff &lt;- abs(r_do_range_nofill - highfreqpolygondorange)</code></pre>
+dorangediff &lt;- abs(r_do_range_nofill_norm - polygondorange)
+carbcompletedorangediff &lt;- abs(r_do_range_nofill_norm - carbcompletepolygondorange)
+highfreqdorangediff &lt;- abs(r_do_range_nofill_norm - highfreqpolygondorange)</code></pre>
 </div>
 <div id="determine-weights" class="section level4">
-<h4>Determine weights</h4>
+<h4>Determine Weights</h4>
 <p>We chose these weights because we want to be sure to capture the “extreme” acidification events, influenced more by the range (temporal variation) than by the mean. We chose the distance weight because the other aspects of our analysis are all normalized between 0 and 1, so the distance values must we weighted such that they are on the same order. A sensitivity analysis on these weighting factors follows.</p>
-<pre class="r"><code>distanceweight = 10^-11
+<pre class="r"><code>distanceweight = 10^-6
 temporalweight = 10</code></pre>
 </div>
 <div id="create-oceanographic-dissimilarity-layer" class="section level4">
@@ -638,19 +639,37 @@ highfreqfinalgaps&lt;- highfreqseveregaps+highfreqlowprioritygaps+highfreqhighpr
 <div id="visualize-gaps-along-the-west-coast" class="section level4">
 <h4>Visualize gaps along the West Coast</h4>
 <p>Here, severe gaps, or the top 0.1% of gaps will have a value of 3, high priority gaps, or the top 1% of gaps will have a value of 2, and low priority gaps, or the top 25% of gaps will have a value of 1.</p>
-<pre class="r"><code>plot(finalgaps)</code></pre>
-<p><img src="gaps_files/figure-html/west%20coast-1.png" width="672" /></p>
-<pre class="r"><code>plot(carbcompletefinalgaps)</code></pre>
-<p><img src="gaps_files/figure-html/west%20coast-2.png" width="672" /></p>
-<pre class="r"><code>plot(highfreqfinalgaps)</code></pre>
-<p><img src="gaps_files/figure-html/west%20coast-3.png" width="672" /></p>
+<pre class="r"><code>pal &lt;- colorRampPalette(c(&quot;royalblue2&quot;, &quot;white&quot;, &quot;red&quot;))
+
+tm_shape(finalgaps)+
+  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = &quot;Ocean Acidification Data Gaps&quot;, labels = c(&quot;Sufficient Data&quot;, &quot;Low Priority Gaps&quot;, &quot;High Priority Gaps&quot;, &quot;Severe Gaps&quot;))+
+  tm_layout(main.title = &quot;Data Gap Severity&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), legend.show = TRUE, legend.position = c(&quot;right&quot;, &quot;center&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;)+ 
+  tm_layout(basemaps = c(&#39;OpenStreetMap&#39;))+
+  tm_legend()+
+  tm_shape(inventorycoords)+
+  tm_dots(col = &quot;black&quot;)</code></pre>
+<p><img src="gaps_files/figure-html/maps-1.png" width="672" /></p>
+<pre class="r"><code>tm_shape(carbcompletefinalgaps)+
+  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = &quot;Aragonite Measurement Data Gaps&quot;, labels = c(&quot;Sufficient Data&quot;, &quot;Low Priority Gaps&quot;, &quot;High Priority Gaps&quot;, &quot;Severe Gaps&quot;))+
+  tm_layout(main.title = &quot;Data Gap Severity&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), legend.show = TRUE, legend.position = c(&quot;right&quot;, &quot;center&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;)+
+  tm_layout(basemaps = c(&#39;OpenStreetMap&#39;))+
+  tm_shape(incompletecoords)+
+  tm_dots(col = &quot;black&quot;)</code></pre>
+<p><img src="gaps_files/figure-html/maps-2.png" width="672" /></p>
+<pre class="r"><code>tm_shape(highfreqfinalgaps)+
+  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = &quot;High Frequency Data Gaps&quot;, labels = c(&quot;Sufficient Data&quot;, &quot;Low Priority Gaps&quot;, &quot;High Priority Gaps&quot;, &quot;Severe Gaps&quot;))+
+  tm_layout(main.title = &quot;Data Gap Severity&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), legend.show = TRUE, legend.position = c(&quot;right&quot;, &quot;center&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;)+
+  tm_layout(basemaps = c(&#39;OpenStreetMap&#39;))+
+tm_shape(highfreqcoords)+
+  tm_dots(col = &quot;black&quot;)</code></pre>
+<p><img src="gaps_files/figure-html/maps-3.png" width="672" /></p>
 </div>
 </div>
 <div id="step-5.-sensitivity-analysis-on-the-weighting-factors" class="section level2">
 <h2>Step 5. Sensitivity Analysis on the weighting factors</h2>
 <div id="create-matrix-of-possible-weights-for-temoral-weight-and-distance-weight" class="section level4">
 <h4>Create matrix of possible weights for temoral weight and distance weight</h4>
-<pre class="r"><code>distanceweight = c(10^-5, 10^-6, 10^-7, 10^-8, 10^-9, 10^-10, 10^-11, 10^-12, 10^-13, 10^-14)
+<pre class="r"><code>distanceweight = c(10^-6, 2*10^-6, 4*10^-6, 6*10^-6, 8*10^-6, 10^-5)
 temporalweight = c(2, 4, 6, 8, 10, 12, 14, 16, 18, 20)</code></pre>
 </div>
 <div id="run-gap-analysis-through-all-cominations-of-weights-to-compare-where-high-priority-gaps-exist" class="section level4">
