@@ -651,7 +651,7 @@ highfreqfinalgaps&lt;- highfreqseveregaps+highfreqlowprioritygaps+highfreqhighpr
 <h2>Step 5. Sensitivity Analysis on the weighting factors</h2>
 <div id="create-matrix-of-possible-weights-for-temoral-weight-and-distance-weight" class="section level4">
 <h4>Create matrix of possible weights for temoral weight and distance weight</h4>
-<pre class="r"><code>distanceweight = c(10^-6, 2*10^-6, 4*10^-6, 6*10^-6, 8*10^-6, 10^-5)
+<pre class="r"><code>distanceweight = c(0.2*10^-6, 0.4*10^-6, 0.6*10^-6, 0.8*10^-6, 10^-6, 1.2*10^-6, 1.4*10^-6, 1.6*10^-6, 1.8*10^-6, 2*10^-6)
 temporalweight = c(2, 4, 6, 8, 10, 12, 14, 16, 18, 20)</code></pre>
 </div>
 <div id="run-gap-analysis-through-all-cominations-of-weights-to-compare-where-high-priority-gaps-exist" class="section level4">

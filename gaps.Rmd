@@ -481,9 +481,9 @@ Here, severe gaps, or the top 0.1% of gaps will have a value of 3, high priority
 ```{r maps, message = FALSE, warning = FALSE, results = 'hide'}
 
 
-plot(gap)
-plot(highfreqgap)
-plot(carbcompletegap)
+plot(finalgaps)
+plot(carbcompletefinalgaps)
+plot(highfreqfinalgaps)
 
 ```
 
