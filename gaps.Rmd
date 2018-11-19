@@ -492,7 +492,7 @@ plot(carbcompletegap)
 
 ####Create matrix of possible weights for temoral weight and distance weight
 ```{r matrix weight, message = FALSE, warning = FALSE, results = 'hide'}
-distanceweight = c(10^-6, 2*10^-6, 4*10^-6, 6*10^-6, 8*10^-6, 10^-5)
+distanceweight = c(0.2*10^-6, 0.4*10^-6, 0.6*10^-6, 0.8*10^-6, 10^-6, 1.2*10^-6, 1.4*10^-6, 1.6*10^-6, 1.8*10^-6, 2*10^-6)
 temporalweight = c(2, 4, 6, 8, 10, 12, 14, 16, 18, 20)
 
 ```
