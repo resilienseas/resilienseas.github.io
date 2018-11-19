@@ -478,7 +478,7 @@ highfreqfinalgaps<- highfreqseveregaps+highfreqlowprioritygaps+highfreqhighprior
 ####Visualize gaps along the West Coast
 Here, severe gaps, or the top 0.1% of gaps will have a value of 3, high priority gaps, or the top 1% of gaps will have a value of 2, and low priority gaps, or the top 25% of gaps will have a value of 1. 
 
-```{r maps, message = FALSE, warning = FALSE, results = 'hide}
+```{r maps, message = FALSE, warning = FALSE, results = 'hide'}
 
 tm_shape(finalgaps)+
   tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
