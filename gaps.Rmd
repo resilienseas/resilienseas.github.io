@@ -263,7 +263,7 @@ lowfreqcoords <- spTransform(lowfreqcoords, CRS('+init=EPSG:6414'))
 
 ####Create voronoi polygons and rasterize the results
 This groups all cells that are nearest to a given monitoring site into a polygon. Rasterizing the result transforms the result from vector data to continuous raster data.
-```{r tidy, message = FALSE, warning = FALSE, results = 'hide'}
+```{r polygons, message = FALSE, warning = FALSE, results = 'hide'}
 
 vor <-voronoi(inventorycoords)
 carbcompletevor <- voronoi(carbcompletecoords)
