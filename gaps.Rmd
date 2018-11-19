@@ -368,21 +368,21 @@ r_sst_range_nofill_norm<-r_sst_range_nofill/maxValue(r_sst_range_nofill)
 r_do_mean_nofill_norm<-r_do_mean_nofill/maxValue(r_do_mean_nofill)
 r_do_range_nofill_norm<-r_do_range_nofill/maxValue(r_do_range_nofill)
 
-polygonsst<-polygonsst/maxValue(r_sst_mean_nofill)
-carbcompletepolygonsst<-carbcompletepolygonsst/maxValue(r_sst_mean_nofill)
-highfreqpolygonsst<-highfreqpolygonsst/maxValue(r_sst_mean_nofill)
+polygonsst_norm<-polygonsst/maxValue(r_sst_mean_nofill)
+carbcompletepolygonsst_norm<-carbcompletepolygonsst/maxValue(r_sst_mean_nofill)
+highfreqpolygonsst_norm<-highfreqpolygonsst/maxValue(r_sst_mean_nofill)
 
-polygonsstrange<-polygonsstrange/maxValue(r_sst_range_nofill)
-carbcompletepolygonsstrange<-carbcompletepolygonsstrange/maxValue(r_sst_range_nofill)
-highfreqpolygonsstrange<-highfreqpolygonsstrange/maxValue(r_sst_range_nofill)
+polygonsstrange_norm<-polygonsstrange/maxValue(r_sst_range_nofill)
+carbcompletepolygonsstrange_norm<-carbcompletepolygonsstrange/maxValue(r_sst_range_nofill)
+highfreqpolygonsstrange_norm<-highfreqpolygonsstrange/maxValue(r_sst_range_nofill)
 
-polygondo<-polygondo/maxValue(r_do_mean_nofill)
-carbcompletepolygondo<-carbcompletepolygondo/maxValue(r_do_mean_nofill)
-highfreqpolygondo<-highfreqpolygondo/maxValue(r_do_mean_nofill)
+polygondo_norm<-polygondo/maxValue(r_do_mean_nofill)
+carbcompletepolygondo_norm<-carbcompletepolygondo/maxValue(r_do_mean_nofill)
+highfreqpolygondo_norm<-highfreqpolygondo/maxValue(r_do_mean_nofill)
 
-polygondorange<-polygondorange/maxValue(r_do_range_nofill)
-carbcompletepolygondorange<-carbcompletepolygondorange/maxValue(r_do_range_nofill)
-highfreqpolygondorange<-highfreqpolygondorange/maxValue(r_do_range_nofill)
+polygondorange_norm<-polygondorange/maxValue(r_do_range_nofill)
+carbcompletepolygondorange_norm<-carbcompletepolygondorange/maxValue(r_do_range_nofill)
+highfreqpolygondorange_norm<-highfreqpolygondorange/maxValue(r_do_range_nofill)
 
 
 ```

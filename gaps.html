@@ -639,29 +639,11 @@ highfreqfinalgaps&lt;- highfreqseveregaps+highfreqlowprioritygaps+highfreqhighpr
 <div id="visualize-gaps-along-the-west-coast" class="section level4">
 <h4>Visualize gaps along the West Coast</h4>
 <p>Here, severe gaps, or the top 0.1% of gaps will have a value of 3, high priority gaps, or the top 1% of gaps will have a value of 2, and low priority gaps, or the top 25% of gaps will have a value of 1.</p>
-<pre class="r"><code>pal &lt;- colorRampPalette(c(&quot;royalblue2&quot;, &quot;white&quot;, &quot;red&quot;))
-
-tm_shape(finalgaps)+
-  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = &quot;Ocean Acidification Data Gaps&quot;, labels = c(&quot;Sufficient Data&quot;, &quot;Low Priority Gaps&quot;, &quot;High Priority Gaps&quot;, &quot;Severe Gaps&quot;))+
-  tm_layout(main.title = &quot;Data Gap Severity&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), legend.show = TRUE, legend.position = c(&quot;right&quot;, &quot;center&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;)+ 
-  tm_layout(basemaps = c(&#39;OpenStreetMap&#39;))+
-  tm_legend()+
-  tm_shape(inventorycoords)+
-  tm_dots(col = &quot;black&quot;)</code></pre>
+<pre class="r"><code>plot(gap)</code></pre>
 <p><img src="gaps_files/figure-html/maps-1.png" width="672" /></p>
-<pre class="r"><code>tm_shape(carbcompletefinalgaps)+
-  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = &quot;Aragonite Measurement Data Gaps&quot;, labels = c(&quot;Sufficient Data&quot;, &quot;Low Priority Gaps&quot;, &quot;High Priority Gaps&quot;, &quot;Severe Gaps&quot;))+
-  tm_layout(main.title = &quot;Data Gap Severity&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), legend.show = TRUE, legend.position = c(&quot;right&quot;, &quot;center&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;)+
-  tm_layout(basemaps = c(&#39;OpenStreetMap&#39;))+
-  tm_shape(incompletecoords)+
-  tm_dots(col = &quot;black&quot;)</code></pre>
+<pre class="r"><code>plot(highfreqgap)</code></pre>
 <p><img src="gaps_files/figure-html/maps-2.png" width="672" /></p>
-<pre class="r"><code>tm_shape(highfreqfinalgaps)+
-  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = &quot;High Frequency Data Gaps&quot;, labels = c(&quot;Sufficient Data&quot;, &quot;Low Priority Gaps&quot;, &quot;High Priority Gaps&quot;, &quot;Severe Gaps&quot;))+
-  tm_layout(main.title = &quot;Data Gap Severity&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), legend.show = TRUE, legend.position = c(&quot;right&quot;, &quot;center&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;)+
-  tm_layout(basemaps = c(&#39;OpenStreetMap&#39;))+
-tm_shape(highfreqcoords)+
-  tm_dots(col = &quot;black&quot;)</code></pre>
+<pre class="r"><code>plot(carbcompletegap)</code></pre>
 <p><img src="gaps_files/figure-html/maps-3.png" width="672" /></p>
 </div>
 </div>
