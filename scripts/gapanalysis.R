@@ -11,7 +11,9 @@ p_load(
   mapview,
   tmap,
   ggplot2,
-  rgdal)
+  rgdal,
+  gstat,
+  usdm)
 
 # custom R package: oatools
 devtools::load_all(here("../oatools")) # for developing
@@ -92,6 +94,23 @@ r_sst_range <- lyr_to_tif(
   redo=T, fill_na=TRUE, fill_window=11)
 plot_raster(r_sst_range, "SST range (C)")
 
+r_sst_min_nofill <- lyr_to_tif(
+  lyr = "BO_sstmin", 
+  tif = here("data/sst_min.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE)
+
+r_sst_min <- lyr_to_tif(
+  lyr = "BO_sstmin", 
+  tif = here("data/sst_min.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)
+plot_raster(r_sst_min, "SST min (C)")
+
 # dissolved oxygen
 r_do_mean_nofill <- lyr_to_tif(
   lyr = "BO_dissox", 
@@ -128,7 +147,87 @@ r_do_range <- lyr_to_tif(
   redo=T, fill_na=TRUE, fill_window=11)
 plot_raster(r_do_range, "DO range")
 
-# TODO: convert above into loop over layers, loading into a raster stack and outputting plots
+#do min
+r_do_min_nofill <- lyr_to_tif(
+  lyr = "BO2_dissoxmin_bdmin", 
+  tif = here("data/do_min.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE)
+
+r_do_min <- lyr_to_tif(
+  lyr = "BO2_dissoxmin_bdmin", 
+  tif = here("data/do_min.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)
+plot_raster(r_do_min_nofill, "DO min")
+
+#juranek aragonite
+j0 = 9.242*10^-1
+j1 = 4.492*10^-3
+j2 = 9.40 * 10^-4
+jo2r = 140
+jtr = 8
+
+juranekarag <- j0 + j1 * (r_do_min-jo2r) + j2 * (r_do_min-jo2r) * (r_sst_min-jtr)
+plot_raster(juranekarag, "Juranek Aragonite")
+
+juranekarag_nofill <- j0 + j1 * (r_do_min_nofill-jo2r) + j2 * (r_do_min_nofill-jo2r) * (r_sst_min_nofill-jtr)
+plot_raster(juranekarag_nofill, "Juranek Aragonite")
+
+#alin aragonite
+a0 = 1.112
+a1 = 9.59*10^-3
+a2 = 3.54*10^-3
+a3 = 5.91*10^-4
+ao2r = 138.46
+atr = 10.28
+
+alinarag <- a0 + a1 * (r_sst_min-atr) + a2 * (r_do_min-ao2r) + a3 * (r_sst_min-atr) * (r_do_min-ao2r)
+
+alinarag_nofill <- a0 + a1 * (r_sst_min_nofill-atr) + a2 * (r_do_min_nofill-ao2r) + a3 * (r_sst_min_nofill-atr) * (r_do_min_nofill-ao2r)
+
+modeldifference <- juranekarag-alinarag
+
+tm_shape(juranekarag)+
+  tm_raster(palette = pal(5), colorNA = NULL, title = "Test")+
+  tm_layout(main.title = "Test", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))
+
+juranekdf <- as.data.frame(juranekarag_nofill, xy = TRUE)
+
+juranekdf <- juranekdf %>% #remove N/A values
+  mutate(layer=replace(layer, layer==-999.000, NA)) %>%
+  na.omit(juranekdf)
+
+coordinates(juranekdf)<-  ~ x + y #transform into spatial points
+
+juranekvar <- variogram(layer~1, juranekdf)
+
+plot(juranekvar)
+
+juranekfit <- fit.variogram(juranekvar, vgm(psill = 0.2, model = "Exp", range = 7e+05, nugget = 0.05))
+
+plot(juranekvar, juranekfit)
+
+alindf <- as.data.frame(alinarag_nofill, xy = TRUE)
+
+alindf <- alindf %>% #remove N/A values
+  mutate(layer=replace(layer, layer==-999.000, NA)) %>%
+  na.omit(alindf)
+
+coordinates(alindf)<-  ~ x + y #transform into spatial points
+
+alinvar <- variogram(layer~1, alindf)
+
+plot(alinvar)
+
+alinfit <- fit.variogram(alinvar, vgm(psill = 0.06, model = "Exp", range = 6*10^5, nugget = 0.01))
+
+plot(alinvar, alinfit)
 
 # prep inventory----
 
@@ -324,6 +423,56 @@ polygondorange<-subs(vorraster, sitedorange, by="id", which="DOrange")
 carbcompletepolygondorange<-subs(carbcompletevorraster, carbcompletesitedorange, by="id", which="DO")
 highfreqpolygondorange<-subs(highfreqvorraster, highfreqsitedorange, by="id", which="DO")
 
+# OA LAYER
+
+# extract sst range value for each monitoring site cell
+sitearag<- raster::extract(alinarag, inventorycoords, method='simple', df=TRUE)
+carbcompletesitearag<- raster::extract(alinarag, carbcompletecoords, method='simple', df=TRUE)
+highfreqsitearag<- raster::extract(alinarag, highfreqcoords, method='simple', df=TRUE)
+
+# rename column names of sitesstrange
+colnames(sitearag)<-c("id", "Arag")
+colnames(carbcompletesitearag)<-c("id", "Arag")
+colnames(highfreqsitearag)<-c("id", "Arag")
+
+# substitute polygon id for monitoring site sea surface temerature of that polygon
+polygonarag<-subs(vorraster, sitearag, by="id", which="Arag", subsWithNA=FALSE)
+carbcompletepolygonarag <- subs(carbcompletevorraster, carbcompletesitearag, by="id", which="Arag", subsWithNA=FALSE)
+highfreqpolygonarag <- subs(highfreqvorraster, highfreqsitearag, by="id", which="Arag", subsWithNA=FALSE)
+
+tm_shape(polygondorange)+
+  tm_raster(palette = pal(5), colorNA = NULL, title = "Test")+
+  tm_layout(main.title = "Test", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))
+
+#vij = (xi-xj)^2/2
+
+vij <- (juranekarag_nofill-polygonarag)^2/2
+
+plot(vij)
+
+maxValue(vij)
+
+# inverse y=(s)*(1-e^-(x/r)^2) is x = -r*ln((s-y)/s))
+#psill = 0.2, model = "Exp", range = 7e+05, nugget = 0.05
+
+#find distance
+
+m <- (2.567094 - vij)/2.567094                                               
+m <- log(m)
+
+m <- -1 * m
+
+distance <- 7e+05 * (m)
+
+plot(distance)
+
+tm_shape(distance)+
+  tm_raster(palette = pal(5), colorNA = NULL, title = "Test")+
+  tm_layout(main.title = "Test", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
+  tm_layout(basemaps = c('OpenStreetMap'))
+
+
 # normalization process ----
 r_sst_mean_nofill_norm<-r_sst_mean_nofill/maxValue(r_sst_mean_nofill)
 r_sst_range_nofill_norm<-r_sst_range_nofill/maxValue(r_sst_range_nofill)
@@ -408,18 +557,6 @@ tmap_mode("view")
 
 pal <- colorRampPalette(c("royalblue2", "white", "red"))
 
-tm_shape(polygondorange)+
-  tm_raster(palette = pal(5), colorNA = NULL, title = "Difference in DO Range <br>from Nearest Monitoring")+
-  tm_layout(main.title = "Difference in DO rangefrom nearest monitoring", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
-  tm_layout(basemaps = c('OpenStreetMap'))
-
-
-tm_shape(polygondorange)+
-  tm_raster(palette = pal(5), colorNA = NULL, title = "Difference in DO Range <br>from Nearest Monitoring")+
-  tm_layout(main.title = "Difference in DO rangefrom nearest monitoring", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
-  tm_layout(basemaps = c('OpenStreetMap'))
-
-
 tm_shape(domeandiff)+
   tm_raster(palette = pal(5), colorNA = NULL, title = "Difference in DO Mean <br>from Nearest Monitoring")+
   tm_layout(main.title = "Difference in DO Mean from Nearest Monitoring", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
@@ -450,7 +587,7 @@ tm_shape(temporal)+
 
 
 tm_shape(dissimilarity)+
-  tm_raster(palette = pal(5), colorNA = NULL, title = "Oceanographic Dissimilarity", auto.palette.mapping = FALSE)+
+  tm_raster(palette = pal(4), colorNA = NULL, title = "Oceanographic Dissimilarity")+
   tm_layout(main.title = "Oceanographic Dissimilarity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
   tm_layout(basemaps = c('OpenStreetMap'))
 
@@ -565,7 +702,7 @@ tm_shape(inventorycoords)+
   tm_layout(basemaps = c('OpenStreetMap'), basemaps.alpha = 1)
 
 tm_shape(finalgaps)+
-  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.5, 0.5, 1.5, 2.5, 3.5), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
+  tm_raster(palette = pal(4), colorNA = NULL, breaks = c(-0.1, 0.1, 1.1, 2.1, 4.1), title = "Ocean Acidification Data Gaps", labels = c("Sufficient Data", "Low Priority Gaps", "High Priority Gaps", "Severe Gaps"))+
   tm_layout(main.title = "Data Gap Severity", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("right", "center"), fontfamily = "serif", fontface = "bold")+ 
   tm_layout(basemaps = c('OpenStreetMap'))+
   tm_legend()+

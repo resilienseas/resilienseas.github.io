@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Rae" />
+
+<meta name="date" content="2018-12-16" />
+
+<title>manuscript_gap_analysis</title>
+
+<script src="site_libs/jquery-1.12.4/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+<script src="site_libs/htmlwidgets-1.0/htmlwidgets.js"></script>
+<link href="site_libs/leaflet-0.7.7/leaflet.css" rel="stylesheet" />
+<script src="site_libs/leaflet-0.7.7/leaflet.js"></script>
+<link href="site_libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
+<link href="site_libs/leaflet-label-0.2.2/leaflet.label.css" rel="stylesheet" />
+<script src="site_libs/leaflet-label-0.2.2/leaflet.label.js"></script>
+<script src="site_libs/Proj4Leaflet-0.7.2/proj4-compressed.js"></script>
+<script src="site_libs/Proj4Leaflet-0.7.2/proj4leaflet.js"></script>
+<script src="site_libs/leaflet-binding-1.1.0/leaflet.js"></script>
+<script src="site_libs/leaflet-providers-1.0.27/leaflet-providers.js"></script>
+<script src="site_libs/leaflet-providers-plugin-1.1.0/leaflet-providers-plugin.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">ResilienSeas</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About ResilienSeas</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-flask"></span>
+     
+    Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="gaps.html">Monitoring Inventory Gap Analysis</a>
+    </li>
+    <li>
+      <a href="hotspots.html">Ocean Acidfication Hotspot and MPA Analysis</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="tools.html">
+    <span class="fa fa-wrench"></span>
+     
+    Tools
+  </a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">manuscript_gap_analysis</h1>
+<h4 class="author"><em>Rae</em></h4>
+<h4 class="date"><em>12/16/2018</em></h4>
+
+</div>
+
+
+<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE)</code></pre>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
+<p>Load packages, set cache, define study area</p>
+<pre class="r"><code>if (!require(pacman)) install.packages(&quot;pacman&quot;)</code></pre>
+<pre><code>## Loading required package: pacman</code></pre>
+<pre class="r"><code>library(pacman)
+p_load(
+  tidyverse, here, glue,
+  raster,
+  sdmpredictors, dismo, 
+  deldir, 
+  mapview,
+  tmap,
+  ggplot2,
+  rgdal,
+  gstat,
+  usdm,
+  knitr)
+
+# custom R package: oatools
+devtools::load_all(here(&quot;../oatools&quot;)) # for developing</code></pre>
+<pre><code>## Loading oatools</code></pre>
+<pre><code>## Warning in setup_ns_exports(pkg, export_all): Objects listed as exports,
+## but not present in namespace: find_gaps</code></pre>
+<pre class="r"><code>#library(oatools) # devtools::install_github(&quot;resilinseas/oatools&quot;) # for eventual production
+
+# paths &amp; variables ----
+dir_data        &lt;- here(&quot;data&quot;)
+dir_sdmdata_old &lt;- here(&quot;data/sdmpredictors&quot;)
+dir_cache       &lt;- here(&quot;cache&quot;)
+dir_sdmdata     &lt;- here(&quot;cache/sdmpredictors&quot;)
+
+SST_tif &lt;- here(&quot;data/sst_mean.tif&quot;)
+DO_tif  &lt;- here(&quot;data/do_mean.tif&quot;)
+
+# reorganize dirs so &quot;cache&quot; is always local and ignored by git, vs all in &quot;data&quot; tracked by git &amp; pushed to github
+if (!dir.exists(dir_data))    dir.create(dir_data)
+if (!dir.exists(dir_cache))   dir.create(dir_cache)
+if (!dir.exists(dir_sdmdata) &amp; dir.exists(dir_sdmdata_old))
+  file.rename(dir_sdmdata_old, dir_sdmdata)
+if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
+
+# extent of NE Pacific study area, for cropping rasters
+ext_study &lt;- extent(-670000, 340000, -650000, 1210000)
+crs_study &lt;- &#39;+init=EPSG:6414&#39;
+
+# sea surface temperature
+# devtools::load_all(here(&quot;../oatools&quot;)) # for use while developing
+
+r_sst_min_nofill &lt;- lyr_to_tif(
+  lyr = &quot;BO_sstmin&quot;, 
+  tif = here(&quot;data/sst_min.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=F, fill_na=FALSE)</code></pre>
+<pre><code>## lyr_to_tif() messages...</code></pre>
+<pre><code>##   tif found, so reading</code></pre>
+<pre class="r"><code>r_sst_min &lt;- lyr_to_tif(
+  lyr = &quot;BO_sstmin&quot;, 
+  tif = here(&quot;data/sst_min.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=F, fill_na=TRUE, fill_window=11)</code></pre>
+<pre><code>## lyr_to_tif() messages...
+##   tif found, so reading</code></pre>
+<pre class="r"><code>n_na_nofill &lt;- sum(is.na(raster::getValues(r_sst_min_nofill)))
+n_na        &lt;- sum(is.na(raster::getValues(r_sst_min)))</code></pre>
+</div>
+<div id="create-sstdo-minmax-rasters-from-bio-oracle-data" class="section level2">
+<h2>Create SST/DO min/max rasters from bio-oracle data</h2>
+<p>Min is used here to determine a worst case scenario for aragonite saturation state, and max is used with min to determine aragonite saturation state range</p>
+<pre class="r"><code>r_sst_max_nofill &lt;- lyr_to_tif(
+  lyr = &quot;BO_sstmax&quot;, 
+  tif = here(&quot;data/sst_max.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=F, fill_na=FALSE)</code></pre>
+<pre><code>## lyr_to_tif() messages...</code></pre>
+<pre><code>##   tif found, so reading</code></pre>
+<pre class="r"><code>r_sst_max &lt;- lyr_to_tif(
+  lyr = &quot;BO_sstmax&quot;, 
+  tif = here(&quot;data/sst_min.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=F, fill_na=TRUE, fill_window=11)</code></pre>
+<pre><code>## lyr_to_tif() messages...
+##   tif found, so reading</code></pre>
+<pre class="r"><code>#do min
+r_do_min_nofill &lt;- lyr_to_tif(
+  lyr = &quot;BO2_dissoxmin_bdmin&quot;, 
+  tif = here(&quot;data/do_min.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=F, fill_na=FALSE)</code></pre>
+<pre><code>## lyr_to_tif() messages...
+##   tif found, so reading</code></pre>
+<pre class="r"><code>r_do_min &lt;- lyr_to_tif(
+  lyr = &quot;BO2_dissoxmin_bdmin&quot;, 
+  tif = here(&quot;data/do_min.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=F, fill_na=TRUE, fill_window=11)</code></pre>
+<pre><code>## lyr_to_tif() messages...
+##   tif found, so reading</code></pre>
+<pre class="r"><code>r_do_max_nofill &lt;- lyr_to_tif(
+  lyr = &quot;BO2_dissoxmax_bdmin&quot;, 
+  tif = here(&quot;data/do_max.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=F, fill_na=FALSE)</code></pre>
+<pre><code>## lyr_to_tif() messages...
+##   tif found, so reading</code></pre>
+<pre class="r"><code>r_do_max &lt;- lyr_to_tif(
+  lyr = &quot;BO2_dissoxmax_bdmin&quot;, 
+  tif = here(&quot;data/do_max.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=F, fill_na=TRUE, fill_window=11)</code></pre>
+<pre><code>## lyr_to_tif() messages...
+##   tif found, so reading</code></pre>
+</div>
+<div id="use-juranek-2009-model-to-create-ocean-acidification-layer-for-the-study-region" class="section level2">
+<h2>Use Juranek 2009 model to create ocean acidification layer for the study region</h2>
+<p>No fill is used for creating a variogram as it only includes cells in the ocean. Fill is used for creating final maps, so that all coastal cells are included in the final analysis.</p>
+<pre class="r"><code>#juranek aragonite
+j0 = 9.242*10^-1
+j1 = 4.492*10^-3
+j2 = 9.40 * 10^-4
+jo2r = 140
+jtr = 8
+
+juranekarag &lt;- j0 + j1 * (r_do_min-jo2r) + j2 * (r_do_min-jo2r) * (r_sst_min-jtr)
+
+juranekarag_nofill &lt;- j0 + j1 * (r_do_min_nofill-jo2r) + j2 * (r_do_min_nofill-jo2r) * (r_sst_min_nofill-jtr)</code></pre>
+</div>
+<div id="repeat-using-alin-2012-model" class="section level2">
+<h2>Repeat using Alin 2012 model</h2>
+<pre class="r"><code>#alin aragonite
+a0 = 1.112
+a1 = 9.59*10^-3
+a2 = 3.54*10^-3
+a3 = 5.91*10^-4
+ao2r = 138.46
+atr = 10.28
+
+alinarag &lt;- a0 + a1 * (r_sst_min-atr) + a2 * (r_do_min-ao2r) + a3 * (r_sst_min-atr) * (r_do_min-ao2r)
+
+alinarag_nofill &lt;- a0 + a1 * (r_sst_min_nofill-atr) + a2 * (r_do_min_nofill-ao2r) + a3 * (r_sst_min_nofill-atr) * (r_do_min_nofill-ao2r)</code></pre>
+</div>
+<div id="compare-model-outputs" class="section level2">
+<h2>Compare model outputs</h2>
+<p>Here we see a zonal difference between the models, and a bit of a latitudinal difference, especially in the California Bight region</p>
+<pre class="r"><code>modeldifference &lt;- juranekarag-alinarag</code></pre>
+</div>
+<div id="create-variograms-for-each-of-the-models" class="section level2">
+<h2>Create variograms for each of the models</h2>
+<pre class="r"><code>juranekdf &lt;- as.data.frame(juranekarag_nofill, xy = TRUE)
+
+juranekdf &lt;- juranekdf %&gt;% #remove N/A values
+  mutate(layer=replace(layer, layer==-999.000, NA)) %&gt;%
+  na.omit(juranekdf)
+
+coordinates(juranekdf)&lt;-  ~ x + y #transform into spatial points
+
+juranekvar &lt;- variogram(layer~1, juranekdf)
+
+alindf &lt;- as.data.frame(alinarag_nofill, xy = TRUE)
+
+alindf &lt;- alindf %&gt;% #remove N/A values
+  mutate(layer=replace(layer, layer==-999.000, NA)) %&gt;%
+  na.omit(alindf)
+
+coordinates(alindf)&lt;-  ~ x + y #transform into spatial points
+
+alinvar &lt;- variogram(layer~1, alindf)</code></pre>
+</div>
+<div id="loess-for-alin-variogram" class="section level2">
+<h2>Loess for Alin Variogram</h2>
+<pre class="r"><code>alinvar.lo &lt;- loess(alinvar$dist ~ alinvar$gamma, alinvar)</code></pre>
+</div>
+<div id="prep-inventory" class="section level2">
+<h2>Prep Inventory</h2>
+<p>These are the same steps from our GP paper, which we use to create an OA layer in which all the cells in our study site are assigned the aragonite saturation state measured at the nearest monitoring point.</p>
+<pre class="r"><code># import inventory
+inventory &lt;- read_csv(here(&quot;data/inventory.csv&quot;))</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   .default = col_character(),
+##   Longitude = col_double(),
+##   StartYr = col_integer(),
+##   DisCrbPmtr = col_integer(),
+##   ISCrbPmtr = col_integer()
+## )</code></pre>
+<pre><code>## See spec(...) for full column specifications.</code></pre>
+<pre><code>## Warning in rbind(names(probs), probs_f): number of columns of result is not
+## a multiple of vector length (arg 1)</code></pre>
+<pre><code>## Warning: 5 parsing failures.
+## row # A tibble: 5 x 5 col     row col       expected               actual                   file     expected   &lt;int&gt; &lt;chr&gt;     &lt;chr&gt;                  &lt;chr&gt;                    &lt;chr&gt;    actual 1  1135 Longitude no trailing characters &quot;\xca&quot;                   &#39;/Users… file 2  1845 StartYr   an integer             Resumed sampling in 2002 &#39;/Users… row 3  2319 StartYr   an integer             Resumed sampling in 2002 &#39;/Users… col 4  2410 StartYr   an integer             Resumed sampling in 2002 &#39;/Users… expected 5  2450 StartYr   an integer             Resumed sampling in 2016 &#39;/Users…</code></pre>
+<pre class="r"><code>#remove non OAH focus entries
+oahfocus &lt;- subset(inventory, OAHFocus == &quot;OA&quot; | OAHFocus == &quot;H&quot; | OAHFocus == &quot;OAH&quot;)
+
+#quantify frequencies
+unique(oahfocus$MeasFreq)
+
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Once&quot;] &lt;- 0
+oahfocus$MeasFreq[oahfocus$MeasFreq == 10] &lt;- 52560
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;&lt; 6 hours&quot;] &lt;- 1460
+oahfocus$MeasFreq[oahfocus$MeasFreq == 60] &lt;- 8760
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Daily&quot;] &lt;- 365
+oahfocus$MeasFreq[oahfocus$MeasFreq ==30] &lt;- 17520
+oahfocus$MeasFreq[oahfocus$MeasFreq == 20] &lt;- 26280
+oahfocus$MeasFreq[oahfocus$MeasFreq == 15] &lt;- 35040
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Quarterly&quot;] &lt;- 4
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Annual&quot;] &lt;- 1
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Monthly&quot;] &lt;- 12
+oahfocus$MeasFreq[oahfocus$MeasFreq == 5] &lt;- 105120
+oahfocus$MeasFreq[oahfocus$MeasFreq == 6] &lt;- 87600
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Semi-annual&quot;] &lt;- 2
+oahfocus$MeasFreq[oahfocus$MeasFreq == 180] &lt;- 2920
+oahfocus$MeasFreq[oahfocus$MeasFreq == 2] &lt;- 262800
+oahfocus$MeasFreq[oahfocus$MeasFreq == 0.25] &lt;- 2102400
+oahfocus$MeasFreq[oahfocus$MeasFreq == 3] &lt;- 175200
+oahfocus$MeasFreq[oahfocus$MeasFreq == 1] &lt;- 525600
+oahfocus$MeasFreq[oahfocus$MeasFreq == 120] &lt;- 2920
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Bi-weekly&quot;] &lt;- 26
+oahfocus$MeasFreq[oahfocus$MeasFreq == 360] &lt;- 1460
+oahfocus$MeasFreq[oahfocus$MeasFreq == 720] &lt;- 730
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Seasonally&quot;] &lt;- 1
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;1/4 second&quot;] &lt;- 126144000
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Bi-monthly&quot;] &lt;- 6
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;5  Years&quot;] &lt;- 0.2
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Bi-weekly&quot;] &lt;- 26
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Variable&quot;] &lt;- 0
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Decadal&quot;] &lt;- 0.1
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Biennial&quot;] &lt;- 0.5
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Weekly&quot;] &lt;- 52
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Triennial&quot;] &lt;- 0.33333
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Trimester&quot;] &lt;- 3
+
+unique(oahfocus$MeasFreq)
+
+#remove NA coordinates
+oahfocus &lt;- oahfocus[!is.na(oahfocus$Latitude), ]
+oahfocus &lt;- oahfocus[!is.na(oahfocus$Longitude), ]
+
+#remove spaces and transform to numeric
+gsub(&quot; &quot;, &quot;&quot;, oahfocus$Latitude)
+gsub(&quot; &quot;, &quot;&quot;, oahfocus$Longitude)
+gsub(&quot;&#39;&lt;ca&gt;&#39;&quot;, &quot;&quot;, oahfocus$Longitude)
+oahfocus$Longitude&lt;-as.numeric(oahfocus$Longitude)
+oahfocus$Latitude&lt;-as.numeric(oahfocus$Latitude)
+
+#subsets
+carbcomplete&lt;-subset(oahfocus, DisCrbPmtr&gt;1 | ISCrbPmtr &gt; 1)
+incomplete &lt;- subset(oahfocus, DisCrbPmtr&lt;2 &amp; ISCrbPmtr &lt; 2 &amp; AssetType == &quot;Mooring&quot; | AssetType == &quot;Shoreside Sensor&quot; | AssetType == &quot;Samplesite&quot; | AssetType == &quot;Shoreside sensor&quot; | AssetType == NA)
+
+highfrequency&lt;-subset(oahfocus, MeasFreq &gt; 364)
+highfreqcarbcomplete&lt;-subset(oahfocus, MeasFreq &gt; 364 &amp; DisCrbPmtr&gt;1 | MeasFreq &gt; 364 &amp; ISCrbPmtr &gt; 1)
+lowfrequency &lt;- subset(oahfocus, MeasFreq &lt; 365 &amp; AssetType == &quot;Mooring&quot; | AssetType == &quot;Shoreside Sensor&quot; | AssetType == &quot;Samplesite&quot; | AssetType == &quot;Shoreside sensor&quot; | AssetType == NA)
+
+# isolate coordinate columns
+coords &lt;- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
+carbcompletecoords &lt;- cbind.data.frame(carbcomplete$Longitude, carbcomplete$Latitude)
+incompletecoords &lt;- cbind.data.frame(incomplete$Longitude, incomplete$Latitude)
+highfrequencycoords &lt;- cbind.data.frame(highfrequency$Longitude, highfrequency$Latitude)
+lowfrequencycoords &lt;- cbind.data.frame(lowfrequency$Longitude, lowfrequency$Latitude)
+highfreqcarbcompletecoords &lt;- cbind.data.frame(highfreqcarbcomplete$Longitude, highfreqcarbcomplete$Latitude)
+
+# remove duplicate locations
+deduped.coords&lt;-unique(coords)
+deduped.carbcomplete &lt;- unique(carbcompletecoords)
+deduped.incomplete &lt;- unique(incompletecoords)
+deduped.highfrequency &lt;- unique(highfrequencycoords)
+deduped.lowfrequency &lt;- unique(lowfrequencycoords)
+deduped.highfreqcarbcomplete &lt;- unique(highfreqcarbcompletecoords)
+
+# create spatial points objects
+inventorycoords &lt;- SpatialPoints(deduped.coords, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+inventorycoords &lt;- spTransform(inventorycoords, CRS(&#39;+init=EPSG:6414&#39;))
+
+carbcompletecoords &lt;- SpatialPoints(deduped.carbcomplete, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+carbcompletecoords &lt;- spTransform(carbcompletecoords, CRS(&#39;+init=EPSG:6414&#39;))
+
+incompletecoords &lt;- SpatialPoints(deduped.incomplete, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+incompletecoords &lt;- spTransform(incompletecoords, CRS(&#39;+init=EPSG:6414&#39;))
+
+highfreqcoords &lt;- SpatialPoints(deduped.highfrequency, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+highfreqcoords &lt;- spTransform(highfreqcoords, CRS(&#39;+init=EPSG:6414&#39;))
+
+lowfreqcoords &lt;- SpatialPoints(deduped.lowfrequency, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+lowfreqcoords &lt;- spTransform(lowfreqcoords, CRS(&#39;+init=EPSG:6414&#39;))
+
+highfreqcarbcompletecoords &lt;- SpatialPoints(deduped.highfreqcarbcomplete, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+highfreqcarbcompletecoords &lt;- spTransform(highfreqcarbcompletecoords, CRS(&#39;+init=EPSG:6414&#39;))
+
+# check to make sure projections match
+
+# devtools::load_all(here(&quot;../oatools&quot;)) # for use while developing
+
+# create voronoi polygons
+vor &lt;-voronoi(inventorycoords)
+carbcompletevor &lt;- voronoi(carbcompletecoords)
+incompletevor &lt;- voronoi(incompletecoords)
+highfreqvor &lt;- voronoi(highfreqcoords)
+lowfreqvor &lt;- voronoi(lowfreqcoords)
+
+# rasterize polygons
+vorraster&lt;- rasterize(vor, r_sst_min, &quot;id&quot;)
+carbcompletevorraster&lt;- rasterize(carbcompletevor, r_sst_min, &quot;id&quot;)
+incompletevorraster&lt;- rasterize(incompletevor, r_sst_min, &quot;id&quot;)
+highfreqvorraster&lt;- rasterize(highfreqvor, r_sst_min, &quot;id&quot;)
+lowfreqvorraster&lt;- rasterize(lowfreqvor, r_sst_min, &quot;id&quot;)</code></pre>
+</div>
+<div id="create-oa-layer" class="section level2">
+<h2>Create OA layer</h2>
+<p>Here we assign each cell the aragonite value from the nearest monitoring site</p>
+<pre class="r"><code># extract sst range value for each monitoring site cell
+sitearag&lt;- raster::extract(alinarag, inventorycoords, method=&#39;simple&#39;, df=TRUE)
+carbcompletesitearag&lt;- raster::extract(alinarag, carbcompletecoords, method=&#39;simple&#39;, df=TRUE)
+highfreqsitearag&lt;- raster::extract(alinarag, highfreqcoords, method=&#39;simple&#39;, df=TRUE)
+
+# rename column names of sitesstrange
+colnames(sitearag)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
+colnames(carbcompletesitearag)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
+colnames(highfreqsitearag)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
+
+# substitute polygon id for monitoring site sea surface temerature of that polygon
+polygonarag&lt;-subs(vorraster, sitearag, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)
+carbcompletepolygonarag &lt;- subs(carbcompletevorraster, carbcompletesitearag, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)
+highfreqpolygonarag &lt;- subs(highfreqvorraster, highfreqsitearag, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)</code></pre>
+</div>
+<div id="determine-semivariance" class="section level2">
+<h2>Determine semivariance</h2>
+<pre class="r"><code>#vij = (xi-xj)^2/2
+
+vij &lt;- (alinarag_nofill-polygonarag)^2/2
+
+carbcompletevij &lt;- (alinarag_nofill-carbcompletepolygonarag)^2/2
+
+highfreqvij &lt;- (alinarag_nofill-highfreqpolygonarag)^2/2</code></pre>
+</div>
+<div id="use-loess-to-create-equation" class="section level2">
+<h2>Use Loess to create equation</h2>
+<pre class="r"><code>predictalinvar &lt;- predict(alinvar.lo, newdata = data.frame(distance = alinvar$dist))
+
+#uniroot(function(x, vij) predict(alinvar.lo, newdata = data.frame(distance = x)) - vij, c(0, 1000000000000) , vij = vij)
+
+# I had a really hard time getting this step to work... I didn&#39;t succeed, and got error messages about the f(lower) and f(upper) arguments. Maybe you could help trouble shoot this?</code></pre>
+</div>
+<div id="find-oceanographic-distance" class="section level2">
+<h2>Find Oceanographic distance</h2>
+<p>This is done as an alternative to predict/uniroot since I hit a roadblock there. I chose the Alin variogram, and created a linear model that describes the relationship between distance and semivariance, and applied it to the semivariance rasters</p>
+<pre class="r"><code>alinmodel &lt;- lm(alinvar$dist ~ alinvar$gamma, data = alinvar)
+
+intercept &lt;- coef(alinmodel)[1]
+slope &lt;- coef(alinmodel)[2]
+
+oceanographicdistance = slope * vij + intercept
+carbcompleteoceanographicdistance = slope * carbcompletevij + intercept
+highfreqoceanographicdistance = slope * highfreqvij + intercept</code></pre>
+</div>
+<div id="geographic-distance" class="section level2">
+<h2>Geographic distance</h2>
+<p>Determine geographic distance from the nearest monitoring point</p>
+<pre class="r"><code>distance&lt;-distanceFromPoints(oceanographicdistance, inventorycoords)
+carbcompletedistance&lt;-distanceFromPoints(carbcompleteoceanographicdistance, carbcompletecoords)
+highfreqdistance&lt;-distanceFromPoints(highfreqoceanographicdistance, highfreqcoords)</code></pre>
+</div>
+<div id="temporal-variation" class="section level2">
+<h2>Temporal Variation</h2>
+<p>This step determines the range in aragonite saturation state across the region by using max values of T and DO to find the max aragonite saturation state, and min values to find the min aragonite saturation state. The difference is the range. I also normalized this step. One problem I have here is that due to the coefficients (atr and ao2r) there are some places in the study region where using the max values of do and sst gives you are smaller value for aragonite saturation state than the min values do. This is because when you use the max values, for some raster cells the a3 term has a positive component and a negative component leading to a negative sign on the a3 term, whereas when you use the min values those raster cells have two negative components, leading to a positive sign on the a3 term. So I used the abs value of the range, but I’m not sure this makes sense, and maybe there is a better way to find the range. Using the range rasters for SST/DO is a possibility, but that method yields a really different result.</p>
+<pre class="r"><code>alinaragmax &lt;- a0 + a1 * (r_sst_max-atr) + a2 * (r_do_max-ao2r) + a3 * (r_sst_max-atr) * (r_do_max-ao2r)
+
+alinaragrange = abs(alinaragmax - alinarag)
+
+alinaragrange &lt;- alinaragrange/maxValue(alinaragrange)
+
+#alternatively: alinaragrange &lt;- a0 + a1 * (r_sst_range - atr) + a2 * (r_do_range - ao2r) + a3 * (r_sst_range - atr) * (r_do_range - ao2r)</code></pre>
+</div>
+<div id="find-gaps" class="section level2">
+<h2>Find Gaps</h2>
+<p>Here I used the euclidean distance to combine the oceanographic distance and the geographic distance. I used a weighting factor of on the oceanographic distance, which is the max value of distance / max value of oceanographic distance, so that the two parameters combine equally. I multiplied each distance by the range of the aragonite saturation state, such that locations with equal distances will be “gappier” if their aragonite saturation state has a large range. This is to account for temporal variation.</p>
+<pre class="r"><code>weight = maxValue(distance)/maxValue(oceanographicdistance)
+
+gap&lt;-alinaragrange^2*(setValues(distance, sqrt((getValues(distance)^2+(getValues(weight*oceanographicdistance)^2)))))
+
+carbcompletegap&lt;-alinaragrange^2*setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(weight*carbcompleteoceanographicdistance)^2))))
+
+highfreqgap&lt;-alinaragrange^2*setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(weight*highfreqoceanographicdistance)^2))))</code></pre>
+</div>
+<div id="map-gaps" class="section level2">
+<h2>Map Gaps</h2>
+<p>Visualize gaps using tmap</p>
+<pre class="r"><code>tmap_mode(&quot;view&quot;)</code></pre>
+<pre><code>## tmap mode set to interactive viewing</code></pre>
+<pre class="r"><code>pal &lt;- colorRampPalette(c(&quot;royalblue2&quot;, &quot;white&quot;, &quot;red&quot;))
+
+tm_shape(oceanographicdistance)+
+  tm_raster(palette = pal(10), colorNA = NULL, title = &quot;Oceanographic Distance&quot;, auto.palette.mapping = FALSE, breaks = c(0, 5000000, 10000000, 15000000, 20000000))+
+  tm_layout(main.title = &quot;Ocean Acificitation Data Gaps&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;)+
+  tm_layout(basemaps = c(&#39;OpenStreetMap&#39;))</code></pre>
+<div id="htmlwidget-79e2fa4b45bfa04220a2" style="width:672px;height:480px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-79e2fa4b45bfa04220a2">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["OpenStreetMap",null,"OpenStreetMap",{"minZoom":0,"maxZoom":18,"maxNativeZoom":null,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"continuousWorld":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":null,"unloadInvisibleTiles":null,"updateWhenIdle":null,"detectRetina":false,"reuseTiles":false}]},{"method":"addRasterImage","args":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGUAAAC6CAYAAAC3FIM1AAAD80lEQVR4nO3aMXLiQBRF0Q/ljMxbMgthBeyAyDtgBY69hnHVBI5nKWQOJmKSoQqEEJKgpfv6vxN6BpvS1e9uZC9CxNv2cGz7+q/9a6y3h6uvf+1fF8XfVCEvpX/A6WKeX6S2C9y8iL///D2+f/zc/wGfnxHfj79PklFRbt21917Tdfee/n3o915/r4e+FbxFRPvd3GVMlKkpL1/L8wvc52IrBFHXulzcussUgyhOzLLvfyQH2W1Wsdusrr6mqjUKOUBfvU5uUL0mpYZISm5GUQuhPBlNF0fiGlW90dt0ZKK0nbBqtYzQGfGa9o0uMpOSJUjEWRSVacngYlIchkFm+Tpt8hk2+4so5M8rmfaUzt8G1kBxSV5G1BtElcyekknVy5fi0hXhSUFyFKBqo6guXREVR1FW/C8kp6Y8IScyUXabVbx//FRx0e+RWr4yPPeKEIqS6dmXTJSIPGGkomSBjpJlD2m6OMkoPP/y6ctm4ShAUlEyLF0RYlGycBQgRwFyFCBHAZKKovDh9hmkomThKECOAnT1CZm8bvsTvc3GUYAcBchRgGSiZNnkI4SiZOIoQI4C5ChAjgIkESXTyStCJEo2V1Gy3ZVEnhQgRwFyFCBHAZKIQv5taAkSUbKdCCWiZOMoQI4C5ChA+CjZNvmIlj/GOyEcQzMGiRCYlIwcBchRgNBRCPvaHNBRsnIUIEcBwkfJuK/go2TkKECOAuQoQDejZH0YSOBJAXIUIEcBchQgRwFyFCBHAZKIku2hpESUbCSiZHu6IBElG0cB6oySbdmgkJgUn75sdjJRMk2LTJRMpKJkmRapKFk4CpCjADkKkKMAOQqQowDJRcnwWaXXU2Dihaj5CbbcpJwQb5RnkY1SM+kotU6LdJRayUepcVpkT19d1E9m8pPSRu0maqoyijpHAXIUoGqjKO8r1UZR1iuK+hFTjScFyFGAHAXIUYCqjqJ6LK46SoRmmOqjROiFSRFFjaMAOQqQowA5CpCjAA16+qt2tGxSedqdalJUbqpUUVSki6IwLemiKEgZhT4tKaNEsMOkjRLBDZM6ClWqD49dSB8sPSn/kW44RwFyFCBHARoUhbQZ1syTAuQoQIOXI9LRcQpzLNmOMsBUgRxlhNJxHOVBJQI5yhM9K5BPX0COAuTlq4BHlzFHKWhsHC9fBY29gR2lsDFhRo2Xl7DhhixlnpSJDLmRHQXIUSbUd1ocBchRgBwFyFGAHGVifTZ7RwFyFCBHmcG9JcxRgF5KfeM+D+D8YLPdQ1Ee/Q3b+evftofj1/51MSbU2NdRIf9gu+8Fbt4UQ183Z8iuG7rY8lXamCltvqZrwppTPPwd9nsPZjbWPxwqPQR6O5iMAAAAAElFTkSuQmCC",[[48.9606964770059,-128.886866241204],[31.915939107386,-115.438916896581]],0.7,null,1,"oceanographicdistance"]},{"method":"addLegend","args":[{"colors":["#436EEE","#C0CEF9","#FFAAAA","#FF0000"],"labels":["0 mln to 5 mln","5 mln to 10 mln","10 mln to 15 mln","15 mln to 20 mln"],"na_color":null,"na_label":null,"opacity":0.7,"position":"topright","type":"factor","title":"Oceanographic Distance","extra":null,"layerId":null,"className":"info legend"}]},{"method":"addLayersControl","args":["OpenStreetMap","oceanographicdistance",{"collapsed":true,"autoZIndex":true,"position":"topleft"}]}],"limits":{"lat":[31.915939107386,48.9606964770059],"lng":[-128.886866241204,-115.438916896581]},"fitBounds":[31.915939107386,-128.886866241204,48.9606964770059,-115.438916896581]},"evals":[],"jsHooks":[]}</script>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

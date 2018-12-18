@@ -1,20 +1,25 @@
-name: "ResilienSeas Data-Driven Products"
+name: ResilienSeas Data-Driven Products
 navbar:
-  title: "ResilienSeas"
+  title: ResilienSeas
   left:
-    - text: "Home"
-      href: index.html
-    - text: "About ResilienSeas"
-      href: about.html
-    - text: "Analysis"
-      icon: fa-flask
-      href: about.html
-      menu:
-        - text: "Monitoring Inventory Gap Analysis"
-          href: gaps.html
-        - text: "Ocean Acidfication Hotspot and MPA Analysis"
-          href: hotspots.html
-    - text: "Tools"
-      icon: fa-wrench
-      href: tools.html
-output_dir: "."
+  - text: Home
+    href: index.html
+  - text: About ResilienSeas
+    href: about.html
+  - text: Analysis
+    icon: fa-flask
+    href: about.html
+    menu:
+    - text: Monitoring Inventory Gap Analysis
+      href: gaps.html
+    - text: Ocean Acidfication Hotspot and MPA Analysis
+      href: hotspots.html
+  - text: Tools
+    icon: fa-wrench
+    href: tools.html
+output_dir: '.'
+output:
+  html_document:
+    lib_dir: site_libs
+    self_contained: no
+
