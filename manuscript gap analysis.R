@@ -39,7 +39,7 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
 # commenting out unused exploratory commands
 # list_datasets() %>% View()
 # list_layers()
-# list_layers("Bio-ORACLE") %>% View()
+ list_layers("Bio-ORACLE") %>% View()
 # list_layers("MARSPEC") %>% View()
 # list_layers("WorldClim") %>% View()
 # list<- list_layers("Bio-ORACLE")

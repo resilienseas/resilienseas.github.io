@@ -59,7 +59,7 @@ r_sst_min_nofill <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=FALSE)
+  redo=T, fill_na=FALSE)
 
 r_sst_min <- lyr_to_tif(
   lyr = "BO_sstmin", 
@@ -67,7 +67,7 @@ r_sst_min <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=TRUE, fill_window=11)
+  redo=T, fill_na=TRUE, fill_window=11)
 plot_raster(r_sst_min, "SST min (C)")
 
 n_na_nofill <- sum(is.na(raster::getValues(r_sst_min_nofill)))
@@ -83,7 +83,7 @@ r_sst_max_nofill <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=FALSE)
+  redo=T, fill_na=FALSE)
 
 r_sst_max <- lyr_to_tif(
   lyr = "BO_sstmax", 
@@ -91,7 +91,7 @@ r_sst_max <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=TRUE, fill_window=11)
+  redo=T, fill_na=TRUE, fill_window=11)
 
 r_sst_range_nofill <- lyr_to_tif(
   lyr = "BO_sstrange", 
@@ -99,7 +99,7 @@ r_sst_range_nofill <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=FALSE)
+  redo=T, fill_na=FALSE)
 
 r_sst_range <- lyr_to_tif(
   lyr = "BO_sstrange", 
@@ -107,7 +107,7 @@ r_sst_range <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=TRUE, fill_window=11)
+  redo=T, fill_na=TRUE, fill_window=11)
 
 #do min
 r_do_min_nofill <- lyr_to_tif(
@@ -116,7 +116,7 @@ r_do_min_nofill <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=FALSE)
+  redo=T, fill_na=FALSE)
 
 r_do_min <- lyr_to_tif(
   lyr = "BO2_dissoxmin_bdmin", 
@@ -124,7 +124,7 @@ r_do_min <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=TRUE, fill_window=11)
+  redo=T, fill_na=TRUE, fill_window=11)
 
 r_do_max_nofill <- lyr_to_tif(
   lyr = "BO2_dissoxmax_bdmin", 
@@ -132,7 +132,7 @@ r_do_max_nofill <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=FALSE)
+  redo=T, fill_na=FALSE)
 
 r_do_max <- lyr_to_tif(
   lyr = "BO2_dissoxmax_bdmin", 
@@ -140,7 +140,7 @@ r_do_max <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=TRUE, fill_window=11)
+  redo=T, fill_na=TRUE, fill_window=11)
 
 r_do_range_nofill <- lyr_to_tif(
   lyr = "BO2_dissoxrange_bdmin", 
@@ -148,7 +148,7 @@ r_do_range_nofill <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=FALSE)
+  redo=T, fill_na=FALSE)
 
 r_do_range <- lyr_to_tif(
   lyr = "BO2_dissoxrange_bdmin", 
@@ -156,8 +156,8 @@ r_do_range <- lyr_to_tif(
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
-  redo=F, fill_na=TRUE, fill_window=11)
-plot_raster(r_do_range, "DO range")
+  redo=T, fill_na=TRUE, fill_window=11)
+plot_raster(r_do_range_nofill, "DO range")
 
 #juranek aragonite
 j0 = 9.242*10^-1
@@ -416,7 +416,7 @@ tmap_mode("view")
 
 pal <- colorRampPalette(c("royalblue2", "white", "red"))
 
-tm_shape(gap)+
+tm_shape(highfreqgap)+
   tm_raster(palette = pal(10), colorNA = NULL, title = "Ocean Acidification Data Gaps", auto.palette.mapping = FALSE, , breaks = c(0, 15000, 30000, 45000, 60000, 75000, 80000))+
   tm_layout(main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+
   tm_layout(basemaps = c('OpenStreetMap'))
