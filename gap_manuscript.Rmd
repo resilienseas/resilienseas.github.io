@@ -53,6 +53,8 @@ if (!dir.exists(dir_sdmdata) & dir.exists(dir_sdmdata_old))
   file.rename(dir_sdmdata_old, dir_sdmdata)
 if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
 
+ list<- list_layers("Bio-ORACLE")
+
 # extent of NE Pacific study area, for cropping rasters
 ext_study <- extent(-670000, 340000, -650000, 1210000)
 ext_study_alin <- extent(-670000, 340000, -650000, 350000)
@@ -265,6 +267,23 @@ r_do_max_juranek <- lyr_to_tif(
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study_juranek, 
   redo=T, fill_na=TRUE, fill_window=11)
+
+r_ph <- lyr_to_tif(
+  lyr = "BO_ph", 
+  tif = here("data/do_max.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)
+
+r_ph_nofill <- lyr_to_tif(
+  lyr = "BO_ph", 
+  tif = here("data/do_max.tif"),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=FALSE, fill_window=11)
+
 
 ```
 
@@ -530,23 +549,23 @@ mosaichighfreqpolygonarag <- subs(highfreqvorraster, mosaichighfreqsitearag, by=
 
 #vij = (xi-xj)^2/2
 
-juranek_vij<- (juranekarag_nofill-juranekpolygonarag)^2/2
+juranek_vij<- (juranekarag-juranekpolygonarag)^2/2
 
-juranek_carbcompletevij <- (juranekarag_nofill-juranekcarbcompletepolygonarag)^2/2
+juranek_carbcompletevij <- (juranekarag-juranekcarbcompletepolygonarag)^2/2
 
-juranek_highfreqvij <- (juranekarag_nofill-juranekhighfreqpolygonarag)^2/2
+juranek_highfreqvij <- (juranekarag-juranekhighfreqpolygonarag)^2/2
 
-alin_vij<- (alinarag_nofill-alinpolygonarag)^2/2
+alin_vij<- (alinarag-alinpolygonarag)^2/2
 
-alin_carbcompletevij <- (alinarag_nofill-alincarbcompletepolygonarag)^2/2
+alin_carbcompletevij <- (alinarag-alincarbcompletepolygonarag)^2/2
 
-alin_highfreqvij <- (alinarag_nofill-alinhighfreqpolygonarag)^2/2
+alin_highfreqvij <- (alinarag-alinhighfreqpolygonarag)^2/2
 
-mosaic_vij<- (mosaic_nofill-mosaicpolygonarag)^2/2
+mosaic_vij<- (mosaic-mosaicpolygonarag)^2/2
 
-mosaic_carbcompletevij <- (mosaic_nofill-mosaiccarbcompletepolygonarag)^2/2
+mosaic_carbcompletevij <- (mosaic-mosaiccarbcompletepolygonarag)^2/2
 
-mosaic_highfreqvij <- (mosaic_nofill-mosaichighfreqpolygonarag)^2/2
+mosaic_highfreqvij <- (mosaic-mosaichighfreqpolygonarag)^2/2
 
 
 ```
@@ -600,6 +619,7 @@ ggplot()+
   ggtitle('Semivarioram of Aragonite Discrepancy and Distance')+
   xlab('Distance Between Points (m)')+
   ylab('Semivariance of Aragonite Discrepancy')
+  
 
 ```
 
@@ -654,6 +674,13 @@ Here I used the euclidean distance to combine the oceanographic distance and the
 
 ```{r find gaps}
 
+poly_coast<- readOGR(dsn=path.expand("/Users/raetaylor-burns/downloads/Export_Output_2"), layer="Export_Output_2") #Load coast shapefile using pathway on personal computer
+
+Canada<- readOGR(dsn=path.expand("/Users/raetaylor-burns/downloads/Canada"), layer="Canada") #Load coast shapefile using pathway on personal computer
+
+
+poly_coast <- spTransform(poly_coast, crs(crs_study)) #Assign same CRS as aragonite layer
+
 alin_weight = maxValue(distance)/maxValue(alin_oceanographicdistance)
 
 alin_gap<-alinaragrange^2*(setValues(distance, sqrt((getValues(distance)^2+(getValues(alin_weight*alin_oceanographicdistance)^2)))))
@@ -674,9 +701,25 @@ mosaic_weight = maxValue(distance)/maxValue(mosaic_oceanographicdistance)
 
 mosaic_gap<-mosaicaragrange^2*(setValues(distance, sqrt((getValues(distance)^2+(getValues(mosaic_weight*mosaic_oceanographicdistance)^2)))))
 
+mosaic_gap_aggregate <- disaggregate(mosaic_gap, fact=10)
+
+gap_clipped <- mask(mosaic_gap, poly_coast, inverse = TRUE) #Clip continuous raster
+
+gap_clipped <- mask(gap_clipped, Canada, inverse = TRUE) #Clip continuous raster
+
 mosaic_carbcompletegap<-mosaicaragrange^2*setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(mosaic_weight*mosaic_carbcompleteoceanographicdistance)^2))))
 
+mosaic_ccgap_aggregate <- disaggregate(mosaic_carbcompletegap, fact=10)
+
+ccgap_clipped <- mask(mosaic_ccgap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
+
+
 mosaic_highfreqgap<-mosaicaragrange^2*setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(mosaic_weight*mosaic_highfreqoceanographicdistance)^2))))
+
+mosaic_hfgap_aggregate <- disaggregate(mosaic_highfreqgap, fact=10)
+
+hfgap_clipped <- mask(mosaic_hfgap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
+
 
 ```
 
@@ -689,24 +732,30 @@ tmap_mode("view")
 pal <- colorRampPalette(c("royalblue2", "white", "red"))
 
 
-tm_shape(mosaic_highfreqgap)+
-  tm_raster(palette = pal(10), colorNA = NULL, title = "High Freqency Data Gaps", alpha = 0.8)+
+tm_shape(gap_clipped)+
+  tm_raster(palette = pal(10), colorNA = NULL, title = "High Freqency Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE)+
   tm_layout(main.title = "Ocean Acificitation Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+
-  tm_layout(basemaps = c('OpenStreetMap'))+
-  tm_shape(lowfreqcoords)+
-  tm_dots(size = 0.0001)
+  tm_layout(basemaps = c('OpenStreetMap'))
 
 pal <- colorRampPalette(c( "red", "white", "royalblue2"))
 
-tm_shape(mosaic_oceanographicdistance)+
+tm_shape(abs())+
   tm_raster(palette = pal(6), colorNA = NULL, title = "Difference from Nearest Monitoring", auto.palette.mapping = FALSE, alpha = 0.8)+
   tm_layout(basemaps = c('OpenStreetMap'))+
   tm_shape(inventorycoords)+
   tm_dots(size = 0.0001)
 
   
-tm_shape(arag)+
-  tm_raster(palette = pal(10), colorNA = NULL, title = "Model Combo", auto.palette.mapping = FALSE)
+pal <- colorRampPalette(c("red", "white", "royalblue2"))
 
+
+tm_shape(Canada)+
+  tm_polygons(palette = pal(10), colorNA = NULL, title = "Model Combo", auto.palette.mapping = FALSE)
+
+tm_shape(log(r_calcite_nofill))+
+  tm_raster(palette = pal(10), colorNA = NULL, auto.palette.mapping = FALSE)
+
+tm_shape(r_ph_nofill)+
+  tm_raster(palette = pal(10), colorNA = NULL, auto.palette.mapping = FALSE)
 
 ```
