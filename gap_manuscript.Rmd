@@ -56,9 +56,9 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
  list<- list_layers("Bio-ORACLE")
 
 # extent of NE Pacific study area, for cropping rasters
-ext_study <- extent(-670000, 340000, -650000, 1210000)
-ext_study_alin <- extent(-670000, 340000, -650000, 350000)
-ext_study_juranek <- extent(-670000, 340000, 150000, 1210000)
+ext_study <- extent(-670000, 340000, -600000, 1215000)
+ext_study_alin <- extent(-670000, 340000, -600000, 350000)
+ext_study_juranek <- extent(-670000, 340000, 150000, 1215000)
 
 crs_study <- '+init=EPSG:6414'
 
@@ -681,6 +681,10 @@ Canada<- readOGR(dsn=path.expand("/Users/raetaylor-burns/downloads/Canada"), lay
 
 poly_coast <- spTransform(poly_coast, crs(crs_study)) #Assign same CRS as aragonite layer
 
+Canada <- spTransform(Canada, crs(crs_study)) #Assign same CRS as aragonite layer
+
+
+
 alin_weight = maxValue(distance)/maxValue(alin_oceanographicdistance)
 
 alin_gap<-alinaragrange^2*(setValues(distance, sqrt((getValues(distance)^2+(getValues(alin_weight*alin_oceanographicdistance)^2)))))
@@ -701,25 +705,27 @@ mosaic_weight = maxValue(distance)/maxValue(mosaic_oceanographicdistance)
 
 mosaic_gap<-mosaicaragrange^2*(setValues(distance, sqrt((getValues(distance)^2+(getValues(mosaic_weight*mosaic_oceanographicdistance)^2)))))
 
-mosaic_gap_aggregate <- disaggregate(mosaic_gap, fact=10)
+mosaic_gap_aggregate <- disaggregate(mosaic_gap, fact=50)
 
-gap_clipped <- mask(mosaic_gap, poly_coast, inverse = TRUE) #Clip continuous raster
+gap_clipped <- mask(mosaic_gap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
 
 gap_clipped <- mask(gap_clipped, Canada, inverse = TRUE) #Clip continuous raster
 
 mosaic_carbcompletegap<-mosaicaragrange^2*setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(mosaic_weight*mosaic_carbcompleteoceanographicdistance)^2))))
 
-mosaic_ccgap_aggregate <- disaggregate(mosaic_carbcompletegap, fact=10)
+mosaic_ccgap_aggregate <- disaggregate(mosaic_carbcompletegap, fact=50)
 
 ccgap_clipped <- mask(mosaic_ccgap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
 
+ccgap_clipped <- mask(ccgap_clipped, Canada, inverse = TRUE) #Clip continuous raster
 
 mosaic_highfreqgap<-mosaicaragrange^2*setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(mosaic_weight*mosaic_highfreqoceanographicdistance)^2))))
 
-mosaic_hfgap_aggregate <- disaggregate(mosaic_highfreqgap, fact=10)
+mosaic_hfgap_aggregate <- disaggregate(mosaic_highfreqgap, fact=50)
 
 hfgap_clipped <- mask(mosaic_hfgap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
 
+hfgap_clipped <- mask(hfgap_clipped, Canada, inverse = TRUE) #Clip continuous raster
 
 ```
 
@@ -727,35 +733,39 @@ hfgap_clipped <- mask(mosaic_hfgap_aggregate, poly_coast, inverse = TRUE) #Clip 
 Visualize gaps using tmap
 
 ```{r map gaps}
-tmap_mode("view")
+tmap_mode("plot")
 
 pal <- colorRampPalette(c("royalblue2", "white", "red"))
 
+setwd("/Users/raetaylor-burns/downloads")
 
-tm_shape(gap_clipped)+
-  tm_raster(palette = pal(10), colorNA = NULL, title = "High Freqency Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE)+
+gap <- tm_shape(gap_clipped)+
+  tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE)+
   tm_layout(main.title = "Ocean Acificitation Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+
-  tm_layout(basemaps = c('OpenStreetMap'))
-
-pal <- colorRampPalette(c( "red", "white", "royalblue2"))
-
-tm_shape(abs())+
-  tm_raster(palette = pal(6), colorNA = NULL, title = "Difference from Nearest Monitoring", auto.palette.mapping = FALSE, alpha = 0.8)+
   tm_layout(basemaps = c('OpenStreetMap'))+
-  tm_shape(inventorycoords)+
-  tm_dots(size = 0.0001)
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
-  
-pal <- colorRampPalette(c("red", "white", "royalblue2"))
+tmap_save(gap, "gaps.png", width = 2000, height = 4000, dpi = 500)
 
+ccgap <- tm_shape(ccgap_clipped)+
+  tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE)+
+  tm_layout(main.title = "Carbonate Complete Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+
+  tm_layout(basemaps = c('OpenStreetMap'))+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))+
+  tm_shape(incompletecoords)+
+  tm_dots(col = "black", size = 0.01)
 
-tm_shape(Canada)+
-  tm_polygons(palette = pal(10), colorNA = NULL, title = "Model Combo", auto.palette.mapping = FALSE)
+tmap_save(ccgap, "ccgaps.png", width = 2000, height = 4000, dpi = 500)
 
-tm_shape(log(r_calcite_nofill))+
-  tm_raster(palette = pal(10), colorNA = NULL, auto.palette.mapping = FALSE)
+hfgap <- tm_shape(hfgap_clipped)+
+  tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE)+
+  tm_layout(main.title = "High Frequency Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+
+  tm_layout(basemaps = c('OpenStreetMap'))+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))+
+  tm_shape(incompletecoords)+
+  tm_dots(col = "black", size = 0.01)
 
-tm_shape(r_ph_nofill)+
-  tm_raster(palette = pal(10), colorNA = NULL, auto.palette.mapping = FALSE)
+tmap_save(hfgap, "hfgaps.png", width = 2000, height = 4000, dpi = 500)
+
 
 ```
