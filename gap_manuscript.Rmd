@@ -35,7 +35,8 @@ p_load(
   gstat,
   usdm,
   knitr,
-  tmap)
+  tmap,
+  rnaturalearth)
 # custom R package: oatools
 devtools::load_all(here("../oatools")) # for developing
 
@@ -57,10 +58,23 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
  list<- list_layers("Bio-ORACLE")
 
 # extent of NE Pacific study area, for cropping rasters
-ext_study <- extent(-670000, 340000, -600000, 1215000)
-ext_study_alin <- extent(-670000, 340000, -600000, 350000)
-ext_study_juranek <- extent(-670000, 340000, 150000, 1215000)
+ext_study <- extent(-500000, 340000, -600000, 1215000)
+ext_study_alin <- extent(-6700000, 340000, -600000, 350000)
+ext_study_juranek <- extent(-6700000, 340000, 150000, 1215000)
 crs_study <- '+init=EPSG:6414'
+
+ext_study_channelislands <- extent (0, 300000, -600000, -400000)
+ext_study_pugetsound <- extent(-300000, -150000, 1000000, 1215000)
+ext_study_oregoncoast <- extent(-500000, 340000, 500000, 900000)
+
+# import shapefiles for cropping to coast
+poly_coast<- readOGR(dsn=path.expand("/Users/raetaylor-burns/downloads/Export_Output_2"), layer="Export_Output_2")
+Canada<- readOGR(dsn=path.expand("/Users/raetaylor-burns/downloads/Canada"), layer="Canada")
+states<- readOGR(dsn=path.expand("/Users/raetaylor-burns/downloads/cb_2016_us_state_20m"), layer="cb_2016_us_state_20m")
+poly_coast <- spTransform(poly_coast, crs(crs_study))
+Canada <- spTransform(Canada, crs(crs_study))
+states <- spTransform(states, crs(crs_study))
+
 
 # sea surface temperature
 # devtools::load_all(here("../oatools")) # for use while developing
@@ -325,14 +339,21 @@ This step determines the range in aragonite saturation state across the region b
 
 ```{r temporal variation}
 
+alinaragmax <- a0 + a1 * (r_sst_max_alin-atr) + a2 * (r_do_max_alin-ao2r) + a3 * (r_sst_max_alin-atr) * (r_do_max_alin-ao2r)
 
-alinaragrange <- a1 * (r_sst_max-r_sst_min) + a2 * (r_do_max-r_do_min) + a3 * (r_sst_min*r_do_min) + (r_sst_max-r_sst_min)*r_do_min + r_sst_min*(r_do_max-r_do_min) + +(r_sst_max-r_sst_min)*(r_do_max-r_do_min)
+juranekaragmax <- j0 + j1 * (r_do_max_juranek-jo2r) + j2 * (r_do_max_juranek-jo2r) * (r_sst_max_juranek-jtr)
 
+alinaragrange <- alinaragmax-alinarag
+juranekaragrange <- juranekaragmax-juranekarag
+
+alinaragrange <- a1 * (r_sst_max-r_sst_min) + a2 * (r_do_max-r_do_min) + a3 * ( (r_sst_max-r_sst_min)*(r_do_min + r_do_min - ao2r) + (r_do_max-r_do_min)*(r_sst_min - atr)) 
+  
 alinaragrange <- crop(alinaragrange, ext_study_alin)
 
-juranekaragrange <- j1 * (r_do_max-r_do_min) + j2 * (r_sst_min*r_do_min) + (r_sst_max-r_sst_min)*r_do_min + r_sst_min*(r_do_max-r_do_min) + +(r_sst_max-r_sst_min)*(r_do_max-r_do_min)
+juranekaragrange <- j1 * (r_do_max-r_do_min) + j2 * (r_do_max-r_do_min) + a3 * ( (r_sst_max-r_sst_min)*(r_do_min + r_do_min - jo2r) + (r_do_max-r_do_min)*(r_sst_min - jtr)) 
 
 juranekaragrange <- crop(juranekaragrange, ext_study_juranek)
+
 
 aragrange <- mosaic(alinaragrange, juranekaragrange, fun = mean)
 
@@ -344,38 +365,24 @@ aragrange <- aragrange/maxValue(aragrange)
 Here I used the euclidean distance to combine the oceanographic distance and the geographic distance. I used a weighting factor of on the oceanographic distance, which is the max value of distance / max value of oceanographic distance, so that the two parameters combine equally. I multiplied each distance by the range of the aragonite saturation state, such that locations with equal distances will be "gappier" if their aragonite saturation state has a large range. This is to account for temporal variation. 
 
 ```{r find gaps}
-poly_coast<- readOGR(dsn=path.expand("/Users/raetaylor-burns/downloads/Export_Output_2"), layer="Export_Output_2") #Load coast shapefile using pathway on personal computer
 
-Canada<- readOGR(dsn=path.expand("/Users/raetaylor-burns/downloads/Canada"), layer="Canada") #Load coast shapefile using pathway on personal computer
-
-poly_coast <- spTransform(poly_coast, crs(crs_study)) #Assign same CRS as aragonite layer
-
-Canada <- spTransform(Canada, crs(crs_study)) #Assign same CRS as aragonite layer
+#crop aragonite saturation state
 
 weight = maxValue(distance)/maxValue(oceanographicdistance)
 
 gap<-aragrange^2*(setValues(distance, sqrt((getValues(distance)^2+(getValues(weight*oceanographicdistance)^2)))))
 
-gap_aggregate <- disaggregate(gap, fact=5)
-
-clipped <- mask(gap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
-
-clipped <- mask(clipped, Canada, inverse = TRUE) #Clip continuous raster
+gap_clipped <- mask(gap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
+gap_clipped <- mask(clipped, Canada, inverse = TRUE) #Clip continuous raster
 
 carbcompletegap<-aragrange^2*setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(weight*carbcompleteoceanographicdistance)^2))))
 
-ccgap_aggregate <- disaggregate(carbcompletegap, fact=5)
-
 ccgap_clipped <- mask(ccgap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
-
 ccgap_clipped <- mask(ccgap_clipped, Canada, inverse = TRUE) #Clip continuous raster
 
 highfreqgap<-aragrange^2*setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(weight*highfreqoceanographicdistance)^2))))
 
-hfgap_aggregate <- disaggregate(highfreqgap, fact=50)
-
 hfgap_clipped <- mask(hfgap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
-
 hfgap_clipped <- mask(hfgap_clipped, Canada, inverse = TRUE) #Clip continuous raster
 ```
 
@@ -383,32 +390,188 @@ hfgap_clipped <- mask(hfgap_clipped, Canada, inverse = TRUE) #Clip continuous ra
 Visualize gaps using tmap
 
 ```{r map gaps}
+
 tmap_mode("view")
 
 pal <- colorRampPalette(c("royalblue2", "white", "red"))
 
 setwd("/Users/raetaylor-burns/downloads")
 
-gap <- tm_shape(gap_clipped)+
-  tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE)+
-  tm_layout(main.title = "Ocean Acificitation Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+
-  tm_layout(basemaps = c('OpenStreetMap'))+
+gap <- crop(gap, ext_study)
+
+gap = gap/1000
+
+fullgap <- tm_shape(gap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_layout()+
+  tm_shape(states)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+channelislandfullgap <- crop(gap, ext_study_channelislands)
+
+channelislandgap <- tm_shape(channelislandfullgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_layout()+
+  tm_shape(states)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.01)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+pugetsoundfullgap <- crop(gap, ext_study_pugetsound)
+
+pugetsoundgap <- tm_shape(pugetsoundfullgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_layout()+
+  tm_shape(states)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.01)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+oregoncoastfullgap <- crop(gap, ext_study_oregoncoast)
+
+oregongap <- tm_shape(oregoncoastfullgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_layout()+
+  tm_shape(states)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.01)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+gap <- tm_shape(gap)+
+  tm_raster(palette = pal(10), colorNA = NULL, title = c("Effective Distance \nto Monitoring (km)"), alpha = 0.8, auto.palette.mapping = FALSE)+
+  tm_layout(main.title = "Ocean Acificitation Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c("center", "BOTTOM"), legend.title.size = 1, fontfamily = "serif", legend.height = 3, fontface = "bold", legend.text.size = 0.8, legend.frame = "white", legend.frame.lwd = 1, legend.outside = TRUE)+
+  tm_shape(states)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 tmap_save(gap, "gaps.png", width = 2000, height = 4000, dpi = 500)
 
-ccgap <- tm_shape(ccgap_clipped)+
-  tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE)+
-  tm_layout(main.title = "Carbonate Complete Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+
-  tm_layout(basemaps = c('OpenStreetMap'))+
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))+
-  tm_shape(incompletecoords)+
-  tm_dots(col = "black", size = 0.01)
+#carbonate complete inventory gaps 
+
+carbcompletegap <- carbcompletegap/1000
+
+ccgap <- tm_shape(carbcompletegap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_layout()+
+  tm_shape(states)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+channelislandccgap <- crop(carbcompletegap, ext_study_channelislands)
+
+channelislandgap <- tm_shape(channelislandccgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_layout()+
+  tm_shape(states)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.01)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+pugetsoundccgap <- crop(carbcompletegap, ext_study_pugetsound)
+
+pugetsoundgap <- tm_shape(pugetsoundfullgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_layout()+
+  tm_shape(states)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.01)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+oregoncoastccgap <- crop(carbcompletegap, ext_study_oregoncoast)
+
+oregongap <- tm_shape(oregoncoastfullgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_layout()+
+  tm_shape(states)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.01)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 tmap_save(ccgap, "ccgaps.png", width = 2000, height = 4000, dpi = 500)
 
-hfgap <- tm_shape(hfgap_clipped)+
-  tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE)+
+
+# high frequency inventory gaps
+
+highfreqgap <- highfreqgap/1000
+
+hfgap <- tm_shape(highfreqgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_layout()+
+  tm_shape(states)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+channelislandhfgap <- crop(highfreqgap, ext_study_channelislands)
+
+channelislandhfgap <- tm_shape(channelislandhfgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_layout()+
+  tm_shape(states)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.01)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+pugetsoundhfgap <- crop(highfreqgap, ext_study_pugetsound)
+
+pugetsoundgap <- tm_shape(pugetsoundhfgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_layout()+
+  tm_shape(states)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.01)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+oregoncoasthfgap <- crop(highfreqgap, ext_study_oregoncoast)
+
+oregongap <- tm_shape(oregoncoastfullgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_layout()+
+  tm_shape(states)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.01)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+
+
+
+hfgap <- tm_shape(highfreqgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
   tm_layout(main.title = "High Frequency Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+
   tm_layout(basemaps = c('OpenStreetMap'))+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))+
