@@ -37,7 +37,7 @@ p_load(
   knitr,
   tmap)
 # custom R package: oatools
-#devtools::load_all(here("../oatools")) # for developing
+devtools::load_all(here("../oatools")) # for developing
 
 #library(oatools) # devtools::install_github("resilinseas/oatools") # for eventual production
 # paths & variables ----
@@ -75,7 +75,6 @@ r_sst_min <- lyr_to_tif(
 r_sst_min_alin <- crop(r_sst_min, ext_study_alin)
 r_sst_min_juranek <- crop(r_sst_min, ext_study_juranek)
 
-n_na_nofill <- sum(is.na(raster::getValues(r_sst_min_nofill)))
 n_na        <- sum(is.na(raster::getValues(r_sst_min)))
 ```
 
@@ -146,7 +145,7 @@ alin_arag <- a0 + a1 * (r_sst_min_alin-atr) + a2 * (r_do_min_alin-ao2r) + a3 * (
 ## Combine model outputs
 Here we see a zonal difference between the models, and a bit of a latitudinal difference, especially in the California Bight region
 ```{r model comparison}
-arag <- mosaic(alin_mosaic, juranek_mosaic, fun = mean)
+arag <- mosaic(alin_arag, juranek_arag, fun = mean)
 ```
 
 ## Create variograms for each of the models
@@ -297,15 +296,15 @@ highfreqvij <- (arag-highfreqpolygonarag)^2/2
 This is done as an alternative to predict/uniroot since I hit a roadblock there. I chose the Alin variogram, and created a linear model that describes the relationship between distance and semivariance, and applied it to the semivariance rasters
 
 ```{r oceanographic distance}
-aragmodel <- lm(var$dist ~ var$gamma, data = var)
-intercept <- coef(model)[1]
-slope <- coef(model)[2]
+aragmodel <- lm(aragvar$dist ~ aragvar$gamma, data = aragvar)
+intercept <- coef(aragmodel)[1]
+slope <- coef(aragmodel)[2]
 oceanographicdistance = slope * vij + intercept
 carbcompleteoceanographicdistance = slope * carbcompletevij + intercept
 highfreqoceanographicdistance = slope * highfreqvij + intercept
 ggplot()+
-  geom_point(aes(mosaicvar$dist, mosaicvar$gamma))+
-  stat_smooth(aes(mosaicvar$dist, mosaicvar$gamma), method = lm)+
+  geom_point(aes(aragvar$dist, aragvar$gamma))+
+  stat_smooth(aes(aragvar$dist, aragvar$gamma), method = lm)+
   theme_bw()+
   ggtitle('Semivarioram of Aragonite Discrepancy and Distance')+
   xlab('Distance Between Points (m)')+
@@ -326,9 +325,14 @@ This step determines the range in aragonite saturation state across the region b
 
 ```{r temporal variation}
 
-alinaragrange <- a1 * (r_sst_range_alin) + a2 * (r_do_range_alin) + a3 * (r_sst_min*r_do_min + r_sst_range*r_do_min + r_sst_min*r_do_range +r_sst_range*r_do_range)
 
-juranekaragrange <- j1 * (r_do_range_juranek) + j2 * (r_sst_min*r_do_min + r_sst_range*r_do_min + r_sst_min*r_do_range +r_sst_range*r_do_range)
+alinaragrange <- a1 * (r_sst_max-r_sst_min) + a2 * (r_do_max-r_do_min) + a3 * (r_sst_min*r_do_min) + (r_sst_max-r_sst_min)*r_do_min + r_sst_min*(r_do_max-r_do_min) + +(r_sst_max-r_sst_min)*(r_do_max-r_do_min)
+
+alinaragrange <- crop(alinaragrange, ext_study_alin)
+
+juranekaragrange <- j1 * (r_do_max-r_do_min) + j2 * (r_sst_min*r_do_min) + (r_sst_max-r_sst_min)*r_do_min + r_sst_min*(r_do_max-r_do_min) + +(r_sst_max-r_sst_min)*(r_do_max-r_do_min)
+
+juranekaragrange <- crop(juranekaragrange, ext_study_juranek)
 
 aragrange <- mosaic(alinaragrange, juranekaragrange, fun = mean)
 
@@ -350,9 +354,9 @@ Canada <- spTransform(Canada, crs(crs_study)) #Assign same CRS as aragonite laye
 
 weight = maxValue(distance)/maxValue(oceanographicdistance)
 
-gap<-aragrange^2*(setValues(distance, sqrt((getValues(distance)^2+(getValues(mosaic_weight*oceanographicdistance)^2)))))
+gap<-aragrange^2*(setValues(distance, sqrt((getValues(distance)^2+(getValues(weight*oceanographicdistance)^2)))))
 
-gapaggregate <- disaggregate(gap, fact=5)
+gap_aggregate <- disaggregate(gap, fact=5)
 
 clipped <- mask(gap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
 
@@ -379,15 +383,20 @@ hfgap_clipped <- mask(hfgap_clipped, Canada, inverse = TRUE) #Clip continuous ra
 Visualize gaps using tmap
 
 ```{r map gaps}
-tmap_mode("plot")
+tmap_mode("view")
+
 pal <- colorRampPalette(c("royalblue2", "white", "red"))
+
 setwd("/Users/raetaylor-burns/downloads")
+
 gap <- tm_shape(gap_clipped)+
   tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE)+
   tm_layout(main.title = "Ocean Acificitation Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+
   tm_layout(basemaps = c('OpenStreetMap'))+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
 tmap_save(gap, "gaps.png", width = 2000, height = 4000, dpi = 500)
+
 ccgap <- tm_shape(ccgap_clipped)+
   tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE)+
   tm_layout(main.title = "Carbonate Complete Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+
@@ -395,7 +404,9 @@ ccgap <- tm_shape(ccgap_clipped)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))+
   tm_shape(incompletecoords)+
   tm_dots(col = "black", size = 0.01)
+
 tmap_save(ccgap, "ccgaps.png", width = 2000, height = 4000, dpi = 500)
+
 hfgap <- tm_shape(hfgap_clipped)+
   tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE)+
   tm_layout(main.title = "High Frequency Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+
@@ -403,6 +414,7 @@ hfgap <- tm_shape(hfgap_clipped)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))+
   tm_shape(incompletecoords)+
   tm_dots(col = "black", size = 0.01)
+
 tmap_save(hfgap, "hfgaps.png", width = 2000, height = 4000, dpi = 500)
   
 output:
@@ -411,3 +423,4 @@ output:
   pdf_document: 
   word_document: default
 ---
+-
