@@ -2,6 +2,10 @@
 title: "manuscript_gap_analysis"
 author: "Rae"
 date: "12/16/2018"
+---
+title: "manuscript_gap_analysis"
+author: "Rae"
+date: "12/16/2018"
 output:
   html_document:
     df_print: paged
@@ -32,17 +36,15 @@ p_load(
   usdm,
   knitr,
   tmap)
-
 # custom R package: oatools
-devtools::load_all(here("../oatools")) # for developing
-#library(oatools) # devtools::install_github("resilinseas/oatools") # for eventual production
+#devtools::load_all(here("../oatools")) # for developing
 
+#library(oatools) # devtools::install_github("resilinseas/oatools") # for eventual production
 # paths & variables ----
 dir_data        <- here("data")
 dir_sdmdata_old <- here("data/sdmpredictors")
 dir_cache       <- here("cache")
 dir_sdmdata     <- here("cache/sdmpredictors")
-
 SST_tif <- here("data/sst_mean.tif")
 DO_tif  <- here("data/do_mean.tif")
 
@@ -52,43 +54,16 @@ if (!dir.exists(dir_cache))   dir.create(dir_cache)
 if (!dir.exists(dir_sdmdata) & dir.exists(dir_sdmdata_old))
   file.rename(dir_sdmdata_old, dir_sdmdata)
 if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
-
  list<- list_layers("Bio-ORACLE")
 
 # extent of NE Pacific study area, for cropping rasters
 ext_study <- extent(-670000, 340000, -600000, 1215000)
 ext_study_alin <- extent(-670000, 340000, -600000, 350000)
 ext_study_juranek <- extent(-670000, 340000, 150000, 1215000)
-
 crs_study <- '+init=EPSG:6414'
 
 # sea surface temperature
 # devtools::load_all(here("../oatools")) # for use while developing
-
-r_sst_min_nofill <- lyr_to_tif(
-  lyr = "BO_sstmin", 
-  tif = here("data/sst_min.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study, 
-  redo=T, fill_na=FALSE)
-
-r_sst_min_nofill_alin <- lyr_to_tif(
-  lyr = "BO_sstmin", 
-  tif = here("data/sst_min.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_alin, 
-  redo=T, fill_na=FALSE)
-
-r_sst_min_nofill_juranek <- lyr_to_tif(
-  lyr = "BO_sstmin", 
-  tif = here("data/sst_min.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_juranek, 
-  redo=T, fill_na=FALSE)
-
 r_sst_min <- lyr_to_tif(
   lyr = "BO_sstmin", 
   tif = here("data/sst_min.tif"),
@@ -97,21 +72,8 @@ r_sst_min <- lyr_to_tif(
   extent_crop   = ext_study, 
   redo=T, fill_na=TRUE, fill_window=11)
 
-r_sst_min_alin <- lyr_to_tif(
-  lyr = "BO_sstmin", 
-  tif = here("data/sst_min.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_alin, 
-  redo=T, fill_na=TRUE, fill_window=11)
-
-r_sst_min_juranek <- lyr_to_tif(
-  lyr = "BO_sstmin", 
-  tif = here("data/sst_min.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_juranek, 
-  redo=T, fill_na=TRUE, fill_window=11)
+r_sst_min_alin <- crop(r_sst_min, ext_study_alin)
+r_sst_min_juranek <- crop(r_sst_min, ext_study_juranek)
 
 n_na_nofill <- sum(is.na(raster::getValues(r_sst_min_nofill)))
 n_na        <- sum(is.na(raster::getValues(r_sst_min)))
@@ -121,31 +83,7 @@ n_na        <- sum(is.na(raster::getValues(r_sst_min)))
 Min is used here to determine a worst case scenario for aragonite saturation state, and max is used with min to determine aragonite saturation state range
 
 ```{r bio-Oracle}
-
-r_sst_max_nofill <- lyr_to_tif(
-  lyr = "BO_sstmax", 
-  tif = here("data/sst_max.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study, 
-  redo=T, fill_na=FALSE)
-
-r_sst_max_nofill_alin <- lyr_to_tif(
-  lyr = "BO_sstmax", 
-  tif = here("data/sst_max.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_alin, 
-  redo=T, fill_na=FALSE)
-
-r_sst_max_nofill_juranek <- lyr_to_tif(
-  lyr = "BO_sstmax", 
-  tif = here("data/sst_max.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_juranek, 
-  redo=T, fill_na=FALSE)
-
+#sst max
 r_sst_max <- lyr_to_tif(
   lyr = "BO_sstmax", 
   tif = here("data/sst_min.tif"),
@@ -153,49 +91,10 @@ r_sst_max <- lyr_to_tif(
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
   redo=T, fill_na=TRUE, fill_window=11)
-
-r_sst_max_alin <- lyr_to_tif(
-  lyr = "BO_sstmax", 
-  tif = here("data/sst_min.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_alin, 
-  redo=T, fill_na=TRUE, fill_window=11)
-
-r_sst_max_juranek <- lyr_to_tif(
-  lyr = "BO_sstmax", 
-  tif = here("data/sst_min.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_juranek, 
-  redo=T, fill_na=TRUE, fill_window=11)
-
+r_sst_max_alin <- crop(r_sst_max, ext_study_alin)
+r_sst_max_juranek <- crop(r_sst_max, ext_study_juranek)
 
 #do min
-r_do_min_nofill <- lyr_to_tif(
-  lyr = "BO2_dissoxmin_bdmin", 
-  tif = here("data/do_min.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study, 
-  redo=T, fill_na=FALSE)
-
-r_do_min_nofill_alin <- lyr_to_tif(
-  lyr = "BO2_dissoxmin_bdmin", 
-  tif = here("data/do_min.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_alin, 
-  redo=T, fill_na=FALSE)
-
-r_do_min_nofill_juranek <- lyr_to_tif(
-  lyr = "BO2_dissoxmin_bdmin", 
-  tif = here("data/do_min.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_juranek, 
-  redo=T, fill_na=FALSE)
-
 r_do_min <- lyr_to_tif(
   lyr = "BO2_dissoxmin_bdmin", 
   tif = here("data/do_min.tif"),
@@ -203,46 +102,8 @@ r_do_min <- lyr_to_tif(
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
   redo=T, fill_na=TRUE, fill_window=11)
-
-r_do_min_alin <- lyr_to_tif(
-  lyr = "BO2_dissoxmin_bdmin", 
-  tif = here("data/do_min.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_alin, 
-  redo=T, fill_na=TRUE, fill_window=11)
-
-r_do_min_juranek <- lyr_to_tif(
-  lyr = "BO2_dissoxmin_bdmin", 
-  tif = here("data/do_min.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_juranek, 
-  redo=T, fill_na=TRUE, fill_window=11)
-
-r_do_max_nofill <- lyr_to_tif(
-  lyr = "BO2_dissoxmax_bdmin", 
-  tif = here("data/do_max.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study, 
-  redo=T, fill_na=FALSE)
-
-r_do_max_nofill_alin <- lyr_to_tif(
-  lyr = "BO2_dissoxmax_bdmin", 
-  tif = here("data/do_max.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_alin, 
-  redo=T, fill_na=FALSE)
-
-r_do_max_nofill_juranek <- lyr_to_tif(
-  lyr = "BO2_dissoxmax_bdmin", 
-  tif = here("data/do_max.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_juranek, 
-  redo=T, fill_na=FALSE)
+r_do_min_alin <- crop(r_do_min, ext_study_alin)
+r_do_min_juranek <- crop(r_do_min, ext_study_juranek)
 
 r_do_max <- lyr_to_tif(
   lyr = "BO2_dissoxmax_bdmin", 
@@ -251,44 +112,12 @@ r_do_max <- lyr_to_tif(
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study, 
   redo=T, fill_na=TRUE, fill_window=11)
-
-r_do_max_alin <- lyr_to_tif(
-  lyr = "BO2_dissoxmax_bdmin", 
-  tif = here("data/do_max.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_alin, 
-  redo=T, fill_na=TRUE, fill_window=11)
-
-r_do_max_juranek <- lyr_to_tif(
-  lyr = "BO2_dissoxmax_bdmin", 
-  tif = here("data/do_max.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study_juranek, 
-  redo=T, fill_na=TRUE, fill_window=11)
-
-r_ph <- lyr_to_tif(
-  lyr = "BO_ph", 
-  tif = here("data/do_max.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study, 
-  redo=T, fill_na=TRUE, fill_window=11)
-
-r_ph_nofill <- lyr_to_tif(
-  lyr = "BO_ph", 
-  tif = here("data/do_max.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study, 
-  redo=T, fill_na=FALSE, fill_window=11)
-
+r_do_max_alin <- crop(r_do_max, ext_study_alin)
+r_do_max_juranek <- crop(r_do_max, ext_study_juranek)
 
 ```
 
 ## Use Juranek 2009 model to create ocean acidification layer for the study region
-No fill is used for creating a variogram as it only includes cells in the ocean. Fill is used for creating final maps, so that all coastal cells are included in the final analysis. 
 
 ```{r Juranek model}
 #juranek aragonite
@@ -297,14 +126,7 @@ j1 = 4.492*10^-3
 j2 = 9.40 * 10^-4
 jo2r = 140
 jtr = 8
-
-juranekarag <- j0 + j1 * (r_do_min-jo2r) + j2 * (r_do_min-jo2r) * (r_sst_min-jtr)
-
-juranekarag_nofill <- j0 + j1 * (r_do_min_nofill-jo2r) + j2 * (r_do_min_nofill-jo2r) * (r_sst_min_nofill-jtr)
-
-juranek_mosaic <- j0 + j1 * (r_do_min_juranek-jo2r) + j2 * (r_do_min_juranek-jo2r) * (r_sst_min_juranek-jtr)
-
-juranek_mosaic_nofill <-j0 + j1 * (r_do_min_nofill_juranek-jo2r) + j2 * (r_do_min_nofill_juranek-jo2r) * (r_sst_min_nofill_juranek-jtr)
+juranek_arag <- j0 + j1 * (r_do_min_juranek-jo2r) + j2 * (r_do_min_juranek-jo2r) * (r_sst_min_juranek-jtr)
 ```
 
 ##Repeat using Alin 2012 model
@@ -318,62 +140,28 @@ a3 = 5.91*10^-4
 ao2r = 138.46
 atr = 10.28
 
-alinarag <- a0 + a1 * (r_sst_min-atr) + a2 * (r_do_min-ao2r) + a3 * (r_sst_min-atr) * (r_do_min-ao2r)
-
-alinarag_nofill <- a0 + a1 * (r_sst_min_nofill-atr) + a2 * (r_do_min_nofill-ao2r) + a3 * (r_sst_min_nofill-atr) * (r_do_min_nofill-ao2r)
-
-alin_mosaic <- a0 + a1 * (r_sst_min_alin-atr) + a2 * (r_do_min_alin-ao2r) + a3 * (r_sst_min_alin-atr) * (r_do_min_alin-ao2r)
-
-alin_mosaic_nofill <- a0 + a1 * (r_sst_min_nofill_alin-atr) + a2 * (r_do_min_nofill_alin-ao2r) + a3 * (r_sst_min_nofill_alin-atr) * (r_do_min_nofill_alin-ao2r)
-
+alin_arag <- a0 + a1 * (r_sst_min_alin-atr) + a2 * (r_do_min_alin-ao2r) + a3 * (r_sst_min_alin-atr) * (r_do_min_alin-ao2r)
 ```
 
 ## Combine model outputs
 Here we see a zonal difference between the models, and a bit of a latitudinal difference, especially in the California Bight region
 ```{r model comparison}
-mosaic <- mosaic(alin_mosaic, juranek_mosaic, fun = mean)
-
-mosaic_nofill <- mosaic(alin_mosaic_nofill, juranek_mosaic_nofill, fun = mean)
+arag <- mosaic(alin_mosaic, juranek_mosaic, fun = mean)
 ```
 
 ## Create variograms for each of the models
 ```{r variogram, eval = TRUE}
-
-juranekdf <- as.data.frame(juranekarag_nofill, xy = TRUE)
-
-juranekdf <- juranekdf %>% #remove N/A values
+aragdf <- as.data.frame(arag, xy = TRUE)
+aragdf <- aragdf %>% #remove N/A values
   mutate(layer=replace(layer, layer==-999.000, NA)) %>%
-  na.omit(juranekdf)
-
-coordinates(juranekdf)<-  ~ x + y #transform into spatial points
-
-juranekvar <- variogram(layer~1, juranekdf)
-
-alindf <- as.data.frame(alinarag_nofill, xy = TRUE)
-
-alindf <- alindf %>% #remove N/A values
-  mutate(layer=replace(layer, layer==-999.000, NA)) %>%
-  na.omit(alindf)
-
-coordinates(alindf)<-  ~ x + y #transform into spatial points
-
-alinvar <- variogram(layer~1, alindf)
-
-mosaicdf <- as.data.frame(mosaic_nofill, xy = TRUE)
-
-mosaicdf <- mosaicdf %>% #remove N/A values
-  mutate(layer=replace(layer, layer==-999.000, NA)) %>%
-  na.omit(mosaicdf)
-
-coordinates(mosaicdf)<-  ~ x + y #transform into spatial points
-
-mosaicvar <- variogram(layer~1, mosaicdf)
-
+  na.omit(aragdf)
+coordinates(aragdf)<-  ~ x + y #transform into spatial points
+aragvar <- variogram(layer~1, aragdf)
 ```
 
 ##Loess for Alin Variogram
 ```{r loess}
-alinvar.lo <- loess(alinvar$dist ~ alinvar$gamma, alinvar)
+lo <- loess(aragvar$dist ~ aragvar$gamma, aragvar)
 ```
 
 ##Prep Inventory
@@ -381,13 +169,10 @@ These are the same steps from our GP paper, which we use to create an OA layer i
 ```{r prep inventory, results = "hide"}
 # import inventory
 inventory <- read_csv(here("data/inventory.csv"))
-
 #remove non OAH focus entries
 oahfocus <- subset(inventory, OAHFocus == "OA" | OAHFocus == "H" | OAHFocus == "OAH")
-
 #quantify frequencies
 unique(oahfocus$MeasFreq)
-
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Once"] <- 0
 oahfocus$MeasFreq[oahfocus$MeasFreq == 10] <- 52560
 oahfocus$MeasFreq[oahfocus$MeasFreq =="< 6 hours"] <- 1460
@@ -422,28 +207,22 @@ oahfocus$MeasFreq[oahfocus$MeasFreq =="Biennial"] <- 0.5
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Weekly"] <- 52
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Triennial"] <- 0.33333
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Trimester"] <- 3
-
 unique(oahfocus$MeasFreq)
-
 #remove NA coordinates
 oahfocus <- oahfocus[!is.na(oahfocus$Latitude), ]
 oahfocus <- oahfocus[!is.na(oahfocus$Longitude), ]
-
 #remove spaces and transform to numeric
 gsub(" ", "", oahfocus$Latitude)
 gsub(" ", "", oahfocus$Longitude)
 gsub("'<ca>'", "", oahfocus$Longitude)
 oahfocus$Longitude<-as.numeric(oahfocus$Longitude)
 oahfocus$Latitude<-as.numeric(oahfocus$Latitude)
-
 #subsets
 carbcomplete<-subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
 incomplete <- subset(oahfocus, DisCrbPmtr<2 & ISCrbPmtr < 2 & AssetType == "Mooring" | AssetType == "Shoreside Sensor" | AssetType == "Samplesite" | AssetType == "Shoreside sensor" | AssetType == NA)
-
 highfrequency<-subset(oahfocus, MeasFreq > 364)
 highfreqcarbcomplete<-subset(oahfocus, MeasFreq > 364 & DisCrbPmtr>1 | MeasFreq > 364 & ISCrbPmtr > 1)
 lowfrequency <- subset(oahfocus, MeasFreq < 365 & AssetType == "Mooring" | AssetType == "Shoreside Sensor" | AssetType == "Samplesite" | AssetType == "Shoreside sensor" | AssetType == NA)
-
 # isolate coordinate columns
 coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
 carbcompletecoords <- cbind.data.frame(carbcomplete$Longitude, carbcomplete$Latitude)
@@ -451,7 +230,6 @@ incompletecoords <- cbind.data.frame(incomplete$Longitude, incomplete$Latitude)
 highfrequencycoords <- cbind.data.frame(highfrequency$Longitude, highfrequency$Latitude)
 lowfrequencycoords <- cbind.data.frame(lowfrequency$Longitude, lowfrequency$Latitude)
 highfreqcarbcompletecoords <- cbind.data.frame(highfreqcarbcomplete$Longitude, highfreqcarbcomplete$Latitude)
-
 # remove duplicate locations
 deduped.coords<-unique(coords)
 deduped.carbcomplete <- unique(carbcompletecoords)
@@ -459,159 +237,72 @@ deduped.incomplete <- unique(incompletecoords)
 deduped.highfrequency <- unique(highfrequencycoords)
 deduped.lowfrequency <- unique(lowfrequencycoords)
 deduped.highfreqcarbcomplete <- unique(highfreqcarbcompletecoords)
-
 # create spatial points objects
 inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
 inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:6414'))
-
 carbcompletecoords <- SpatialPoints(deduped.carbcomplete, CRS("+proj=longlat +ellps=WGS84"))
 carbcompletecoords <- spTransform(carbcompletecoords, CRS('+init=EPSG:6414'))
-
 incompletecoords <- SpatialPoints(deduped.incomplete, CRS("+proj=longlat +ellps=WGS84"))
 incompletecoords <- spTransform(incompletecoords, CRS('+init=EPSG:6414'))
-
 highfreqcoords <- SpatialPoints(deduped.highfrequency, CRS("+proj=longlat +ellps=WGS84"))
 highfreqcoords <- spTransform(highfreqcoords, CRS('+init=EPSG:6414'))
-
 lowfreqcoords <- SpatialPoints(deduped.lowfrequency, CRS("+proj=longlat +ellps=WGS84"))
 lowfreqcoords <- spTransform(lowfreqcoords, CRS('+init=EPSG:6414'))
-
 highfreqcarbcompletecoords <- SpatialPoints(deduped.highfreqcarbcomplete, CRS("+proj=longlat +ellps=WGS84"))
 highfreqcarbcompletecoords <- spTransform(highfreqcarbcompletecoords, CRS('+init=EPSG:6414'))
-
 # check to make sure projections match
-
 # devtools::load_all(here("../oatools")) # for use while developing
-
 # create voronoi polygons
 vor <-voronoi(inventorycoords)
 carbcompletevor <- voronoi(carbcompletecoords)
 incompletevor <- voronoi(incompletecoords)
 highfreqvor <- voronoi(highfreqcoords)
 lowfreqvor <- voronoi(lowfreqcoords)
-
 # rasterize polygons
 vorraster<- rasterize(vor, r_sst_min, "id")
 carbcompletevorraster<- rasterize(carbcompletevor, r_sst_min, "id")
 incompletevorraster<- rasterize(incompletevor, r_sst_min, "id")
 highfreqvorraster<- rasterize(highfreqvor, r_sst_min, "id")
 lowfreqvorraster<- rasterize(lowfreqvor, r_sst_min, "id")
-
 ```
 
 ##Create OA layer
 Here we assign each cell the aragonite value from the nearest monitoring site
 ```{r polygons}
-# extract sst range value for each monitoring site cell
-alinsitearag<- raster::extract(alinarag, inventorycoords, method='simple', df=TRUE)
-alincarbcompletesitearag<- raster::extract(alinarag, carbcompletecoords, method='simple', df=TRUE)
-alinhighfreqsitearag<- raster::extract(alinarag, highfreqcoords, method='simple', df=TRUE)
-
-juraneksitearag<- raster::extract(juranekarag, inventorycoords, method='simple', df=TRUE)
-juranekcarbcompletesitearag<- raster::extract(juranekarag, carbcompletecoords, method='simple', df=TRUE)
-juranekhighfreqsitearag<- raster::extract(juranekarag, highfreqcoords, method='simple', df=TRUE)
-
-mosaicsitearag<- raster::extract(mosaic, inventorycoords, method='simple', df=TRUE)
-mosaiccarbcompletesitearag<- raster::extract(mosaic, carbcompletecoords, method='simple', df=TRUE)
-mosaichighfreqsitearag<- raster::extract(mosaic, highfreqcoords, method='simple', df=TRUE)
-
+#extract aragonite saturation state value for each monitoring site
+sitearag<- raster::extract(arag, inventorycoords, method='simple', df=TRUE)
+carbcompletesitearag<- raster::extract(arag, carbcompletecoords, method='simple', df=TRUE)
+highfreqsitearag<- raster::extract(arag, highfreqcoords, method='simple', df=TRUE)
 # rename column names of sitesstrange
-colnames(alinsitearag)<-c("id", "Arag")
-colnames(alincarbcompletesitearag)<-c("id", "Arag")
-colnames(alinhighfreqsitearag)<-c("id", "Arag")
-
-colnames(juraneksitearag)<-c("id", "Arag")
-colnames(juranekcarbcompletesitearag)<-c("id", "Arag")
-colnames(juranekhighfreqsitearag)<-c("id", "Arag")
-
-colnames(mosaicsitearag)<-c("id", "Arag")
-colnames(mosaiccarbcompletesitearag)<-c("id", "Arag")
-colnames(mosaichighfreqsitearag)<-c("id", "Arag")
-
+colnames(sitearag)<-c("id", "Arag")
+colnames(carbcompletesitearag)<-c("id", "Arag")
+colnames(highfreqsitearag)<-c("id", "Arag")
 # substitute polygon id for monitoring site sea surface temerature of that polygon
-alinpolygonarag<-subs(vorraster, alinsitearag, by="id", which="Arag", subsWithNA=FALSE)
-alincarbcompletepolygonarag <- subs(carbcompletevorraster, alincarbcompletesitearag, by="id", which="Arag", subsWithNA=FALSE)
-alinhighfreqpolygonarag <- subs(highfreqvorraster, alinhighfreqsitearag, by="id", which="Arag", subsWithNA=FALSE)
-
-juranekpolygonarag<-subs(vorraster, juraneksitearag, by="id", which="Arag", subsWithNA=FALSE)
-juranekcarbcompletepolygonarag <- subs(carbcompletevorraster, juranekcarbcompletesitearag, by="id", which="Arag", subsWithNA=FALSE)
-juranekhighfreqpolygonarag <- subs(highfreqvorraster, juranekhighfreqsitearag, by="id", which="Arag", subsWithNA=FALSE)
-
-mosaicpolygonarag<-subs(vorraster, mosaicsitearag, by="id", which="Arag", subsWithNA=FALSE)
-mosaiccarbcompletepolygonarag <- subs(carbcompletevorraster, mosaiccarbcompletesitearag, by="id", which="Arag", subsWithNA=FALSE)
-mosaichighfreqpolygonarag <- subs(highfreqvorraster, mosaichighfreqsitearag, by="id", which="Arag", subsWithNA=FALSE)
-
+polygonarag<-subs(vorraster, sitearag, by="id", which="Arag", subsWithNA=FALSE)
+carbcompletepolygonarag <- subs(carbcompletevorraster, carbcompletesitearag, by="id", which="Arag", subsWithNA=FALSE)
+highfreqpolygonarag <- subs(highfreqvorraster, highfreqsitearag, by="id", which="Arag", subsWithNA=FALSE)
 ```
 
 ## Determine semivariance
 
 ```{r semivariance}
-
 #vij = (xi-xj)^2/2
 
-juranek_vij<- (juranekarag-juranekpolygonarag)^2/2
-
-juranek_carbcompletevij <- (juranekarag-juranekcarbcompletepolygonarag)^2/2
-
-juranek_highfreqvij <- (juranekarag-juranekhighfreqpolygonarag)^2/2
-
-alin_vij<- (alinarag-alinpolygonarag)^2/2
-
-alin_carbcompletevij <- (alinarag-alincarbcompletepolygonarag)^2/2
-
-alin_highfreqvij <- (alinarag-alinhighfreqpolygonarag)^2/2
-
-mosaic_vij<- (mosaic-mosaicpolygonarag)^2/2
-
-mosaic_carbcompletevij <- (mosaic-mosaiccarbcompletepolygonarag)^2/2
-
-mosaic_highfreqvij <- (mosaic-mosaichighfreqpolygonarag)^2/2
-
-
-```
-
-## Use Loess to create equation
-
-```{r uniroot}
-predictalinvar <- predict(alinvar.lo, newdata = data.frame(distance = alinvar$dist))
-
-#uniroot(function(x, vij) predict(alinvar.lo, newdata = data.frame(distance = x)) - vij, c(0, 1000000000000) , vij = vij)
-
-# I had a really hard time getting this step to work... I didn't succeed, and got error messages about the f(lower) and f(upper) arguments. Maybe you could help trouble shoot this?
+vij<- (arag-polygonarag)^2/2
+carbcompletevij <- (arag-carbcompletepolygonarag)^2/2
+highfreqvij <- (arag-highfreqpolygonarag)^2/2
 ```
 
 ## Find Oceanographic distance
 This is done as an alternative to predict/uniroot since I hit a roadblock there. I chose the Alin variogram, and created a linear model that describes the relationship between distance and semivariance, and applied it to the semivariance rasters
 
 ```{r oceanographic distance}
-alinmodel <- lm(alinvar$dist ~ alinvar$gamma, data = alinvar)
-
-alin_intercept <- coef(alinmodel)[1]
-alin_slope <- coef(alinmodel)[2]
-
-juranekmodel <- lm(juranekvar$dist ~ juranekvar$gamma, data = juranekvar)
-
-juranek_intercept <- coef(juranekmodel)[1]
-juranek_slope <- coef(juranekmodel)[2]
-
-mosaicmodel <- lm(mosaicvar$dist ~ mosaicvar$gamma, data = mosaicvar)
-
-mosaic_intercept <- coef(mosaicmodel)[1]
-mosaic_slope <- coef(mosaicmodel)[2]
-
-
-alin_oceanographicdistance = alin_slope * alin_vij + alin_intercept
-alin_carbcompleteoceanographicdistance = alin_slope * alin_carbcompletevij + alin_intercept
-alin_highfreqoceanographicdistance = alin_slope * alin_highfreqvij + alin_intercept
-
-juranek_oceanographicdistance = juranek_slope * juranek_vij + juranek_intercept
-juranek_carbcompleteoceanographicdistance = juranek_slope * juranek_carbcompletevij + juranek_intercept
-juranek_highfreqoceanographicdistance = juranek_slope * juranek_highfreqvij + juranek_intercept
-
-mosaic_oceanographicdistance = mosaic_slope * mosaic_vij + mosaic_intercept
-mosaic_carbcompleteoceanographicdistance = mosaic_slope * mosaic_carbcompletevij + mosaic_intercept
-mosaic_highfreqoceanographicdistance = mosaic_slope * mosaic_highfreqvij + mosaic_intercept
-
+aragmodel <- lm(var$dist ~ var$gamma, data = var)
+intercept <- coef(model)[1]
+slope <- coef(model)[2]
+oceanographicdistance = slope * vij + intercept
+carbcompleteoceanographicdistance = slope * carbcompletevij + intercept
+highfreqoceanographicdistance = slope * highfreqvij + intercept
 ggplot()+
   geom_point(aes(mosaicvar$dist, mosaicvar$gamma))+
   stat_smooth(aes(mosaicvar$dist, mosaicvar$gamma), method = lm)+
@@ -620,52 +311,28 @@ ggplot()+
   xlab('Distance Between Points (m)')+
   ylab('Semivariance of Aragonite Discrepancy')
   
-
 ```
 
 ## Geographic distance
 Determine geographic distance from the nearest monitoring point
 ```{r geographic distance}
-distance<-distanceFromPoints(juranek_oceanographicdistance, inventorycoords)
-carbcompletedistance<-distanceFromPoints(juranek_carbcompleteoceanographicdistance, carbcompletecoords)
-highfreqdistance<-distanceFromPoints(juranek_highfreqoceanographicdistance, highfreqcoords)
-
+distance<-distanceFromPoints(oceanographicdistance, inventorycoords)
+carbcompletedistance<-distanceFromPoints(carbcompleteoceanographicdistance, carbcompletecoords)
+highfreqdistance<-distanceFromPoints(highfreqoceanographicdistance, highfreqcoords)
 ```
 
 ## Temporal Variation
 This step determines the range in aragonite saturation state across the region by using max values of T and DO to find the max aragonite saturation state, and min values to find the min aragonite saturation state. The difference is the range. I also normalized this step. One problem I have here is that due to the coefficients (atr and ao2r) there are some places in the study region where using the max values of do and sst gives you are smaller value for aragonite saturation state than the min values do. This is because when you use the max values, for some raster cells the a3 term has a positive component and a negative component leading to a negative sign on the a3 term, whereas when you use the min values those raster cells have two negative components, leading to a positive sign on the a3 term. So I used the abs value of the range, but I'm not sure this makes sense, and maybe there is a better way to find the range. Using the range rasters for SST/DO is a possibility, but that method yields a really different result. 
 
 ```{r temporal variation}
-alinaragmax <- a0 + a1 * (r_sst_max-atr) + a2 * (r_do_max-ao2r) + a3 * (r_sst_max-atr) * (r_do_max-ao2r)
 
-alinaragrange = abs(alinaragmax - alinarag)
+alinaragrange <- a1 * (r_sst_range_alin) + a2 * (r_do_range_alin) + a3 * (r_sst_min*r_do_min + r_sst_range*r_do_min + r_sst_min*r_do_range +r_sst_range*r_do_range)
 
-alinaragrange <- alinaragrange/maxValue(alinaragrange)
+juranekaragrange <- j1 * (r_do_range_juranek) + j2 * (r_sst_min*r_do_min + r_sst_range*r_do_min + r_sst_min*r_do_range +r_sst_range*r_do_range)
 
-#alternatively: alinaragrange <- a0 + a1 * (r_sst_range - atr) + a2 * (r_do_range - ao2r) + a3 * (r_sst_range - atr) * (r_do_range - ao2r)
+aragrange <- mosaic(alinaragrange, juranekaragrange, fun = mean)
 
-juranekaragmax <- j0 + j1 * (r_do_max-jo2r) + j2 * (r_do_max-jo2r) * (r_sst_max-jtr)
-
-juranekaragrange = abs(juranekaragmax - juranekarag)
-
-juranekaragrange <- juranekaragrange/maxValue(juranekaragrange)
-
-mosaicaragmax <- j0 + j1 * (r_do_max-jo2r) + j2 * (r_do_max-jo2r) * (r_sst_max-jtr)
-
-juranekaragrange = abs(juranekaragmax - juranekarag)
-
-juranekaragrange <- juranekaragrange/maxValue(juranekaragrange)
-
-juranek_mosaic_max <- j0 + j1 * (r_do_max_juranek-jo2r) + j2 * (r_do_max_juranek-jo2r) * (r_sst_max_juranek-jtr)
-
-alin_mosaic_max <- a0 + a1 * (r_sst_max_alin-atr) + a2 * (r_do_max_alin-ao2r) + a3 * (r_sst_max_alin-atr) * (r_do_max_alin-ao2r)
-
-mosaic_max <- mosaic(alin_mosaic_max, juranek_mosaic_max, fun = mean)
-
-mosaicaragrange = abs(mosaic_max - mosaic)
-
-mosaicaragrange <- mosaicaragrange/maxValue(mosaicaragrange)
-
+aragrange <- aragrange/maxValue(aragrange)
 
 ```
 
@@ -673,60 +340,39 @@ mosaicaragrange <- mosaicaragrange/maxValue(mosaicaragrange)
 Here I used the euclidean distance to combine the oceanographic distance and the geographic distance. I used a weighting factor of on the oceanographic distance, which is the max value of distance / max value of oceanographic distance, so that the two parameters combine equally. I multiplied each distance by the range of the aragonite saturation state, such that locations with equal distances will be "gappier" if their aragonite saturation state has a large range. This is to account for temporal variation. 
 
 ```{r find gaps}
-
 poly_coast<- readOGR(dsn=path.expand("/Users/raetaylor-burns/downloads/Export_Output_2"), layer="Export_Output_2") #Load coast shapefile using pathway on personal computer
 
 Canada<- readOGR(dsn=path.expand("/Users/raetaylor-burns/downloads/Canada"), layer="Canada") #Load coast shapefile using pathway on personal computer
-
 
 poly_coast <- spTransform(poly_coast, crs(crs_study)) #Assign same CRS as aragonite layer
 
 Canada <- spTransform(Canada, crs(crs_study)) #Assign same CRS as aragonite layer
 
+weight = maxValue(distance)/maxValue(oceanographicdistance)
 
+gap<-aragrange^2*(setValues(distance, sqrt((getValues(distance)^2+(getValues(mosaic_weight*oceanographicdistance)^2)))))
 
-alin_weight = maxValue(distance)/maxValue(alin_oceanographicdistance)
+gapaggregate <- disaggregate(gap, fact=5)
 
-alin_gap<-alinaragrange^2*(setValues(distance, sqrt((getValues(distance)^2+(getValues(alin_weight*alin_oceanographicdistance)^2)))))
+clipped <- mask(gap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
 
-alin_carbcompletegap<-alinaragrange^2*setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(alin_weight*alin_carbcompleteoceanographicdistance)^2))))
+clipped <- mask(clipped, Canada, inverse = TRUE) #Clip continuous raster
 
-alin_highfreqgap<-alinaragrange^2*setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(alin_weight*alin_highfreqoceanographicdistance)^2))))
+carbcompletegap<-aragrange^2*setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(weight*carbcompleteoceanographicdistance)^2))))
 
-juranek_weight = maxValue(distance)/maxValue(juranek_oceanographicdistance)
+ccgap_aggregate <- disaggregate(carbcompletegap, fact=5)
 
-juranek_gap<-juranekaragrange^2*(setValues(distance, sqrt((getValues(distance)^2+(getValues(juranek_weight*juranek_oceanographicdistance)^2)))))
-
-juranek_carbcompletegap<-juranekaragrange^2*setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(juranek_weight*juranek_carbcompleteoceanographicdistance)^2))))
-
-juranek_highfreqgap<-juranekaragrange^2*setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(juranek_weight*juranek_highfreqoceanographicdistance)^2))))
-
-mosaic_weight = maxValue(distance)/maxValue(mosaic_oceanographicdistance)
-
-mosaic_gap<-mosaicaragrange^2*(setValues(distance, sqrt((getValues(distance)^2+(getValues(mosaic_weight*mosaic_oceanographicdistance)^2)))))
-
-mosaic_gap_aggregate <- disaggregate(mosaic_gap, fact=50)
-
-gap_clipped <- mask(mosaic_gap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
-
-gap_clipped <- mask(gap_clipped, Canada, inverse = TRUE) #Clip continuous raster
-
-mosaic_carbcompletegap<-mosaicaragrange^2*setValues(carbcompletedistance, sqrt((getValues(carbcompletedistance)^2+(getValues(mosaic_weight*mosaic_carbcompleteoceanographicdistance)^2))))
-
-mosaic_ccgap_aggregate <- disaggregate(mosaic_carbcompletegap, fact=50)
-
-ccgap_clipped <- mask(mosaic_ccgap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
+ccgap_clipped <- mask(ccgap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
 
 ccgap_clipped <- mask(ccgap_clipped, Canada, inverse = TRUE) #Clip continuous raster
 
-mosaic_highfreqgap<-mosaicaragrange^2*setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(mosaic_weight*mosaic_highfreqoceanographicdistance)^2))))
+highfreqgap<-aragrange^2*setValues(highfreqdistance, sqrt((getValues(highfreqdistance)^2+(getValues(weight*highfreqoceanographicdistance)^2))))
 
-mosaic_hfgap_aggregate <- disaggregate(mosaic_highfreqgap, fact=50)
+hfgap_aggregate <- disaggregate(highfreqgap, fact=50)
 
-hfgap_clipped <- mask(mosaic_hfgap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
+hfgap_clipped <- mask(hfgap_aggregate, poly_coast, inverse = TRUE) #Clip continuous raster
 
 hfgap_clipped <- mask(hfgap_clipped, Canada, inverse = TRUE) #Clip continuous raster
-
 ```
 
 ## Map Gaps
@@ -734,19 +380,14 @@ Visualize gaps using tmap
 
 ```{r map gaps}
 tmap_mode("plot")
-
 pal <- colorRampPalette(c("royalblue2", "white", "red"))
-
 setwd("/Users/raetaylor-burns/downloads")
-
 gap <- tm_shape(gap_clipped)+
   tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE)+
   tm_layout(main.title = "Ocean Acificitation Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+
   tm_layout(basemaps = c('OpenStreetMap'))+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
 tmap_save(gap, "gaps.png", width = 2000, height = 4000, dpi = 500)
-
 ccgap <- tm_shape(ccgap_clipped)+
   tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE)+
   tm_layout(main.title = "Carbonate Complete Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+
@@ -754,9 +395,7 @@ ccgap <- tm_shape(ccgap_clipped)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))+
   tm_shape(incompletecoords)+
   tm_dots(col = "black", size = 0.01)
-
 tmap_save(ccgap, "ccgaps.png", width = 2000, height = 4000, dpi = 500)
-
 hfgap <- tm_shape(hfgap_clipped)+
   tm_raster(palette = pal(10), colorNA = NULL, title = "Data Gaps", alpha = 0.8, auto.palette.mapping = FALSE)+
   tm_layout(main.title = "High Frequency Data Gaps", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), legend.show = TRUE, legend.position = c(0.5, 0.4), legend.title.size = 1, fontfamily = "serif", fontface = "bold")+
@@ -764,8 +403,11 @@ hfgap <- tm_shape(hfgap_clipped)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))+
   tm_shape(incompletecoords)+
   tm_dots(col = "black", size = 0.01)
-
 tmap_save(hfgap, "hfgaps.png", width = 2000, height = 4000, dpi = 500)
-
-
-```
+  
+output:
+  html_document:
+    df_print: paged
+  pdf_document: 
+  word_document: default
+---
