@@ -2,7 +2,9 @@
 title: "manuscript_gap_analysis"
 author: "Rae"
 date: "12/16/2018"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 title: "manuscript_gap_analysis"
 author: "Rae"
@@ -183,7 +185,6 @@ These are the same steps from our GP paper, which we use to create an OA layer i
 # import inventory
 inventory <- read_csv(here("data/inventory.csv"))
 
-inventory <- stri_enc_toutf8(inventory)
 #remove non OAH focus entries
 oahfocus <- subset(inventory, OAHFocus == "OA" | OAHFocus == "H" | OAHFocus == "OAH")
 #quantify frequencies
@@ -234,10 +235,10 @@ oahfocus$Longitude<-as.numeric(oahfocus$Longitude)
 oahfocus$Latitude<-as.numeric(oahfocus$Latitude)
 #subsets
 carbcomplete<-subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
-incomplete <- subset(oahfocus, DisCrbPmtr<2 & ISCrbPmtr < 2 & EndYr = "Present")
+incomplete <- subset(oahfocus, DisCrbPmtr<2 & ISCrbPmtr < 2 & EndYr == "Present")
 highfrequency<-subset(oahfocus, MeasFreq > 364)
 highfreqcarbcomplete<-subset(oahfocus, MeasFreq > 364 & DisCrbPmtr>1 | MeasFreq > 364 & ISCrbPmtr > 1)
-lowfrequency <- subset(oahfocus, MeasFreq < 365 & EndYr = "Present" & AssetType != "Cruise" & AssetType != "Cruise Station" & AssetType != "Glider")
+lowfrequency <- subset(oahfocus, MeasFreq < 365 & EndYr == "Present" & AssetType == "Shoreside Sensor" | AssetType == "Mooring" | AssetType == "Sample Site" | AssetType == "Shoresidesensor")
 # isolate coordinate columns
 coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
 carbcompletecoords <- cbind.data.frame(carbcomplete$Longitude, carbcomplete$Latitude)
