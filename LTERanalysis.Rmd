@@ -52,10 +52,10 @@ library(rowr)
 library(tidyverse)
 library(knitr)
 
-ale <- read_csv(here("data/ALE_arag.csv"))
-arq <- read_csv(here("data/ARQ_arag.csv"))
-mko <- read_csv(here("data/MKO_arag.csv"))
-sbh <- read_csv(here("data/SBH_arag.csv"))
+ale <- read_csv("data/ALE_arag.csv")
+arq <- read_csv("data/ARQ_arag.csv")
+mko <- read_csv("data/MKO_arag.csv")
+sbh <- read_csv("data/SBH_arag.csv")
 
 ```
 
@@ -333,9 +333,9 @@ acf_sbh_final <- rowMeans(acf_sbh_tot, na.rm = TRUE)
 
 ## Plot autocorrelation for all four sites
 
-Decorrelation time scales for aragonite saturation state measured at SBC LTER sites ranged from 4.44 to 67.47 days (figure 1). Decorrelation scales decreased towards the eastern end of the Santa Barbara Channel. Alegria Reef is closest to point conception and had the shortest decorrelation time scale, whereas Santa Barbara Harbor is the most protected and westerly of the sites and had the longest decorrelation time scale. 
+Here we see that decorrelation scales decrease towards the eastern end of the Santa Barbara Channel. Alegria Reef and Arroyo Quemado are closest to Point Conception and have the shortest decorrelation time scales, whereas Santa Barbara Harbor and Mohawk are further East in the Channel and had the longest decorrelation time scale. 
 
-A main conclusion from this analysis is that the SBC LTER sites are not spatially redundant and that they are adequately capturing temporal changes in OA with their 20 minute sampling intervals. Results from the autocorrelation analysis reveal that study sites closer to Point Conception have shorter decorrelation time scales as compared to sites further east in the Santa Barbara Channel. This may mean that the Central Coast, which is more exposed and has fewer geographic features, has shorter decorrelation time scales than the California Bight, and thus monitoring locations outside of the Bight should ideally collect OA data more frequently than locations in the Bight. 
+A main conclusion from this analysis is that the SBC LTER sites are adequately capturing temporal changes in OA with their 20 minute sampling intervals. Results from the autocorrelation analysis reveal that study sites closer to Point Conception have shorter decorrelation time scales as compared to sites further east in the Santa Barbara Channel. This may mean that the Central Coast, which is more exposed and has fewer geographic features, has shorter decorrelation time scales than the California Bight, and thus monitoring locations outside of the Bight should ideally collect OA data more frequently than locations in the Bight. 
 
 ```{r plot autocorrelation}
 
@@ -366,7 +366,7 @@ aragcor <- cor(ltercor[,c(2, 3, 4, 5)], use = "pairwise.complete.obs")
 
 ## View correlation matrix
 
-Another important conclusion from this analysis is that the efficacy of a monitoring network cannot be determined by spatial proximity of monitoring sites alone. Mohawk Reef and Santa Barbara Harbor are geographically very close (less than 3 miles), but this analysis reveals that these two LTER sites have different oceanographic conditions, and that other sites which are much farther away from each other are more similar than Mohawk and Santa Barbara Harbor. Alegria and Arroyo Quemado Reefs are 10 miles apart from each other, and Arroyo Quemado and Mohawk Reefs are 24 miles apart from each other, and each of these pairs share stronger relationships than exists between Santa Barbara Harbor and Mohawk Reef. 
+A main conclusion here is that the SBC LTER sites are not spatially redundant. Another important conclusion from this analysis is that the efficacy of a monitoring network cannot be determined by spatial proximity of monitoring sites alone. Mohawk Reef and Santa Barbara Harbor are geographically very close (less than 3 miles), but this analysis reveals that these two LTER sites have different oceanographic conditions, and that other sites which are much farther away from each other are more similar than Mohawk and Santa Barbara Harbor. Alegria and Arroyo Quemado Reefs are 10 miles apart from each other, and Arroyo Quemado and Mohawk Reefs are 24 miles apart from each other, and each of these pairs share stronger relationships than exists between Santa Barbara Harbor and Mohawk Reef. 
 
 ```{r view matrix, echo=FALSE}
 kable(aragcor)
