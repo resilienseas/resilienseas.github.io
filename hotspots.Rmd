@@ -81,19 +81,19 @@ hotspotmask <- reclassify(aragonite_raster_proj, thresholdsmatrix)
 ####Load shapefiles using pathways to your computer
 ```{r shapefiles, message = FALSE, warning = FALSE, results = 'hide'}
 
-poly_MPA <- readOGR(dsn=path.expand("/Users/courtneycochran/downloads/all_mpas_update"), layer="all_mpas_update") #Load MPA shapefile using pathway on personal computer
+poly_MPA <- readOGR(dsn=path.expand("/Users/raetaylor-burns/Downloads/all_mpas_update"), layer="all_mpas_update") #Load MPA shapefile using pathway on personal computer
 
 poly_MPA <- spTransform(poly_MPA, crs(aragonite_raster_proj)) #Assign same CRS as aragonite layer
 
-poly_coast<- readOGR(dsn=path.expand("/Users/courtneycochran/downloads/Export_Output_2"), layer="Export_Output_2") #Load coast shapefile using pathway on personal computer
+poly_coast<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Downloads/Export_Output_2"), layer="Export_Output_2") #Load coast shapefile using pathway on personal computer
 
 poly_coast <- spTransform(poly_coast, crs(aragonite_raster_proj)) #Assign same CRS as aragonite layer
 
-estuary <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/estuaries"), layer="estuaries") #Load estuary shapefile using pathway on personal computer
+estuary <- readOGR(dsn=path.expand("/Users/raetaylor-burns/Downloads/estuaries"), layer="estuaries") #Load estuary shapefile using pathway on personal computer
 
 estuary <- spTransform(estuary, crs(aragonite_raster_proj)) #Assign same CRS as aragonite layer
 
-Canada <- readOGR(dsn=path.expand("/Users/courtneycochran/Downloads/Canada"), layer="Canada") #Load Canada shapefile using pathway on personal computer 
+Canada <- readOGR(dsn=path.expand("/Users/raetaylor-burns/Downloads/Canada"), layer="Canada") #Load Canada shapefile using pathway on personal computer 
 
 Canada <- spTransform(Canada, crs(aragonite_raster_proj)) #Assign same CRS as aragonite layer 
 ```
@@ -139,9 +139,10 @@ poly_MPA@data <- poly_MPA@data %>%
 ```{r, warning=FALSE, message=FALSE}
 pal <- colorRampPalette(c("red", "white", "royalblue2")) 
 pal2 <- colorRampPalette(c("red", "darkorange1", "gold")) #Color palettes used for maps
+pal3 <- colorRampPalette(c("royalblue1", "white", "red")) 
+
 
 tmap_mode("view")
-
 
 tm_shape(aragonite_clipped) +
   tm_raster(palette = pal(3),  breaks = seq(0.8,3, by=0.2),
@@ -150,18 +151,20 @@ tm_shape(aragonite_clipped) +
 
 
 tm_shape(hotspot_clipped) +
-  tm_raster(hotspot_clipped, breaks= c(0, 1.1, 1.8, 2.1),
+  tm_raster(breaks= c(0, 1.1, 1.8, 2.1),
             palette = pal2(2), title="Aragonite Saturation State") +
   tm_layout(basemaps=c('OpenStreetMap')) #Map of hotspots, displays the three thresholds displayed by our group of less than 2, less than 1.7 and less than 1 
 
 
-tm_shape(poly_MPA) + tm_polygons("ARAGONITE_MEAN", palette=pal(3), colorNA=NULL,
+tm_shape(poly_MPA) +
+  tm_polygons("ARAGONITE_MEAN", palette=pal(3), colorNA=NULL,
                                  breaks=seq(.8,3, by=0.2),
                                  title="Mean Aragonite \nSaturation State") +
   tm_layout(basemaps = c('OpenStreetMap')) #Map of MPAs with their fill corresponding to the mean aragonite saturation state within their boundaries
 
 
-tm_shape(poly_MPA) + tm_polygons("PCT_HOTSPOTCOVER", palette=pal(7),
+tm_shape(poly_MPA) +
+  tm_polygons("PCT_HOTSPOTCOVER", palette=pal3(7),
                                  breaks=seq(0, 1, by=0.1),
                                  title="Percent of MPA Covered by Hotspot") +
   tm_layout(basemaps=c('OpenStreetMap')) #Map of MPAs with their fill corresponding to the percent of the MPA covered by a hotspot
