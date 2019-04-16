@@ -10,7 +10,7 @@ navbar:
     icon: fa-flask
     href: about.html
     menu:
-    - text: Ocean Acidfication Hotspot and MPA Analysis
+    - text: Ocean Acidfication Hotspot and MPA Analysis for WCODP
       href: hotspots.html
     - text: Monitoring Inventory Gap Analysis for WCODP
       href: gaps.html
