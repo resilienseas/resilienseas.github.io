@@ -1,11 +1,63 @@
-#temporal decorellation and covariance
+---
+title: "LTER Time Series Analysis"
+output:
+  html_document: default
+  pdf_document: default
+---
 
-##install packages	#install packages
+```{r setup, echo = FALSE, results = "hide", include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Introduction
+In the Santa Barbara Channel sub-region of the California Current, aragonite saturation is currently monitored a relatively fine spatial and temporal scale, through the Santa Barbara Coastal Long Term Ecological Research Project (SBC LTER), run by the National Science Foundation, and housed at the University of California, Santa Barbara. The SBC LTER runs four sites that collect aragonite saturation state every twenty minutes, spread across a distance of 50 miles from the Santa Barbara Pier westward to the Gaviota Coast. These sensors are located at the Santa Barbara Pier, Mohawk Reef, Alegria Reef, and Arroyo Quemado Reef (figure 1). As part of the ongoing effort to establish a cohesive OA monitoring network, this project aims to characterize autocorrelation and covariance in the SBC LTER aragonite measurements. This analysis help gain understanding of the spatial and temporal scale of autocorrelation and establish reference points for how frequently aragonite should be measured in coastal environments and how great the distance between measurements can be without losing valuable information between data collection locations. Results help inform future management decisions in how to design an ideal OA monitoring network and how to improve the network that exists today. 
+
+
+```{r LTER network, message=FALSE, warning=FALSE, echo=FALSE, fig.height = 6, fig.width = 6, }
+#load packages
+library(tidyverse)
+library(leaflet)
+library(sp)
+library(RColorBrewer)
+
+#read in inventroy and transform to spatial points
+oahfocus <- read_csv("/Users/rttaylorburnscom/github/resilienseas.github.io/website_visuals/oahfocus_copy.csv")
+
+LTERinventory<-subset(oahfocus, AssetID == "Stearns Wharf/Santa Barbara Harbor (SBH)" | AssetID == "Mohawk (MKO)" | AssetID == "Arroyo Quemado Reef (ARQ)" | AssetID == "Alegria (ALE)")
+
+#create color palette based on subsets by asset type
+
+leaflet(LTERinventory) %>%
+  addProviderTiles('Esri.OceanBasemap') %>% 
+  setView(-120, 34.42, zoom = 10) %>% 
+  addCircleMarkers(
+        radius = 6, 
+        weight = 7,
+        popup = paste("Site: ", LTERinventory$AssetID), stroke=FALSE, fillOpacity = 0.5)
+  
+  
+```
+
+## Setup
+Load packages
+
+```{r install packages, message= FALSE}
+
 library(lubridate)
 library(dplyr)	
 library(devtools)	
 library(here)
 library(rowr)
+library(tidyverse)
+library(knitr)
+
+```
+
+## Load Data
+Data were obtained through the SBC LTER website (http://sbc.lternet.edu/) and imported into R Studio (version 1.1.419). Here we load LTER data and organize/clean.
+
+```{r load data, message= FALSE, warning = FALSE}
 
 ale <- read_csv(here("data/ALE_arag.csv"))
 arq <- read_csv(here("data/ARQ_arag.csv"))
@@ -22,7 +74,13 @@ lter <- lter[c(1, 5, 9, 13, 17)]
 
 names(lter) <- c("Time_Stamp_UTC", "Ale_Arag", "Arq_Arag", "Mko_Arag", "Sbh_Arag")
 
-#remove seasonal trends
+```
+
+## Remove Seasonal Trends
+
+Here we remove the seasonal signal of aragonite saturation (i.e. seasonal upwelling trend) by aggregating data by month and calculating means of these monthly aggregates. Observations were subtracted from these monthly values, and resulting data represents the deviation from the monthly mean. 
+
+```{r remove seasonality}
 
 lter$month <- month(lter$Time_Stamp_UTC)	
 
@@ -47,9 +105,16 @@ ltermerge <- ltermerge[c(2, 11, 12, 13, 14)]
 
 ltermerge$Time_Stamp_UTC <- as.POSIXct(ltermerge$Time_Stamp_UTC,format = "%Y-%m-%dT %H:%M:%SZ")	
 
-###decorrelation time scale	
+```
 
-##separate time chunks based on missing data	
+
+## Separate Time Chunks
+
+If the four inshore ocean SBC LTER sensors are functioning normally, they measure aragonite saturation state every 20 minutes. However, sensors occasionally require maintenance or replacement, meaning that large chunks of time exist where at least one of the four is not collecting data. In fact, since the sensors were deployed in 2012, there were only several months during which all four sensors were collecting data. 
+
+Here, the time series data are split into separate chunks when the time gap between two measurements exceeded 20 minutes (signifying equipment malfunction). We separate the time series for each site into time chunks of continous measurement at 20 minute intervals so that the interval is consistent when calculating autocorrelation
+
+```{r time chunks}
 
 #ale	
 
@@ -143,11 +208,15 @@ sbh4 <- sbharag[c((breaks[3]+1):breaks[4]),]
 sbh5 <- sbharag[c((breaks[4]+1):breaks[5]),]
 sbh6 <- sbharag[c((breaks[5]+1):n),]
 
-#autocorrelation
+```
+
+## Calculate Autocorrelation
+
+The autocorrelation is calculated for each of these subsets of the whole time series, with a maximum lag determined by 1/3 the length of the subset, meaning some of these subsets had much longer maximum lags than others. For each lag at each LTER site, the average autocorrelation was calculated with the mean of all time series subsets that were long enough to provide data at that lag – i.e. all subsets could provide information for lag 1 and lag 2, but only subsets that were at least 30 days long could provide information for lags in day 10. Thus, smaller lags are made of averages across all time series subsets, while larger lags rely on data from one or two of the time series subsets. Decorrelation time scales were determined by finding the first zero crossing of the autocorrelation value.
+
+```{r autocorrelation, fig.show = "hide"}
 
 #ale
-quartz()	
-par(mfrow=c(4,2))	
 
 acf_ale1 <- acf(ale1$ale_res_arag, lag.max = nrow(ale1)/3, type = "correlation", xaxt = "n", xlab='Lag (days)', main = 'Autocorrelation', ylab = '')	
 axis(1, at=72*(0:50), labels = 1*(0:50))	
@@ -184,9 +253,6 @@ acf_ale_final <- rowMeans(acf_ale_tot, na.rm = TRUE)
 
 #arq
 
-quartz()	
-par(mfrow=c(3,1))	
-
 acf_arq1 <- acf(arq1$arq_res_arag, lag.max = nrow(ale1)/3, type = "correlation", xaxt = "n", xlab='Lag (days)', main = 'Autocorrelation', ylab = '')	
 axis(1, at=72*(0:50), labels = 1*(0:50))	
 
@@ -204,12 +270,8 @@ acf_arq_tot <- cbind.fill(acf_arq1_df, acf_arq2_df, acf_arq3_df, fill = NA)
 
 acf_arq_final <- rowMeans(acf_arq_tot, na.rm = TRUE)
 
-#mko
 
 #mko	
-
-quartz()	
-par(mfrow=c(2, 2))	
 
 acf_mko1 <- acf(mko1$mko_res_arag, lag.max = nrow(mko1)/3, type = "correlation", xaxt = "n", xlab='Lag (days)', main = 'Autocorrelation', ylab = '')	
 axis(1, at=72*(0:30), labels = 1*(0:30))	
@@ -237,9 +299,6 @@ plot(acf_mko_final, type = "l", xaxt = "n", xlab='Lag (days)', main = 'Autocorre
 axis(1, at=72*(0:50), labels = 1*(0:50))
 
 #sbh	
-
-quartz()	
-par(mfrow=c(3, 2))	
 
 acf_sbh1 <- acf(sbh1$sbh_res_arag, lag.max = nrow(sbh1)/3, type = "correlation", xaxt = "n", xlab='Lag (days)', main = 'Autocorrelation', ylab = '')	
 axis(1, at=72*(0:30), labels = 1*(0:30))	
@@ -270,24 +329,36 @@ acf_sbh_tot <- cbind.fill(acf_sbh1_df, acf_sbh2_df, acf_sbh3_df, acf_sbh4_df, ac
 
 acf_sbh_final <- rowMeans(acf_sbh_tot, na.rm = TRUE)
 
-#plot
+```
 
-setwd("/Users/raetaylor-burns/Downloads")	
+## Plot autocorrelation for all four sites
 
-png("autocorr.png", width = 7, height = 5, units = 'in', res = 300)	
+```{r plot autocorrelation}
 
-autocorrelation <- plot(acf_sbh_final, type = "l", xaxt = "n", xlab='Lag (days)', main = 'Autocorrelation', ylab = '', col = "orangered", xlim = c(0,720), family = "serif")	
+plot(acf_sbh_final, type = "l", xaxt = "n", xlab='Lag (days)', main = 'Autocorrelation', ylab = '', col = "orangered", xlim = c(0,720), family = "serif")	
 lines(acf_ale_final, col = "plum")	
-lines(acf_arq_final, col = "slateblue1")	
-lines(acf_mko_final, col = "royalblue2")	
+lines(acf_arq_final, col = "royalblue2")	
+lines(acf_mko_final, col = "navyblue")	
 abline(h = 0, col = "black")	
 op <- par(family = "serif")	
-legend(350, 0.9, legend = c("Santa Barbara Harbor", "Alegria Reef", "Arroyo Quemado Reef", "Mohawk Reef"), fill = c("tomato", "plum", "slateblue1", "royalblue2"))	
+legend(350, 0.9, legend = c("Santa Barbara Harbor", "Alegria Reef", "Arroyo Quemado Reef", "Mohawk Reef"), fill = c("tomato", "plum", "royalblue2", "navyblue"))	
 axis(1, at=72*(0:10), labels = 1*(0:10), family = "serif")	
-par(op)
 
-dev.off()	
+```
 
-#correlation matrix
+## Correlation matrix for aragonite saturation state at the four different sites
+```{r correlation matrix}
 
-aragcor <- cor(ltermerge[,c(2, 3, 4, 5)], use = "pairwise.complete.obs")
+ltercor <- ltermerge
+
+names(ltercor) <- c("Time", "Ale", "Arq", "Mko", "Sbh")
+
+aragcor <- cor(ltercor[,c(2, 3, 4, 5)], use = "pairwise.complete.obs")
+
+```
+
+## View correlation matrix
+```{r view matrix, echo=FALSE}
+kable(aragcor)
+```
+

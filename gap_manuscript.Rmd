@@ -6,15 +6,6 @@ output:
   html_document:
     df_print: paged
 ---
-title: "manuscript_gap_analysis"
-author: "Rae"
-date: "12/16/2018"
-output:
-  html_document:
-    df_print: paged
-  pdf_document: 
-  word_document: default
----
 
 ```{r setup, include=TRUE, cache = FALSE}
 knitr::opts_chunk$set(echo = TRUE)

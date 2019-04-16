@@ -10,10 +10,12 @@ navbar:
     icon: fa-flask
     href: about.html
     menu:
-    - text: Monitoring Inventory Gap Analysis
-      href: gaps.html
     - text: Ocean Acidfication Hotspot and MPA Analysis
       href: hotspots.html
+    - text: Monitoring Inventory Gap Analysis for WCODP
+      href: gaps.html
+    - text: LTER Analysis
+      href: LTERanalysis.html
   - text: Tools
     icon: fa-wrench
     href: tools.html

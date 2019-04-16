@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>LTER Time Series Analysis</title>
+
+<script src="site_libs/jquery-1.12.4/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/htmlwidgets-1.3/htmlwidgets.js"></script>
+<link href="site_libs/leaflet-1.3.1/leaflet.css" rel="stylesheet" />
+<script src="site_libs/leaflet-1.3.1/leaflet.js"></script>
+<link href="site_libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
+<script src="site_libs/Proj4Leaflet-1.0.1/proj4-compressed.js"></script>
+<script src="site_libs/Proj4Leaflet-1.0.1/proj4leaflet.js"></script>
+<link href="site_libs/rstudio_leaflet-1.3.1/rstudio_leaflet.css" rel="stylesheet" />
+<script src="site_libs/leaflet-binding-2.0.2/leaflet.js"></script>
+<script src="site_libs/leaflet-providers-1.1.17/leaflet-providers.js"></script>
+<script src="site_libs/leaflet-providers-plugin-2.0.2/leaflet-providers-plugin.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">ResilienSeas</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About ResilienSeas</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-flask"></span>
+     
+    Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="gaps.html">Monitoring Inventory Gap Analysis</a>
+    </li>
+    <li>
+      <a href="hotspots.html">Ocean Acidfication Hotspot and MPA Analysis</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="tools.html">
+    <span class="fa fa-wrench"></span>
+     
+    Tools
+  </a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">LTER Time Series Analysis</h1>
+
+</div>
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>In the Santa Barbara Channel sub-region of the California Current, aragonite saturation is currently monitored a relatively fine spatial and temporal scale, through the Santa Barbara Coastal Long Term Ecological Research Project (SBC LTER), run by the National Science Foundation, and housed at the University of California, Santa Barbara. The SBC LTER runs four sites that collect aragonite saturation state every twenty minutes, spread across a distance of 50 miles from the Santa Barbara Pier westward to the Gaviota Coast. These sensors are located at the Santa Barbara Pier, Mohawk Reef, Alegria Reef, and Arroyo Quemado Reef (figure 1). As part of the ongoing effort to establish a cohesive OA monitoring network, this project aims to characterize autocorrelation and covariance in the SBC LTER aragonite measurements. This analysis help gain understanding of the spatial and temporal scale of autocorrelation and establish reference points for how frequently aragonite should be measured in coastal environments and how great the distance between measurements can be without losing valuable information between data collection locations. Results help inform future management decisions in how to design an ideal OA monitoring network and how to improve the network that exists today.</p>
+<div id="htmlwidget-e01d509b589e62f73101" style="width:576px;height:576px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-e01d509b589e62f73101">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["Esri.OceanBasemap",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addCircleMarkers","args":[[34.40934,34.39323,34.46495,34.4617],[-119.685,-119.73,-120.12,-120.29],6,null,null,{"interactive":true,"className":"","stroke":false,"color":"#03F","weight":7,"opacity":0.5,"fill":true,"fillColor":"#03F","fillOpacity":0.5},null,null,["Site:  Stearns Wharf/Santa Barbara Harbor (SBH)","Site:  Mohawk (MKO)","Site:  Arroyo Quemado Reef (ARQ)","Site:  Alegria (ALE)"],null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"setView":[[34.42,-120],10,[]],"limits":{"lat":[34.39323,34.46495],"lng":[-120.29,-119.685]}},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
+<p>Load packages</p>
+<pre class="r"><code>library(lubridate)
+library(dplyr)  
+library(devtools)   
+library(here)
+library(rowr)
+library(tidyverse)
+library(knitr)</code></pre>
+</div>
+<div id="load-data" class="section level2">
+<h2>Load Data</h2>
+<p>Data were obtained through the SBC LTER website (<a href="http://sbc.lternet.edu/" class="uri">http://sbc.lternet.edu/</a>) and imported into R Studio (version 1.1.419). Here we load LTER data and organize/clean.</p>
+<pre class="r"><code>ale &lt;- read_csv(here(&quot;data/ALE_arag.csv&quot;))
+arq &lt;- read_csv(here(&quot;data/ARQ_arag.csv&quot;))
+mko &lt;- read_csv(here(&quot;data/MKO_arag.csv&quot;))
+sbh &lt;- read_csv(here(&quot;data/SBH_arag.csv&quot;))
+
+lter &lt;- merge.data.frame(ale, arq, by = &#39;Time_stamp_UTC&#39;, all.x = T)    
+lter &lt;- merge.data.frame(lter, mko, by = &#39;Time_stamp_UTC&#39;, all.x = T)   
+lter &lt;- merge.data.frame(lter, sbh, by = &#39;Time_stamp_UTC&#39;, all.x = T)   
+
+lter[lter == -9999] &lt;- NA   
+
+lter &lt;- lter[c(1, 5, 9, 13, 17)]
+
+names(lter) &lt;- c(&quot;Time_Stamp_UTC&quot;, &quot;Ale_Arag&quot;, &quot;Arq_Arag&quot;, &quot;Mko_Arag&quot;, &quot;Sbh_Arag&quot;)</code></pre>
+</div>
+<div id="remove-seasonal-trends" class="section level2">
+<h2>Remove Seasonal Trends</h2>
+<p>Here we remove the seasonal signal of aragonite saturation (i.e. seasonal upwelling trend) by aggregating data by month and calculating means of these monthly aggregates. Observations were subtracted from these monthly values, and resulting data represents the deviation from the monthly mean.</p>
+<pre class="r"><code>lter$month &lt;- month(lter$Time_Stamp_UTC)    
+
+ale_arag_monthly &lt;- aggregate(Ale_Arag ~ month, lter, mean) 
+arq_arag_monthly &lt;- aggregate(Arq_Arag ~ month, lter, mean) 
+mko_arag_monthly &lt;- aggregate(Mko_Arag ~ month, lter, mean) 
+sbh_arag_monthly &lt;- aggregate(Sbh_Arag ~ month, lter, mean) 
+
+ltermerge &lt;- merge.data.frame(lter, ale_arag_monthly, by = &#39;month&#39;, all.x = T)  
+ltermerge &lt;- merge.data.frame(ltermerge, arq_arag_monthly, by = &#39;month&#39;, all.x = T) 
+ltermerge &lt;- merge.data.frame(ltermerge, mko_arag_monthly, by = &#39;month&#39;, all.x = T) 
+ltermerge &lt;- merge.data.frame(ltermerge, sbh_arag_monthly, by = &#39;month&#39;, all.x = T) 
+
+ltermerge$ale_res_arag &lt;- ltermerge$Ale_Arag.x-ltermerge$Ale_Arag.y 
+ltermerge$arq_res_arag &lt;- ltermerge$Arq_Arag.x-ltermerge$Arq_Arag.y 
+ltermerge$mko_res_arag &lt;- ltermerge$Mko_Arag.x-ltermerge$Mko_Arag.y 
+ltermerge$sbh_res_arag &lt;- ltermerge$Sbh_Arag.x-ltermerge$Sbh_Arag.y
+
+ltermerge &lt;- ltermerge[order(ltermerge$Time_Stamp_UTC),]    
+
+ltermerge &lt;- ltermerge[c(2, 11, 12, 13, 14)]
+
+ltermerge$Time_Stamp_UTC &lt;- as.POSIXct(ltermerge$Time_Stamp_UTC,format = &quot;%Y-%m-%dT %H:%M:%SZ&quot;) </code></pre>
+</div>
+<div id="separate-time-chunks" class="section level2">
+<h2>Separate Time Chunks</h2>
+<p>If the four inshore ocean SBC LTER sensors are functioning normally, they measure aragonite saturation state every 20 minutes. However, sensors occasionally require maintenance or replacement, meaning that large chunks of time exist where at least one of the four is not collecting data. In fact, since the sensors were deployed in 2012, there were only several months during which all four sensors were collecting data.</p>
+<p>Here, the time series data are split into separate chunks when the time gap between two measurements exceeded 20 minutes (signifying equipment malfunction). We separate the time series for each site into time chunks of continous measurement at 20 minute intervals so that the interval is consistent when calculating autocorrelation</p>
+<pre class="r"><code>#ale    
+
+alearag &lt;- ltermerge[c(1, 2)]   
+
+alearag &lt;- na.omit(alearag) 
+
+n = length(alearag$Time_stamp_UTC)  
+
+alearag$difftime = 0    
+
+for (i in 1:nrow(alearag)){ 
+  d &lt;- difftime(alearag$Time_Stamp_UTC[i+1], alearag$Time_Stamp_UTC[i], units = &quot;mins&quot;) 
+  alearag$difftime[i] &lt;- d  
+}   
+
+breaks &lt;- which(alearag$difftime != 20) 
+
+ale1 &lt;- alearag[c(1:breaks[1]),]    
+ale2 &lt;- alearag[c((breaks[1]+1):breaks[2]),]    
+ale3 &lt;- alearag[c((breaks[2]+1):breaks[3]),]    
+ale4 &lt;- alearag[c((breaks[3]+1):breaks[4]),]    
+ale5 &lt;- alearag[c((breaks[4]+1):breaks[5]),]    
+ale6 &lt;- alearag[c((breaks[5]+1):breaks[6]),]    
+ale7 &lt;- alearag[c((breaks[6]+1):n),]    
+
+#arq    
+
+arqarag &lt;- ltermerge[, c(1,3)]  
+
+arqarag &lt;- na.omit(arqarag) 
+
+n = length(arqarag$Time_Stamp_UTC)  
+
+arqarag$difftime = 0    
+
+for (i in 1:nrow(arqarag)){ 
+  d &lt;- difftime(arqarag$Time_Stamp_UTC[i+1], arqarag$Time_Stamp_UTC[i]) 
+  arqarag$difftime[i] &lt;- d  
+}   
+
+breaks &lt;- which(arqarag$difftime != 20) 
+
+arq1 &lt;- arqarag[c(1:breaks[1]),]    
+arq2 &lt;- arqarag[c((breaks[1]+1):breaks[2]),]    
+arq3 &lt;- arqarag[c((breaks[2]+1):n),]    
+
+#mko    
+
+mkoarag &lt;- ltermerge[, c(1,4)]  
+
+mkoarag &lt;- na.omit(mkoarag) 
+
+n = length(mkoarag$Time_Stamp_UTC)  
+
+mkoarag$difftime = 0    
+
+for (i in 1:nrow(mkoarag)){ 
+  d &lt;- difftime(mkoarag$Time_Stamp_UTC[i+1], mkoarag$Time_Stamp_UTC[i]) 
+  mkoarag$difftime[i] &lt;- d  
+}   
+
+breaks &lt;- which(mkoarag$difftime != 20) 
+
+mko1 &lt;- mkoarag[c(1:breaks[1]),]    
+mko2 &lt;- mkoarag[c((breaks[1]+1):breaks[2]),]    
+mko3 &lt;- mkoarag[c((breaks[2]+1):breaks[3]),]    
+mko4 &lt;- mkoarag[c((breaks[3]+1):n),]    
+
+#sbh
+
+sbharag &lt;- ltermerge[, c(1,5)]  
+
+sbharag &lt;- na.omit(sbharag) 
+
+n = length(sbharag$Time_Stamp_UTC)  
+
+sbharag$difftime = 0    
+
+for (i in 1:nrow(sbharag)){ 
+  d &lt;- difftime(sbharag$Time_Stamp_UTC[i+1], sbharag$Time_Stamp_UTC[i]) 
+  sbharag$difftime[i] &lt;- d  
+}   
+
+breaks &lt;- which(sbharag$difftime != 20) 
+
+sbh1 &lt;- sbharag[c(1:breaks[1]),]    
+sbh2 &lt;- sbharag[c((breaks[1]+1):breaks[2]),]    
+sbh3 &lt;- sbharag[c((breaks[2]+1):breaks[3]),]    
+sbh4 &lt;- sbharag[c((breaks[3]+1):breaks[4]),]    
+sbh5 &lt;- sbharag[c((breaks[4]+1):breaks[5]),]
+sbh6 &lt;- sbharag[c((breaks[5]+1):n),]</code></pre>
+</div>
+<div id="calculate-autocorrelation" class="section level2">
+<h2>Calculate Autocorrelation</h2>
+<p>The autocorrelation is calculated for each of these subsets of the whole time series, with a maximum lag determined by 1/3 the length of the subset, meaning some of these subsets had much longer maximum lags than others. For each lag at each LTER site, the average autocorrelation was calculated with the mean of all time series subsets that were long enough to provide data at that lag – i.e. all subsets could provide information for lag 1 and lag 2, but only subsets that were at least 30 days long could provide information for lags in day 10. Thus, smaller lags are made of averages across all time series subsets, while larger lags rely on data from one or two of the time series subsets. Decorrelation time scales were determined by finding the first zero crossing of the autocorrelation value.</p>
+<pre class="r"><code>#ale
+
+acf_ale1 &lt;- acf(ale1$ale_res_arag, lag.max = nrow(ale1)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:50), labels = 1*(0:50))    </code></pre>
+<pre class="r"><code>acf_ale2 &lt;- acf(ale2$ale_res_arag, lag.max = nrow(ale2)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:50), labels = 1*(0:50))    </code></pre>
+<pre class="r"><code>acf_ale3 &lt;- acf(ale3$ale_res_arag, lag.max = nrow(ale3)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:50), labels = 1*(0:50))    </code></pre>
+<pre class="r"><code>acf_ale4 &lt;- acf(ale4$ale_res_arag, lag.max = nrow(ale4)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:50), labels = 1*(0:50))    </code></pre>
+<pre class="r"><code>acf_ale5 &lt;- acf(ale5$ale_res_arag, lag.max = nrow(ale5)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:50), labels = 1*(0:50))    </code></pre>
+<pre class="r"><code>acf_ale6 &lt;- acf(ale6$ale_res_arag, lag.max = nrow(ale6)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:50), labels = 1*(0:50))    </code></pre>
+<pre class="r"><code>acf_ale7 &lt;- acf(ale7$ale_res_arag, lag.max = nrow(ale7)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:50), labels = 1*(0:50))    </code></pre>
+<pre class="r"><code>acf_ale1_df &lt;- acf_ale1[[&quot;acf&quot;]]
+acf_ale2_df &lt;- acf_ale2[[&quot;acf&quot;]]    
+acf_ale3_df &lt;- acf_ale3[[&quot;acf&quot;]]
+acf_ale4_df &lt;- acf_ale4[[&quot;acf&quot;]]    
+acf_ale5_df &lt;- acf_ale5[[&quot;acf&quot;]]    
+acf_ale6_df &lt;- acf_ale6[[&quot;acf&quot;]]    
+acf_ale7_df &lt;- acf_ale7[[&quot;acf&quot;]]    
+
+acf_ale_tot &lt;- cbind.fill(acf_ale1_df, acf_ale2_df, acf_ale3_df, acf_ale4_df, acf_ale5_df, acf_ale6_df, acf_ale7_df, fill = NA) 
+
+acf_ale_final &lt;- rowMeans(acf_ale_tot, na.rm = TRUE)    
+
+#arq
+
+acf_arq1 &lt;- acf(arq1$arq_res_arag, lag.max = nrow(ale1)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:50), labels = 1*(0:50))    </code></pre>
+<pre class="r"><code>acf_arq2 &lt;- acf(arq2$arq_res_arag, lag.max = nrow(ale2)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:50), labels = 1*(0:50))    </code></pre>
+<pre class="r"><code>acf_arq3 &lt;- acf(arq3$arq_res_arag, lag.max = nrow(ale3)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:50), labels = 1*(0:50))    </code></pre>
+<pre class="r"><code>acf_arq1_df &lt;- acf_arq1[[&quot;acf&quot;]]    
+acf_arq2_df &lt;- acf_arq2[[&quot;acf&quot;]]    
+acf_arq3_df &lt;- acf_arq3[[&quot;acf&quot;]]
+
+acf_arq_tot &lt;- cbind.fill(acf_arq1_df, acf_arq2_df, acf_arq3_df, fill = NA) 
+
+acf_arq_final &lt;- rowMeans(acf_arq_tot, na.rm = TRUE)
+
+
+#mko    
+
+acf_mko1 &lt;- acf(mko1$mko_res_arag, lag.max = nrow(mko1)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:30), labels = 1*(0:30))    </code></pre>
+<pre class="r"><code>acf_mko2 &lt;- acf(mko2$mko_res_arag, lag.max = nrow(mko2)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:30), labels = 1*(0:30))    </code></pre>
+<pre class="r"><code>acf_mko3 &lt;- acf(mko3$mko_res_arag, lag.max = nrow(mko3)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:30), labels = 1*(0:30))    </code></pre>
+<pre class="r"><code>acf_mko4 &lt;- acf(mko4$mko_res_arag, lag.max = nrow(mko4)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:30), labels = 1*(0:30))    </code></pre>
+<pre class="r"><code>acf_mko1_df &lt;- acf_mko1[[&quot;acf&quot;]]    
+acf_mko2_df &lt;- acf_mko2[[&quot;acf&quot;]]    
+acf_mko3_df &lt;- acf_mko3[[&quot;acf&quot;]]    
+acf_mko4_df &lt;- acf_mko4[[&quot;acf&quot;]]    
+
+acf_mko_tot &lt;- cbind.fill(acf_mko1_df, acf_mko2_df,acf_mko3_df,acf_mko4_df, fill = NA)  
+
+acf_mko_final &lt;- rowMeans(acf_mko_tot, na.rm = TRUE)    
+
+quartz()    
+plot(acf_mko_final, type = &quot;l&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;) 
+axis(1, at=72*(0:50), labels = 1*(0:50))</code></pre>
+<pre class="r"><code>#sbh    
+
+acf_sbh1 &lt;- acf(sbh1$sbh_res_arag, lag.max = nrow(sbh1)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:30), labels = 1*(0:30))    </code></pre>
+<pre class="r"><code>acf_sbh2 &lt;- acf(sbh2$sbh_res_arag, lag.max = nrow(sbh2)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:30), labels = 1*(0:30))    </code></pre>
+<pre class="r"><code>acf_sbh3 &lt;- acf(sbh3$sbh_res_arag, lag.max = nrow(sbh3)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:30), labels = 1*(0:30))    </code></pre>
+<pre class="r"><code>acf_sbh4 &lt;- acf(sbh4$sbh_res_arag, lag.max = nrow(sbh4)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:30), labels = 1*(0:30))    </code></pre>
+<pre class="r"><code>acf_sbh5 &lt;- acf(sbh5$sbh_res_arag, lag.max = nrow(sbh5)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:30), labels = 1*(0:30))    </code></pre>
+<pre class="r"><code>acf_sbh6 &lt;- acf(sbh6$sbh_res_arag, lag.max = nrow(sbh5)/3, type = &quot;correlation&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;)    
+axis(1, at=72*(0:30), labels = 1*(0:30))    </code></pre>
+<pre class="r"><code>acf_sbh1_df &lt;- acf_sbh1[[&quot;acf&quot;]]    
+acf_sbh2_df &lt;- acf_sbh2[[&quot;acf&quot;]]    
+acf_sbh3_df &lt;- acf_sbh3[[&quot;acf&quot;]]    
+acf_sbh4_df &lt;- acf_sbh4[[&quot;acf&quot;]]    
+acf_sbh5_df &lt;- acf_sbh5[[&quot;acf&quot;]]    
+acf_sbh6_df &lt;- acf_sbh6[[&quot;acf&quot;]]    
+
+acf_sbh_tot &lt;- cbind.fill(acf_sbh1_df, acf_sbh2_df, acf_sbh3_df, acf_sbh4_df, acf_sbh5_df, acf_sbh6_df,fill = NA)   
+
+acf_sbh_final &lt;- rowMeans(acf_sbh_tot, na.rm = TRUE)</code></pre>
+</div>
+<div id="plot-autocorrelation-for-all-four-sites" class="section level2">
+<h2>Plot autocorrelation for all four sites</h2>
+<pre class="r"><code>plot(acf_sbh_final, type = &quot;l&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;, col = &quot;orangered&quot;, xlim = c(0,720), family = &quot;serif&quot;)   
+lines(acf_ale_final, col = &quot;plum&quot;)  
+lines(acf_arq_final, col = &quot;royalblue2&quot;)    
+lines(acf_mko_final, col = &quot;navyblue&quot;)  
+abline(h = 0, col = &quot;black&quot;)    
+op &lt;- par(family = &quot;serif&quot;) 
+legend(350, 0.9, legend = c(&quot;Santa Barbara Harbor&quot;, &quot;Alegria Reef&quot;, &quot;Arroyo Quemado Reef&quot;, &quot;Mohawk Reef&quot;), fill = c(&quot;tomato&quot;, &quot;plum&quot;, &quot;royalblue2&quot;, &quot;navyblue&quot;))    
+axis(1, at=72*(0:10), labels = 1*(0:10), family = &quot;serif&quot;)  </code></pre>
+<p><img src="LTERanalysis_files/figure-html/plot%20autocorrelation-1.png" width="672" /></p>
+</div>
+<div id="correlation-matrix-for-aragonite-saturation-state-at-the-four-different-sites" class="section level2">
+<h2>Correlation matrix for aragonite saturation state at the four different sites</h2>
+<pre class="r"><code>ltercor &lt;- ltermerge
+
+names(ltercor) &lt;- c(&quot;Time&quot;, &quot;Ale&quot;, &quot;Arq&quot;, &quot;Mko&quot;, &quot;Sbh&quot;)
+
+aragcor &lt;- cor(ltercor[,c(2, 3, 4, 5)], use = &quot;pairwise.complete.obs&quot;)</code></pre>
+</div>
+<div id="view-correlation-matrix" class="section level2">
+<h2>View correlation matrix</h2>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th align="right">Ale</th>
+<th align="right">Arq</th>
+<th align="right">Mko</th>
+<th align="right">Sbh</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Ale</td>
+<td align="right">1.0000000</td>
+<td align="right">0.3856364</td>
+<td align="right">0.1137234</td>
+<td align="right">0.0305191</td>
+</tr>
+<tr class="even">
+<td>Arq</td>
+<td align="right">0.3856364</td>
+<td align="right">1.0000000</td>
+<td align="right">0.1436457</td>
+<td align="right">0.3262436</td>
+</tr>
+<tr class="odd">
+<td>Mko</td>
+<td align="right">0.1137234</td>
+<td align="right">0.1436457</td>
+<td align="right">1.0000000</td>
+<td align="right">-0.0688727</td>
+</tr>
+<tr class="even">
+<td>Sbh</td>
+<td align="right">0.0305191</td>
+<td align="right">0.3262436</td>
+<td align="right">-0.0688727</td>
+<td align="right">1.0000000</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
