@@ -43,10 +43,8 @@ aragonite_data<-aragonite_data[-zd[,2],] #remove observations taken at same coor
 ```{r interpolation, message = FALSE, warning = FALSE, results = 'hide'}
 
 aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data, alpha=c(0, 45, 90, 135))
-plot(aragonite_var) #look for anisotropy and create variogram of aragonite values
 
 aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.2,psill=1,range=2,model="Exp", anis=c(0, 0.3))) #fit a model to the values based on estimated nugget, sill, and range, and anisotropy
-plot(aragonite_var,aragonite_fit)
 
 extent <- bbox(aragonite_data) #get extent of cruise observations 
 long<-seq(extent[1,1],extent[1,2],length=388) #increase ROI by one degree in each direction
