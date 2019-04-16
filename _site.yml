@@ -14,8 +14,10 @@ navbar:
       href: hotspots.html
     - text: Monitoring Inventory Gap Analysis for WCODP
       href: gaps.html
-    - text: LTER Analysis
+    - text: Manuscript LTER Analysis
       href: LTERanalysis.html
+    - text: Manuscript Gap Analysis
+      href: gap_manuscript.html
   - text: Tools
     icon: fa-wrench
     href: tools.html

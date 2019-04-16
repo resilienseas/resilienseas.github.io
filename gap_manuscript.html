@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Rae" />
+
+<meta name="date" content="2018-12-16" />
+
+<title>manuscript_gap_analysis</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">ResilienSeas</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About ResilienSeas</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    <span class="fa fa-flask"></span>
+     
+    Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="hotspots.html">Ocean Acidfication Hotspot and MPA Analysis for WCODP</a>
+    </li>
+    <li>
+      <a href="gaps.html">Monitoring Inventory Gap Analysis for WCODP</a>
+    </li>
+    <li>
+      <a href="LTERanalysis.html">Manuscript LTER Analysis</a>
+    </li>
+    <li>
+      <a href="gap_manuscript.html">Manuscript Gap Analysis</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="tools.html">
+    <span class="fa fa-wrench"></span>
+     
+    Tools
+  </a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">manuscript_gap_analysis</h1>
+<h4 class="author"><em>Rae</em></h4>
+<h4 class="date"><em>12/16/2018</em></h4>
+
+</div>
+
+
+<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE)</code></pre>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
+<p>Load packages, set cache, define study area</p>
+<pre class="r"><code>if (!require(pacman)) install.packages(&quot;pacman&quot;)</code></pre>
+<pre><code>## Loading required package: pacman</code></pre>
+<pre class="r"><code>library(pacman)
+p_load(
+  tidyverse, here, glue,
+  raster,
+  sdmpredictors, dismo, 
+  deldir, 
+  mapview,
+  tmap,
+  ggplot2,
+  rgdal,
+  gstat,
+  usdm,
+  knitr,
+  tmap,
+  rnaturalearth)
+# custom R package: oatools
+devtools::load_all(here(&quot;../oatools&quot;)) # for developing</code></pre>
+<pre><code>## Loading oatools</code></pre>
+<pre><code>## Warning in setup_ns_exports(path, export_all, export_imports): Objects
+## listed as exports, but not present in namespace: find_gaps</code></pre>
+<pre class="r"><code>#library(oatools) # devtools::install_github(&quot;resilinseas/oatools&quot;) # for eventual production
+# paths &amp; variables ----
+dir_data        &lt;- here(&quot;data&quot;)
+dir_sdmdata_old &lt;- here(&quot;data/sdmpredictors&quot;)
+dir_cache       &lt;- here(&quot;cache&quot;)
+dir_sdmdata     &lt;- here(&quot;cache/sdmpredictors&quot;)
+SST_tif &lt;- here(&quot;data/sst_mean.tif&quot;)
+DO_tif  &lt;- here(&quot;data/do_mean.tif&quot;)
+
+# reorganize dirs so &quot;cache&quot; is always local and ignored by git, vs all in &quot;data&quot; tracked by git &amp; pushed to github
+if (!dir.exists(dir_data))    dir.create(dir_data)
+if (!dir.exists(dir_cache))   dir.create(dir_cache)
+if (!dir.exists(dir_sdmdata) &amp; dir.exists(dir_sdmdata_old))
+  file.rename(dir_sdmdata_old, dir_sdmdata)
+if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
+ list&lt;- list_layers(&quot;Bio-ORACLE&quot;)
+
+# extent of NE Pacific study area, for cropping rasters
+ext_study &lt;- extent(-500000, 340000, -580000, 1215000)
+ext_study_alin &lt;- extent(-6700000, 340000, -600000, 350000)
+ext_study_juranek &lt;- extent(-6700000, 340000, 150000, 1215000)
+crs_study &lt;- &#39;+init=EPSG:6414&#39;
+
+ext_study_channelislands &lt;- extent (0, 300000, -600000, -400000)
+ext_study_pugetsound &lt;- extent(-300000, -150000, 1000000, 1215000)
+ext_study_oregoncoast &lt;- extent(-500000, -200000, 500000, 900000)
+
+# import shapefiles for cropping to coast
+poly_coast&lt;- readOGR(dsn=path.expand(&quot;/Users/raetaylor-burns/downloads/Export_Output_2&quot;), layer=&quot;Export_Output_2&quot;)</code></pre>
+<pre><code>## OGR data source with driver: ESRI Shapefile 
+## Source: &quot;/Users/raetaylor-burns/Downloads/Export_Output_2&quot;, layer: &quot;Export_Output_2&quot;
+## with 52 features
+## It has 55 fields
+## Integer64 fields read as strings:  OBJECTID POPULATION POP2010 WHITE BLACK AMERI_ES ASIAN HAWN_PI HISPANIC OTHER MULT_RACE MALES FEMALES AGE_UNDER5 AGE_5_9 AGE_10_14 AGE_15_19 AGE_20_24 AGE_25_34 AGE_35_44 AGE_45_54 AGE_55_64 AGE_65_74 AGE_75_84 AGE_85_UP HOUSEHOLDS HSEHLD_1_M HSEHLD_1_F MARHH_CHD MARHH_NO_C MHH_CHILD FHH_CHILD FAMILIES HSE_UNITS VACANT OWNER_OCC RENTER_OCC</code></pre>
+<pre class="r"><code>Canada&lt;- readOGR(dsn=path.expand(&quot;/Users/raetaylor-burns/downloads/Canada&quot;), layer=&quot;Canada&quot;)</code></pre>
+<pre><code>## OGR data source with driver: ESRI Shapefile 
+## Source: &quot;/Users/raetaylor-burns/Downloads/Canada&quot;, layer: &quot;Canada&quot;
+## with 13 features
+## It has 2 fields</code></pre>
+<pre class="r"><code>states&lt;- readOGR(dsn=path.expand(&quot;/Users/raetaylor-burns/downloads/cb_2016_us_state_20m&quot;), layer=&quot;cb_2016_us_state_20m&quot;)</code></pre>
+<pre><code>## OGR data source with driver: ESRI Shapefile 
+## Source: &quot;/Users/raetaylor-burns/Downloads/cb_2016_us_state_20m&quot;, layer: &quot;cb_2016_us_state_20m&quot;
+## with 52 features
+## It has 9 fields
+## Integer64 fields read as strings:  ALAND AWATER</code></pre>
+<pre class="r"><code>poly_coast &lt;- spTransform(poly_coast, crs(crs_study))
+Canada &lt;- spTransform(Canada, crs(crs_study))
+states &lt;- spTransform(states, crs(crs_study))
+
+
+# sea surface temperature
+# devtools::load_all(here(&quot;../oatools&quot;)) # for use while developing
+r_sst_min &lt;- lyr_to_tif(
+  lyr = &quot;BO_sstmin&quot;, 
+  tif = here(&quot;data/sst_min.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)</code></pre>
+<pre><code>## lyr_to_tif() messages...</code></pre>
+<pre><code>##   loading layer from sdmpredictors and projecting</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 5003 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 4427 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 3894 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 7903 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 13834 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 16853 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 18996 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 20651 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 21966 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 23026 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 23883 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 24581 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 25125 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 25536 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 25830 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 26006 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 26068 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 26032 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 25885 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 25624 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 25244 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 24734 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 24078 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 23265 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 22263 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 21017 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 19465 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 17468 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 14745 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 10144 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 3807 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 4285 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 4851 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 5453 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 6100 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 6789 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 7518 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 8293 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 9112 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 9976 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 10886 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 11846 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 12858 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 13920 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 15033 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 16204 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 17434 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 18722 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 20071 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 21492 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 22979 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 24537 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 26175 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 27894 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 29703 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 31604 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 33610 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 35726 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 37963 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 40336 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 42860 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 45547 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 48429 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 51537 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 54908 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 58602 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 62703 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 67347 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 72769 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 79461 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 89123 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 32952 projected point(s) not finite</code></pre>
+<pre><code>##   cropping raster to extent</code></pre>
+<pre><code>##   filling in missing (NA) values with focal window</code></pre>
+<pre><code>##   writing raster to tif</code></pre>
+<pre class="r"><code>r_sst_min_alin &lt;- crop(r_sst_min, ext_study_alin)
+r_sst_min_juranek &lt;- crop(r_sst_min, ext_study_juranek)
+
+n_na        &lt;- sum(is.na(raster::getValues(r_sst_min)))</code></pre>
+</div>
+<div id="create-sstdo-minmax-rasters-from-bio-oracle-data" class="section level2">
+<h2>Create SST/DO min/max rasters from bio-oracle data</h2>
+<p>Min is used here to determine a worst case scenario for aragonite saturation state, and max is used with min to determine aragonite saturation state range</p>
+<pre class="r"><code>#sst max
+r_sst_max &lt;- lyr_to_tif(
+  lyr = &quot;BO_sstmax&quot;, 
+  tif = here(&quot;data/sst_min.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)</code></pre>
+<pre><code>## lyr_to_tif() messages...</code></pre>
+<pre><code>##   loading layer from sdmpredictors and projecting</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 253985 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 334456 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 122675 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 370991 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 752854 projected point(s) not finite</code></pre>
+<pre><code>##   cropping raster to extent</code></pre>
+<pre><code>##   filling in missing (NA) values with focal window</code></pre>
+<pre><code>##   writing raster to tif</code></pre>
+<pre class="r"><code>r_sst_max_alin &lt;- crop(r_sst_max, ext_study_alin)
+r_sst_max_juranek &lt;- crop(r_sst_max, ext_study_juranek)
+
+#do min
+r_do_min &lt;- lyr_to_tif(
+  lyr = &quot;BO2_dissoxmin_bdmin&quot;, 
+  tif = here(&quot;data/do_min.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)</code></pre>
+<pre><code>## lyr_to_tif() messages...</code></pre>
+<pre><code>##   loading layer from sdmpredictors and projecting</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 5456 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 4769 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 4252 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 11659 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 16771 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 19812 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 22022 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 23724 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 25064 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 26125 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 26968 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 27614 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 28086 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 28399 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 28564 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 28581 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 28472 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 28205 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 27784 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 27197 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 26419 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 25435 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 24193 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 22622 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 20598 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 17884 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 13775 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 5758 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 4558 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 5228 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 5948 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 6727 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 7559 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 8447 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 9396 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 10399 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 11466 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 12597 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 13792 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 15057 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 16388 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 17794 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 19279 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 20838 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 22484 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 24219 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 26048 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 27975 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 30006 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 32155 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 34422 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 36827 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 39377 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 42088 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 44984 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 48080 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 51406 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 55010 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 58936 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 63259 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 68091 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 73608 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 80140 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 88428 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 102345 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 3392 projected point(s) not finite</code></pre>
+<pre><code>##   cropping raster to extent</code></pre>
+<pre><code>##   filling in missing (NA) values with focal window</code></pre>
+<pre><code>##   writing raster to tif</code></pre>
+<pre class="r"><code>r_do_min_alin &lt;- crop(r_do_min, ext_study_alin)
+r_do_min_juranek &lt;- crop(r_do_min, ext_study_juranek)
+
+r_do_max &lt;- lyr_to_tif(
+  lyr = &quot;BO2_dissoxmax_bdmin&quot;, 
+  tif = here(&quot;data/do_max.tif&quot;),
+  crs = crs_study,
+  dir_sdm_cache = dir_sdmdata,
+  extent_crop   = ext_study, 
+  redo=T, fill_na=TRUE, fill_window=11)</code></pre>
+<pre><code>## lyr_to_tif() messages...</code></pre>
+<pre><code>##   loading layer from sdmpredictors and projecting</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 1834961 projected point(s) not finite</code></pre>
+<pre><code>##   cropping raster to extent</code></pre>
+<pre><code>##   filling in missing (NA) values with focal window</code></pre>
+<pre><code>##   writing raster to tif</code></pre>
+<pre class="r"><code>r_do_max_alin &lt;- crop(r_do_max, ext_study_alin)
+r_do_max_juranek &lt;- crop(r_do_max, ext_study_juranek)</code></pre>
+</div>
+<div id="use-juranek-2009-model-to-create-ocean-acidification-layer-for-the-study-region" class="section level2">
+<h2>Use Juranek 2009 model to create ocean acidification layer for the study region</h2>
+<pre class="r"><code>#juranek aragonite
+j0 = 9.242*10^-1
+j1 = 4.492*10^-3
+j2 = 9.40 * 10^-4
+jo2r = 140
+jtr = 8
+juranek_arag &lt;- j0 + j1 * (r_do_min_juranek-jo2r) + j2 * (r_do_min_juranek-jo2r) * (r_sst_min_juranek-jtr)</code></pre>
+</div>
+<div id="repeat-using-alin-2012-model" class="section level2">
+<h2>Repeat using Alin 2012 model</h2>
+<pre class="r"><code>#alin aragonite
+a0 = 1.112
+a1 = 9.59*10^-2
+a2 = 3.54*10^-3
+a3 = 5.91*10^-4
+ao2r = 138.46
+atr = 10.28
+
+alin_arag &lt;- a0 + a1 * (r_sst_min_alin-atr) + a2 * (r_do_min_alin-ao2r) + a3 * (r_sst_min_alin-atr) * (r_do_min_alin-ao2r)</code></pre>
+</div>
+<div id="combine-model-outputs" class="section level2">
+<h2>Combine model outputs</h2>
+<p>Here we see a zonal difference between the models, and a bit of a latitudinal difference, especially in the California Bight region</p>
+<pre class="r"><code>arag &lt;- mosaic(alin_arag, juranek_arag, fun = mean)</code></pre>
+</div>
+<div id="create-variograms-for-each-of-the-models" class="section level2">
+<h2>Create variograms for each of the models</h2>
+<pre class="r"><code>aragdf &lt;- as.data.frame(arag, xy = TRUE)
+aragdf &lt;- aragdf %&gt;% #remove N/A values
+  mutate(layer=replace(layer, layer==-999.000, NA)) %&gt;%
+  na.omit(aragdf)
+coordinates(aragdf)&lt;-  ~ x + y #transform into spatial points
+aragvar &lt;- variogram(layer~1, aragdf)
+
+aragfit&lt;-fit.variogram(aragvar,model=vgm(nugget=0, psill=0.12,range=200000,model=&quot;Exp&quot;))
+
+plot(aragvar, aragfit)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/variogram-1.png" width="672" /></p>
+</div>
+<div id="prep-inventory" class="section level2">
+<h2>Prep Inventory</h2>
+<p>These are the same steps from our GP paper, which we use to create an OA layer in which all the cells in our study site are assigned the aragonite saturation state measured at the nearest monitoring point.</p>
+<pre class="r"><code># import inventory
+inventory &lt;- read_csv(here(&quot;data/inventory.csv&quot;))
+
+#remove non OAH focus entries
+
+oahfocus &lt;- subset(inventory, OAHFocus == &quot;OA&quot; | OAHFocus == &quot;H&quot; | OAHFocus == &quot;OAH&quot;)
+
+#quantify frequencies
+unique(oahfocus$MeasFreq)
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Once&quot;] &lt;- 0
+oahfocus$MeasFreq[oahfocus$MeasFreq == 10] &lt;- 52560
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;&lt; 6 hours&quot;] &lt;- 1460
+oahfocus$MeasFreq[oahfocus$MeasFreq == 60] &lt;- 8760
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Daily&quot;] &lt;- 365
+oahfocus$MeasFreq[oahfocus$MeasFreq ==30] &lt;- 17520
+oahfocus$MeasFreq[oahfocus$MeasFreq == 20] &lt;- 26280
+oahfocus$MeasFreq[oahfocus$MeasFreq == 15] &lt;- 35040
+oahfocus$MeasFreq[oahfocus$MeasFreq == 5] &lt;- 105120
+oahfocus$MeasFreq[oahfocus$MeasFreq == 6] &lt;- 87600
+oahfocus$MeasFreq[oahfocus$MeasFreq == 180] &lt;- 2920
+oahfocus$MeasFreq[oahfocus$MeasFreq == 2] &lt;- 262800
+oahfocus$MeasFreq[oahfocus$MeasFreq == 0.25] &lt;- 2102400
+oahfocus$MeasFreq[oahfocus$MeasFreq == 3] &lt;- 175200
+oahfocus$MeasFreq[oahfocus$MeasFreq == 1] &lt;- 525600
+oahfocus$MeasFreq[oahfocus$MeasFreq == 120] &lt;- 2920
+oahfocus$MeasFreq[oahfocus$MeasFreq == 360] &lt;- 1460
+oahfocus$MeasFreq[oahfocus$MeasFreq == 720] &lt;- 730
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Quarterly&quot;] &lt;- 4
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Annual&quot;] &lt;- 1
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Monthly&quot;] &lt;- 12
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Semi-annual&quot;] &lt;- 2
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Bi-weekly&quot;] &lt;- 26
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Seasonally&quot;] &lt;- 1
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;1/4 second&quot;] &lt;- 126144000
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Bi-monthly&quot;] &lt;- 6
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;5  Years&quot;] &lt;- 0.2
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Bi-weekly&quot;] &lt;- 26
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Variable&quot;] &lt;- 0
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Decadal&quot;] &lt;- 0.1
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Biennial&quot;] &lt;- 0.5
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Weekly&quot;] &lt;- 52
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Triennial&quot;] &lt;- 0.33333
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Trimester&quot;] &lt;- 3
+unique(oahfocus$MeasFreq)
+
+#remove NA coordinates
+oahfocus &lt;- oahfocus[!is.na(oahfocus$Latitude), ]
+oahfocus &lt;- oahfocus[!is.na(oahfocus$Longitude), ]
+
+#remove spaces and transform to numeric
+gsub(&quot; &quot;, &quot;&quot;, oahfocus$Latitude)
+gsub(&quot; &quot;, &quot;&quot;, oahfocus$Longitude)
+gsub(&quot;&#39;&lt;ca&gt;&#39;&quot;, &quot;&quot;, oahfocus$Longitude)
+oahfocus$Longitude&lt;-as.numeric(oahfocus$Longitude)
+oahfocus$Latitude&lt;-as.numeric(oahfocus$Latitude)
+
+#subsets
+carbcomplete&lt;-subset(oahfocus, DisCrbPmtr&gt;1 | ISCrbPmtr &gt; 1)
+incomplete &lt;- subset(oahfocus, DisCrbPmtr&lt;2 &amp; ISCrbPmtr &lt; 2 &amp; EndYr == &quot;Present&quot;)
+highfrequency&lt;-subset(oahfocus, MeasFreq &gt; 364)
+highfreqcarbcomplete&lt;-subset(oahfocus, MeasFreq &gt; 364 &amp; DisCrbPmtr&gt;1 | MeasFreq &gt; 364 &amp; ISCrbPmtr &gt; 1)
+lowfrequency &lt;- subset(oahfocus, MeasFreq &lt; 365 &amp; EndYr == &quot;Present&quot; &amp; AssetType == &quot;Shoreside Sensor&quot; | AssetType == &quot;Mooring&quot; | AssetType == &quot;Sample Site&quot; | AssetType == &quot;Shoresidesensor&quot;)</code></pre>
+</div>
+<div id="make-spatial-points-object-from-inventory-coordinates-and-its-subsets" class="section level2">
+<h2>Make spatial points object from inventory coordinates and its subsets</h2>
+<pre class="r"><code># isolate coordinate columns
+coords &lt;- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
+carbcompletecoords &lt;- cbind.data.frame(carbcomplete$Longitude, carbcomplete$Latitude)
+incompletecoords &lt;- cbind.data.frame(incomplete$Longitude, incomplete$Latitude)
+highfrequencycoords &lt;- cbind.data.frame(highfrequency$Longitude, highfrequency$Latitude)
+lowfrequencycoords &lt;- cbind.data.frame(lowfrequency$Longitude, lowfrequency$Latitude)
+highfreqcarbcompletecoords &lt;- cbind.data.frame(highfreqcarbcomplete$Longitude, highfreqcarbcomplete$Latitude)
+
+# remove duplicate locations
+deduped.coords&lt;-unique(coords)
+deduped.carbcomplete &lt;- unique(carbcompletecoords)
+deduped.incomplete &lt;- unique(incompletecoords)
+deduped.highfrequency &lt;- unique(highfrequencycoords)
+deduped.lowfrequency &lt;- unique(lowfrequencycoords)
+deduped.highfreqcarbcomplete &lt;- unique(highfreqcarbcompletecoords
+                                       )
+# create spatial points objects
+inventorycoords &lt;- SpatialPoints(deduped.coords, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+inventorycoords &lt;- spTransform(inventorycoords, CRS(&#39;+init=EPSG:6414&#39;))
+carbcompletecoords &lt;- SpatialPoints(deduped.carbcomplete, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+carbcompletecoords &lt;- spTransform(carbcompletecoords, CRS(&#39;+init=EPSG:6414&#39;))
+incompletecoords &lt;- SpatialPoints(deduped.incomplete, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+incompletecoords &lt;- spTransform(incompletecoords, CRS(&#39;+init=EPSG:6414&#39;))
+highfreqcoords &lt;- SpatialPoints(deduped.highfrequency, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+highfreqcoords &lt;- spTransform(highfreqcoords, CRS(&#39;+init=EPSG:6414&#39;))
+lowfreqcoords &lt;- SpatialPoints(deduped.lowfrequency, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+lowfreqcoords &lt;- spTransform(lowfreqcoords, CRS(&#39;+init=EPSG:6414&#39;))
+highfreqcarbcompletecoords &lt;- SpatialPoints(deduped.highfreqcarbcomplete, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+highfreqcarbcompletecoords &lt;- spTransform(highfreqcarbcompletecoords, CRS(&#39;+init=EPSG:6414&#39;))</code></pre>
+<pre class="r"><code># create voronoi polygons
+vor &lt;-voronoi(inventorycoords)
+carbcompletevor &lt;- voronoi(carbcompletecoords)
+incompletevor &lt;- voronoi(incompletecoords)
+highfreqvor &lt;- voronoi(highfreqcoords)
+lowfreqvor &lt;- voronoi(lowfreqcoords)
+# rasterize polygons
+vorraster&lt;- rasterize(vor, r_sst_min, &quot;id&quot;)
+carbcompletevorraster&lt;- rasterize(carbcompletevor, r_sst_min, &quot;id&quot;)
+incompletevorraster&lt;- rasterize(incompletevor, r_sst_min, &quot;id&quot;)
+highfreqvorraster&lt;- rasterize(highfreqvor, r_sst_min, &quot;id&quot;)
+lowfreqvorraster&lt;- rasterize(lowfreqvor, r_sst_min, &quot;id&quot;)</code></pre>
+</div>
+<div id="create-oa-layer" class="section level2">
+<h2>Create OA layer</h2>
+<p>Here we assign each cell the aragonite value from the nearest monitoring site</p>
+<pre class="r"><code>#extract aragonite saturation state value for each monitoring site
+sitearag&lt;- raster::extract(arag, inventorycoords, method=&#39;simple&#39;, df=TRUE)
+carbcompletesitearag&lt;- raster::extract(arag, carbcompletecoords, method=&#39;simple&#39;, df=TRUE)
+highfreqsitearag&lt;- raster::extract(arag, highfreqcoords, method=&#39;simple&#39;, df=TRUE)
+# rename column names of sitesstrange
+colnames(sitearag)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
+colnames(carbcompletesitearag)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
+colnames(highfreqsitearag)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
+# substitute polygon id for monitoring site sea surface temerature of that polygon
+polygonarag&lt;-subs(vorraster, sitearag, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)
+carbcompletepolygonarag &lt;- subs(carbcompletevorraster, carbcompletesitearag, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)
+highfreqpolygonarag &lt;- subs(highfreqvorraster, highfreqsitearag, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)</code></pre>
+</div>
+<div id="determine-semivariance" class="section level2">
+<h2>Determine semivariance</h2>
+<pre class="r"><code>#vij = (xi-xj)^2/2
+
+vij&lt;- (arag-polygonarag)^2/2
+carbcompletevij &lt;- (arag-carbcompletepolygonarag)^2/2
+highfreqvij &lt;- (arag-highfreqpolygonarag)^2/2</code></pre>
+</div>
+<div id="find-oceanographic-distance" class="section level2">
+<h2>Find Oceanographic distance</h2>
+<p>This is done as an alternative to predict/uniroot since I hit a roadblock there. I chose the Alin variogram, and created a linear model that describes the relationship between distance and semivariance, and applied it to the semivariance rasters</p>
+<pre class="r"><code>plot(aragvar, aragfit)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/oceanographic%20distance-1.png" width="672" /></p>
+<pre class="r"><code>#variogram saturates at ~0.12
+#sill = 0.12
+#range = 200000
+
+slope = 200000/0.12
+
+oceanographicdistance = slope * vij
+carbcompleteoceanographicdistance = slope * carbcompletevij
+highfreqoceanographicdistance = slope * highfreqvij</code></pre>
+</div>
+<div id="geographic-distance" class="section level2">
+<h2>Geographic distance</h2>
+<p>Determine geographic distance from the nearest monitoring point</p>
+<pre class="r"><code>distance&lt;-distanceFromPoints(oceanographicdistance, inventorycoords)
+carbcompletedistance&lt;-distanceFromPoints(carbcompleteoceanographicdistance, carbcompletecoords)
+highfreqdistance&lt;-distanceFromPoints(highfreqoceanographicdistance, highfreqcoords)</code></pre>
+</div>
+<div id="temporal-variation" class="section level2">
+<h2>Temporal Variation</h2>
+<p>This step determines the range in aragonite saturation state across the region by using max values of T and DO to find the max aragonite saturation state, and min values to find the min aragonite saturation state. The difference is the range. I also normalized this step. One problem I have here is that due to the coefficients (atr and ao2r) there are some places in the study region where using the max values of do and sst gives you are smaller value for aragonite saturation state than the min values do. This is because when you use the max values, for some raster cells the a3 term has a positive component and a negative component leading to a negative sign on the a3 term, whereas when you use the min values those raster cells have two negative components, leading to a positive sign on the a3 term. So I used the abs value of the range, but I’m not sure this makes sense, and maybe there is a better way to find the range. Using the range rasters for SST/DO is a possibility, but that method yields a really different result.</p>
+<pre class="r"><code>alinaragmax &lt;- a0 + a1 * (r_sst_max_alin-atr) + a2 * (r_do_max_alin-ao2r) + a3 * (r_sst_max_alin-atr) * (r_do_max_alin-ao2r)
+
+juranekaragmax &lt;- j0 + j1 * (r_do_max_juranek-jo2r) + j2 * (r_do_max_juranek-jo2r) * (r_sst_max_juranek-jtr)
+
+#alinaragrange &lt;- alinaragmax-alin_arag
+#juranekaragrange &lt;- juranekaragmax-juranek_arag
+
+alinaragrange &lt;- a1 * (r_sst_max-r_sst_min) + a2 * (r_do_max-r_do_min) + a3 * ( (r_sst_max-r_sst_min)*(r_do_min + r_do_min - ao2r) + (r_do_max-r_do_min)*(r_sst_min - atr)) 
+  
+alinaragrange &lt;- crop(alinaragrange, ext_study_alin)
+
+juranekaragrange &lt;- j1 * (r_do_max-r_do_min) + j2 * (r_do_max-r_do_min) + a3 * ( (r_sst_max-r_sst_min)*(r_do_min + r_do_min - jo2r) + (r_do_max-r_do_min)*(r_sst_min - jtr)) 
+
+juranekaragrange &lt;- crop(juranekaragrange, ext_study_juranek)
+
+aragrange &lt;- mosaic(alinaragrange, juranekaragrange, fun = mean)
+
+aragrange &lt;- aragrange/maxValue(aragrange)</code></pre>
+</div>
+<div id="find-gaps" class="section level2">
+<h2>Find Gaps</h2>
+<p>Here I used the euclidean distance to combine the oceanographic distance and the geographic distance. I used a weighting factor of on the oceanographic distance, which is the max value of distance / max value of oceanographic distance, so that the two parameters combine equally. I multiplied each distance by the range of the aragonite saturation state, such that locations with equal distances will be “gappier” if their aragonite saturation state has a large range. This is to account for temporal variation.</p>
+<pre class="r"><code>#calculate gaps
+
+weight = maxValue(distance)/maxValue(oceanographicdistance)
+
+#gap&lt;-((aragrange)^2*sqrt((distance)^2+(weight*oceanographicdistance)^2))/1000
+
+gap&lt;-(sqrt((distance)^2+(weight*oceanographicdistance)^2))/1000
+
+#carbcompletegap&lt;-((aragrange)^2*sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))/1000
+
+carbcompletegap&lt;-(sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))/1000
+
+#highfreqgap&lt;-((aragrange)^2*sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))/1000
+
+highfreqgap&lt;-(sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))/1000</code></pre>
+</div>
+<div id="create-figures" class="section level2">
+<h2>Create Figures</h2>
+<p>Visualize gaps using tmap</p>
+<pre class="r"><code>tmap_mode(&quot;view&quot;)</code></pre>
+<pre><code>## tmap mode set to interactive viewing</code></pre>
+<pre class="r"><code>setwd(&quot;/Users/raetaylor-burns/downloads&quot;)
+
+pal &lt;- colorRampPalette(c(&quot;red&quot;, &quot;white&quot;, &quot;royalblue2&quot;))
+
+aragonite &lt;- tm_shape(arag)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = FALSE)+
+  tm_layout(main.title = &quot;Aragonite Saturation State&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+aragonitelegend &lt;- tm_shape(arag)+
+  tm_raster(title = &quot;Aragonite Saturation State&quot;, palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE)+
+  tm_layout(main.title = &quot;Aragonite Saturation State&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;, legend.only = TRUE, legend.just = &quot;center&quot;)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+tmap_save(aragonite, &quot;aragonite.png&quot;, width = 3000, height = 4000, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/aragonite.png</code></pre>
+<pre><code>## Resolution: 3000 by 4000 pixels</code></pre>
+<pre><code>## Size: 6 by 8 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(aragonitelegend, &quot;aragonitelegend.png&quot;, width = 3000, height = 4000, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/aragonitelegend.png</code></pre>
+<pre><code>## Resolution: 3000 by 4000 pixels</code></pre>
+<pre><code>## Size: 6 by 8 inches (500 dpi)</code></pre>
+<pre class="r"><code>pal &lt;- colorRampPalette(c(&quot;royalblue1&quot;, &quot;white&quot;, &quot;red&quot;))
+
+aragonitediscrepancy &lt;- tm_shape(abs(arag-polygonarag))+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = FALSE)+
+  tm_layout(main.title = &quot;Aragonite Saturation State Discrepancy&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.02)</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+aragonitediscrepancylegend &lt;- tm_shape(abs(arag-polygonarag))+
+  tm_raster(title = &quot;Aragonite Saturation State&quot;, palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE)+
+  tm_layout(main.title = &quot;Aragonite Saturation State&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;, legend.only = TRUE, legend.just = &quot;center&quot;)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+  
+aragoniterange &lt;- tm_shape(abs(aragrange))+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = FALSE)+
+  tm_layout(main.title = &quot;Aragonite Saturation State Range&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.02)</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>  tmap_options(max.raster = c(plot = 45955000, view = 45955000))  
+  
+aragoniterangelegend &lt;- tm_shape(aragrange)+
+  tm_raster(title = &quot;Aragonite Saturation State Range&quot;, palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE)+
+  tm_layout(main.title = &quot;Aragonite Saturation State Range&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;, legend.only = TRUE, legend.just = &quot;center&quot;)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+  
+oceanographicdist &lt;- tm_shape(oceanographicdistance)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = FALSE)+
+  tm_layout(main.title = &quot;Oceanographic Distance&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.02)</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>  tmap_options(max.raster = c(plot = 45955000, view = 45955000))  
+  
+oceanographicdistlegend &lt;- tm_shape(oceanographicdistance)+
+  tm_raster(title = &quot;Oceanographic Distance&quot;, palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE)+
+  tm_layout(main.title = &quot;Oceanographic Distance&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;, legend.only = TRUE, legend.just = &quot;center&quot;)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+tmap_save(aragonitediscrepancy, &quot;aragonitediscrepancy.png&quot;, width = 3000, height = 4000, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/aragonitediscrepancy.png</code></pre>
+<pre><code>## Resolution: 3000 by 4000 pixels</code></pre>
+<pre><code>## Size: 6 by 8 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(aragonitediscrepancylegend, &quot;aragonitediscrepancylegend.png&quot;, width = 3000, height = 4000, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/aragonitediscrepancylegend.png</code></pre>
+<pre><code>## Resolution: 3000 by 4000 pixels</code></pre>
+<pre><code>## Size: 6 by 8 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(aragoniterange, &quot;aragoniterange.png&quot;, width = 3000, height = 4000, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/aragoniterange.png</code></pre>
+<pre><code>## Resolution: 3000 by 4000 pixels</code></pre>
+<pre><code>## Size: 6 by 8 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(aragoniterangelegend, &quot;aragoniterangelegend.png&quot;, width = 3000, height = 4000, dpi = 500)</code></pre>
+<pre><code>## Variable &quot;layer&quot; contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/aragoniterangelegend.png</code></pre>
+<pre><code>## Resolution: 3000 by 4000 pixels</code></pre>
+<pre><code>## Size: 6 by 8 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(oceanographicdist, &quot;oceanographicdistance.png&quot;, width = 3000, height = 4000, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/oceanographicdistance.png</code></pre>
+<pre><code>## Resolution: 3000 by 4000 pixels</code></pre>
+<pre><code>## Size: 6 by 8 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(oceanographicdistlegend, &quot;oceanographicdistancelegend.png&quot;, width = 3000, height = 4000, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/oceanographicdistancelegend.png</code></pre>
+<pre><code>## Resolution: 3000 by 4000 pixels</code></pre>
+<pre><code>## Size: 6 by 8 inches (500 dpi)</code></pre>
+<pre class="r"><code>pal &lt;- colorRampPalette(c(&quot;royalblue2&quot;, &quot;white&quot;, &quot;red&quot;))
+
+fullgap &lt;- tm_shape(gap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
+  tm_layout(main.title = &quot;Effective Distance to Nearest Monitoring (km)&quot;, fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;, main.title.size = 1)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>channelislandfullgap &lt;- crop(gap, ext_study_channelislands)
+
+channelislandgap &lt;- tm_shape(channelislandfullgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
+  tm_layout(fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.05)+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>pugetsoundfullgap &lt;- crop(gap, ext_study_pugetsound)
+
+pugetsoundgap &lt;- tm_shape(pugetsoundfullgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
+  tm_layout(fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.05)+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>oregoncoastfullgap &lt;- crop(gap, ext_study_oregoncoast)
+
+oregongap &lt;- tm_shape(oregoncoastfullgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
+  tm_layout(fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(inventorycoords)+
+  tm_dots(size = 0.05)+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>gaplegend &lt;- tm_shape(gap)+
+  tm_raster(title = &quot;Aragonite Saturation State&quot;, palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE)+
+  tm_layout(main.title = &quot;Aragonite Saturation State&quot;, main.title.size = 1, bg.color = &quot;white&quot;, main.title.position = c(&quot;center&quot;, &quot;top&quot;), fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;, legend.only = TRUE, legend.just = &quot;center&quot;)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+
+tmap_save(fullgap, &quot;gap.png&quot;, width = 2000, height = 4000, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/gap.png</code></pre>
+<pre><code>## Resolution: 2000 by 4000 pixels</code></pre>
+<pre><code>## Size: 4 by 8 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(channelislandgap, &quot;channelislandgap.png&quot;, width = 3800, height = 2500, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/channelislandgap.png</code></pre>
+<pre><code>## Resolution: 3800 by 2500 pixels</code></pre>
+<pre><code>## Size: 7.6 by 5 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(pugetsoundgap, &quot;pugetsoundgap.png&quot;, width = 3800, height = 2500, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/pugetsoundgap.png</code></pre>
+<pre><code>## Resolution: 3800 by 2500 pixels</code></pre>
+<pre><code>## Size: 7.6 by 5 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(oregongap, &quot;oregongap.png&quot;, width = 3800, height = 2500, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/oregongap.png</code></pre>
+<pre><code>## Resolution: 3800 by 2500 pixels</code></pre>
+<pre><code>## Size: 7.6 by 5 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(gaplegend, &quot;gaplegend.png&quot;, width = 3000, height = 2000, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/gaplegend.png</code></pre>
+<pre><code>## Resolution: 3000 by 2000 pixels</code></pre>
+<pre><code>## Size: 6 by 4 inches (500 dpi)</code></pre>
+<pre class="r"><code>#carbonate complete inventory gaps 
+
+ccgap &lt;- tm_shape(carbcompletegap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, breaks = c(0, 150, 300, 450, 600, 750), legend.show = FALSE)+
+  tm_layout(main.title = &quot;Effective Distance to Nearest Aragonite Monitoring (km)&quot;, fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;, main.title.size = 1)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+channelislandcarbcompgap &lt;- crop(carbcompletegap, ext_study_channelislands)
+
+channelislandccgap &lt;- tm_shape(channelislandcarbcompgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
+  tm_layout()+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(incompletecoords)+
+  tm_dots(size = 0.05)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>pugetsoundcarbcompgap &lt;- crop(carbcompletegap, ext_study_pugetsound)
+
+pugetsoundccgap &lt;- tm_shape(pugetsoundcarbcompgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
+  tm_layout()+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(incompletecoords)+
+  tm_dots(size = 0.05)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>oregoncoastcarbcompgap &lt;- crop(carbcompletegap, ext_study_oregoncoast)
+
+oregonccgap &lt;- tm_shape(oregoncoastcarbcompgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
+  tm_layout()+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(incompletecoords)+
+  tm_dots(size = 0.05)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>tmap_save(ccgap, &quot;ccgaps.png&quot;, width = 3000, height = 4000, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/ccgaps.png</code></pre>
+<pre><code>## Resolution: 3000 by 4000 pixels</code></pre>
+<pre><code>## Size: 6 by 8 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(channelislandccgap, &quot;channelislandccgap.png&quot;, width = 3800, height = 2500, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/channelislandccgap.png</code></pre>
+<pre><code>## Resolution: 3800 by 2500 pixels</code></pre>
+<pre><code>## Size: 7.6 by 5 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(pugetsoundccgap, &quot;pugetsoundccgap.png&quot;, width = 3800, height = 2500, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/pugetsoundccgap.png</code></pre>
+<pre><code>## Resolution: 3800 by 2500 pixels</code></pre>
+<pre><code>## Size: 7.6 by 5 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(oregonccgap, &quot;oregonccgap.png&quot;, width = 3800, height = 2500, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/oregonccgap.png</code></pre>
+<pre><code>## Resolution: 3800 by 2500 pixels</code></pre>
+<pre><code>## Size: 7.6 by 5 inches (500 dpi)</code></pre>
+<pre class="r"><code># high frequency inventory gaps
+
+highfreqgap &lt;- crop(highfreqgap, ext_study)
+
+hfgap &lt;- tm_shape(highfreqgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE,  breaks = c(0, 150, 300, 450, 600, 750), legend.show = FALSE)+
+  tm_layout(main.title = &quot;Effective Distance to Nearest Daily Monitoring (km)&quot;, fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;, main.title.size = 1)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>channelislandhighfreqgap &lt;- crop(highfreqgap, ext_study_channelislands)
+
+channelislandhfgap &lt;- tm_shape(channelislandhighfreqgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
+  tm_layout()+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(lowfreqcoords)+
+  tm_dots(size = 0.05)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>pugetsoundhighfreqgap &lt;- crop(highfreqgap, ext_study_pugetsound)
+
+pugetsoundhfgap &lt;- tm_shape(pugetsoundhighfreqgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
+  tm_layout()+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(lowfreqcoords)+
+  tm_dots(size = 0.05)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>oregoncoasthighfreqgap &lt;- crop(highfreqgap, ext_study_oregoncoast)
+
+oregonhfgap &lt;- tm_shape(oregoncoasthighfreqgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
+  tm_layout()+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(lowfreqcoords)+
+  tm_dots(size = 0.05)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))</code></pre>
+<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
+## midpoint for numeric data and stretch.palette for categorical data to
+## control the palette mapping.</code></pre>
+<pre class="r"><code>tmap_save(hfgap, &quot;hfgaps.png&quot;, width = 4000, height = 4000, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/hfgaps.png</code></pre>
+<pre><code>## Resolution: 4000 by 4000 pixels</code></pre>
+<pre><code>## Size: 8 by 8 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(channelislandhfgap, &quot;channelislandhfgap.png&quot;, width = 3800, height = 2500, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/channelislandhfgap.png</code></pre>
+<pre><code>## Resolution: 3800 by 2500 pixels</code></pre>
+<pre><code>## Size: 7.6 by 5 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(pugetsoundhfgap, &quot;pugetsoundhfgap.png&quot;, width = 3800, height = 2500, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/pugetsoundhfgap.png</code></pre>
+<pre><code>## Resolution: 3800 by 2500 pixels</code></pre>
+<pre><code>## Size: 7.6 by 5 inches (500 dpi)</code></pre>
+<pre class="r"><code>tmap_save(oregonhfgap, &quot;oregonhfgap.png&quot;, width = 3800, height = 2500, dpi = 500)</code></pre>
+<pre><code>## Map saved to /Users/raetaylor-burns/Downloads/oregonhfgap.png</code></pre>
+<pre><code>## Resolution: 3800 by 2500 pixels</code></pre>
+<pre><code>## Size: 7.6 by 5 inches (500 dpi)</code></pre>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

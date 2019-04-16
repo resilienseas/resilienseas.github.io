@@ -172,12 +172,14 @@ plot(aragvar, aragfit)
 
 ##Prep Inventory
 These are the same steps from our GP paper, which we use to create an OA layer in which all the cells in our study site are assigned the aragonite saturation state measured at the nearest monitoring point. 
-```{r prep inventory}
+```{r prep inventory, message = FALSE, warning = FALSE, results = 'hide'}
 # import inventory
 inventory <- read_csv(here("data/inventory.csv"))
 
 #remove non OAH focus entries
+
 oahfocus <- subset(inventory, OAHFocus == "OA" | OAHFocus == "H" | OAHFocus == "OAH")
+
 #quantify frequencies
 unique(oahfocus$MeasFreq)
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Once"] <- 0
@@ -215,21 +217,29 @@ oahfocus$MeasFreq[oahfocus$MeasFreq =="Weekly"] <- 52
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Triennial"] <- 0.33333
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Trimester"] <- 3
 unique(oahfocus$MeasFreq)
+
 #remove NA coordinates
 oahfocus <- oahfocus[!is.na(oahfocus$Latitude), ]
 oahfocus <- oahfocus[!is.na(oahfocus$Longitude), ]
+
 #remove spaces and transform to numeric
 gsub(" ", "", oahfocus$Latitude)
 gsub(" ", "", oahfocus$Longitude)
 gsub("'<ca>'", "", oahfocus$Longitude)
 oahfocus$Longitude<-as.numeric(oahfocus$Longitude)
 oahfocus$Latitude<-as.numeric(oahfocus$Latitude)
+
 #subsets
 carbcomplete<-subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
 incomplete <- subset(oahfocus, DisCrbPmtr<2 & ISCrbPmtr < 2 & EndYr == "Present")
 highfrequency<-subset(oahfocus, MeasFreq > 364)
 highfreqcarbcomplete<-subset(oahfocus, MeasFreq > 364 & DisCrbPmtr>1 | MeasFreq > 364 & ISCrbPmtr > 1)
 lowfrequency <- subset(oahfocus, MeasFreq < 365 & EndYr == "Present" & AssetType == "Shoreside Sensor" | AssetType == "Mooring" | AssetType == "Sample Site" | AssetType == "Shoresidesensor")
+
+```
+
+## Make spatial points object from inventory coordinates and its subsets
+```{r make spatial objects from iventory, message = FALSE, warning = FALSE, results = 'hide'}
 # isolate coordinate columns
 coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
 carbcompletecoords <- cbind.data.frame(carbcomplete$Longitude, carbcomplete$Latitude)
@@ -237,13 +247,15 @@ incompletecoords <- cbind.data.frame(incomplete$Longitude, incomplete$Latitude)
 highfrequencycoords <- cbind.data.frame(highfrequency$Longitude, highfrequency$Latitude)
 lowfrequencycoords <- cbind.data.frame(lowfrequency$Longitude, lowfrequency$Latitude)
 highfreqcarbcompletecoords <- cbind.data.frame(highfreqcarbcomplete$Longitude, highfreqcarbcomplete$Latitude)
+
 # remove duplicate locations
 deduped.coords<-unique(coords)
 deduped.carbcomplete <- unique(carbcompletecoords)
 deduped.incomplete <- unique(incompletecoords)
 deduped.highfrequency <- unique(highfrequencycoords)
 deduped.lowfrequency <- unique(lowfrequencycoords)
-deduped.highfreqcarbcomplete <- unique(highfreqcarbcompletecoords)
+deduped.highfreqcarbcomplete <- unique(highfreqcarbcompletecoords
+                                       )
 # create spatial points objects
 inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
 inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:6414'))
@@ -257,8 +269,11 @@ lowfreqcoords <- SpatialPoints(deduped.lowfrequency, CRS("+proj=longlat +ellps=W
 lowfreqcoords <- spTransform(lowfreqcoords, CRS('+init=EPSG:6414'))
 highfreqcarbcompletecoords <- SpatialPoints(deduped.highfreqcarbcomplete, CRS("+proj=longlat +ellps=WGS84"))
 highfreqcarbcompletecoords <- spTransform(highfreqcarbcompletecoords, CRS('+init=EPSG:6414'))
-# check to make sure projections match
-# devtools::load_all(here("../oatools")) # for use while developing
+```
+
+
+```{r voronoi,  message = FALSE, warning = FALSE, results = 'hide'}
+
 # create voronoi polygons
 vor <-voronoi(inventorycoords)
 carbcompletevor <- voronoi(carbcompletecoords)
@@ -271,7 +286,10 @@ carbcompletevorraster<- rasterize(carbcompletevor, r_sst_min, "id")
 incompletevorraster<- rasterize(incompletevor, r_sst_min, "id")
 highfreqvorraster<- rasterize(highfreqvor, r_sst_min, "id")
 lowfreqvorraster<- rasterize(lowfreqvor, r_sst_min, "id")
+
 ```
+
+
 
 ##Create OA layer
 Here we assign each cell the aragonite value from the nearest monitoring site
@@ -288,6 +306,7 @@ colnames(highfreqsitearag)<-c("id", "Arag")
 polygonarag<-subs(vorraster, sitearag, by="id", which="Arag", subsWithNA=FALSE)
 carbcompletepolygonarag <- subs(carbcompletevorraster, carbcompletesitearag, by="id", which="Arag", subsWithNA=FALSE)
 highfreqpolygonarag <- subs(highfreqvorraster, highfreqsitearag, by="id", which="Arag", subsWithNA=FALSE)
+
 ```
 
 ## Determine semivariance
