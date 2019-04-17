@@ -1,19 +1,20 @@
 ---
-title: "manuscript_gap_analysis"
-author: "Rae"
-date: "12/16/2018"
-output:
-  html_document:
-    df_print: paged
+title: "Manuscript Gap Analysis"
+output: html_document
 ---
 
 ```{r setup, include=TRUE, cache = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Setup
-Load packages, set cache, define study area
+##Introduction
 
+Given the existing monitoring network, our analysis locates the best site for the next monitoring asset, thereby filling in monitoring network gaps one asset at a time, based off the sites that already are in place. In this analysis we utilized methods that fall in the middle of the spectrum defined by other works in this realm (see Asch et al. (2003) for a more simplistic approach, and Frolov et al. 2013 for a more involved approach). These decisions were made due to the constraints of the data we used (spatial metadata as opposed to time series and satellite data) as well as the goal of working with policymakers and non-scientist end users. The result is an analysis that provides specific spatial information on relative sampling of ocean acidification on the West Coast. 
+Monitoring networks are geographic objects, and it might seem that the ideal network would evenly spaced across the ocean. However, the ocean is not uniform: some places in the ocean are more dynamic, both spatially and temporally, than others. This effect can be illustrated with an example from the Santa Barbara Channel (see LTER analysis). Thus, where the ocean is highly dynamic, an ideal monitoring network will have more closely clustered assets than in places that are more static.
+
+##Step 1. Manipulate sea surface temperature and dissolved oxygen estimate make aragonite saturation state
+#### Setup
+Load packages, set cache, define study area
 ```{r packages / cache}
 if (!require(pacman)) install.packages("pacman")
 library(pacman)
@@ -86,9 +87,8 @@ r_sst_min_juranek <- crop(r_sst_min, ext_study_juranek)
 n_na        <- sum(is.na(raster::getValues(r_sst_min)))
 ```
 
-## Create SST/DO min/max rasters from bio-oracle data
-Min is used here to determine a worst case scenario for aragonite saturation state, and max is used with min to determine aragonite saturation state range
-
+####Create SST/DO min/max rasters from bio-oracle data
+Aragonite saturation state is the gold standard in an ocean acidification monitoring network, as this measurement has direct biological implications.9 However, the variables needed to calculate aragonite saturation state are not yet measured at a sufficient spatial-temporal resolution to identify highly variable locations across the study region. While this raw data could theoretically be replaced by a high-resolution model that would explicitly account for physical, chemical, and biological oceanographic processes, and integrate a variety of input data, such models are not yet available (although some are under development). In the absence of a model or data to describe aragonite saturation state, we used temperature and dissolved oxygen as proxies, because they are strongly positively correlated with aragonite saturation state.
 ```{r bio-Oracle}
 #sst max
 r_sst_max <- lyr_to_tif(
@@ -124,9 +124,9 @@ r_do_max_juranek <- crop(r_do_max, ext_study_juranek)
 
 ```
 
-## Use Juranek 2009 model to create ocean acidification layer for the study region
-
-```{r Juranek model}
+####Use Juranek 2009 and Alin 2012 model to create ocean acidification layer for the study region
+At a sub-regional scale, empirically validated models have been developed that predict aragonite saturation state based on temperature and dissolved oxygen measurements. Our analysis utilized equation II from Alin et al. (2012) in the southern part of the study region and equation 3 from Juranek et al. (2009) in the northern part of the study region. We then created a “worst-case scenario” aragonite saturation state raster following equation (2) for the southern region and equation (3) for the northern region, using the minimum sea surface temperature and dissolved oxygen values from each ocean area. 
+```{r Juranek and Alin models}
 #juranek aragonite
 j0 = 9.242*10^-1
 j1 = 4.492*10^-3
@@ -134,11 +134,7 @@ j2 = 9.40 * 10^-4
 jo2r = 140
 jtr = 8
 juranek_arag <- j0 + j1 * (r_do_min_juranek-jo2r) + j2 * (r_do_min_juranek-jo2r) * (r_sst_min_juranek-jtr)
-```
 
-##Repeat using Alin 2012 model
-
-```{r Alin model}
 #alin aragonite
 a0 = 1.112
 a1 = 9.59*10^-2
@@ -150,13 +146,14 @@ atr = 10.28
 alin_arag <- a0 + a1 * (r_sst_min_alin-atr) + a2 * (r_do_min_alin-ao2r) + a3 * (r_sst_min_alin-atr) * (r_do_min_alin-ao2r)
 ```
 
-## Combine model outputs
-Here we see a zonal difference between the models, and a bit of a latitudinal difference, especially in the California Bight region
+####Combine model outputs
+To reduce the effect of the abrupt change in aragonite saturation state at the boundary between the two models, the mean of the two model outputs was used to predict aragonite saturation state in waters between Eureka and Fort Bragg, a distance of about 100 miles.
 ```{r model comparison}
 arag <- mosaic(alin_arag, juranek_arag, fun = mean)
 ```
 
-## Create variograms for each of the models
+####Create variogram
+To quantify the relationship between changing aragonite saturation state and distance, the aragonite saturation state raster was used to create a semivariogram. The semi-variogram describes how the semi-variance  of a parameter increases with distance, revealing information on the spatial scale of decorrelation of that parameter. In this analysis, we used it to determine the relationship between variance in aragonite saturation state and distance. The semi-variogram revealed that the semi-variance in aragonite saturation state saturates (i.e. semi-variance ceases to increase as distance increases) at a distance of 2000 km, and a maximum semi-variance of 0.12 is reached at that point. We used a linear interpolation between the origin and the saturation point to relate variance in aragonite saturation state and distance. 
 ```{r variogram, eval = TRUE}
 aragdf <- as.data.frame(arag, xy = TRUE)
 aragdf <- aragdf %>% #remove N/A values
@@ -170,11 +167,21 @@ aragfit<-fit.variogram(aragvar,model=vgm(nugget=0, psill=0.12,range=200000,model
 plot(aragvar, aragfit)
 ```
 
-##Prep Inventory
-These are the same steps from our GP paper, which we use to create an OA layer in which all the cells in our study site are assigned the aragonite saturation state measured at the nearest monitoring point. 
+##Step 2. Relate aragonite saturation state trends to each monitoring site
+####Load inventory
+This step can be done locally when updated versions of the monitoring inventory are available
 ```{r prep inventory, message = FALSE, warning = FALSE, results = 'hide'}
 # import inventory
 inventory <- read_csv(here("data/inventory.csv"))
+```
+
+####Tidy Inventory
+1. Isolate OAH Focus Data Collection
+2. Quantify Data Collection Frequency (measurements/year)
+3. Remove NA coordinate entries from gliders
+4. Transform latitude and longitude to numeric
+5. Create subsets of data
+```{r tidy inventory, message = FALSE, warning = FALSE, results = 'hide'}
 
 #remove non OAH focus entries
 
@@ -238,7 +245,7 @@ lowfrequency <- subset(oahfocus, MeasFreq < 365 & EndYr == "Present" & AssetType
 
 ```
 
-## Make spatial points object from inventory coordinates and its subsets
+####Make spatial points object from inventory coordinates and its subsets
 ```{r make spatial objects from iventory, message = FALSE, warning = FALSE, results = 'hide'}
 # isolate coordinate columns
 coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
@@ -271,7 +278,8 @@ highfreqcarbcompletecoords <- SpatialPoints(deduped.highfreqcarbcomplete, CRS("+
 highfreqcarbcompletecoords <- spTransform(highfreqcarbcompletecoords, CRS('+init=EPSG:6414'))
 ```
 
-
+####Create voronoi polygons and rasterize the results
+We used Voronoi polygons to divide the ocean into regions based on spatial proximity to each monitoring asset.23 We assigned a polygon identification number to each polygon and then gridded the Voronoi polygons, while maintaining the polygon identification numbers. 
 ```{r voronoi,  message = FALSE, warning = FALSE, results = 'hide'}
 
 # create voronoi polygons
@@ -289,10 +297,8 @@ lowfreqvorraster<- rasterize(lowfreqvor, r_sst_min, "id")
 
 ```
 
-
-
-##Create OA layer
-Here we assign each cell the aragonite value from the nearest monitoring site
+####Create OA layer
+We assigned the parameter value of all locations with the same polygon identification number (i.e. nearest to the same monitoring asset) to the measured value of the cell containing the monitoring asset associated with that same polygon identification number. This step resulted in a map of aragonite saturation state across the West Coast estimated by the empirical model output at each monitoring site. Thus, a monitoring network with 20 assets would result in a map made up of 20 chunks of area, each with different values of aragonite saturation state based on the estimated value at the nearest monitoring asset. 
 ```{r polygons}
 #extract aragonite saturation state value for each monitoring site
 sitearag<- raster::extract(arag, inventorycoords, method='simple', df=TRUE)
@@ -309,8 +315,8 @@ highfreqpolygonarag <- subs(highfreqvorraster, highfreqsitearag, by="id", which=
 
 ```
 
-## Determine semivariance
-
+####Determine semivariance of aragonite discrepancy
+We then used the empirical model outputs created using the continuous environmental layers to find the difference between the empirical model outputs at every location in the ocean and the empirical model outputs for the nearest monitoring asset. The result is an aragonite saturation state discrepancy value that describes how different acidification conditions are at any point on the West Coast as compared to these conditions at the nearest data collection location. In places where this value is high, a monitoring asset is not describing OA conditions well. In places where this value is low, a monitoring asset describes OA conditions very well. In the future, when aragonite saturation state models are available on a regional scale, outputs from such models could replace our empirical model outputs.  
 ```{r semivariance}
 #vij = (xi-xj)^2/2
 
@@ -319,9 +325,9 @@ carbcompletevij <- (arag-carbcompletepolygonarag)^2/2
 highfreqvij <- (arag-highfreqpolygonarag)^2/2
 ```
 
-## Find Oceanographic distance
-This is done as an alternative to predict/uniroot since I hit a roadblock there. I chose the Alin variogram, and created a linear model that describes the relationship between distance and semivariance, and applied it to the semivariance rasters
-
+##Step 3. Find Gaps
+####Oceanographic distance
+The inverse of the linear relationship from the semi-variogram was applied to the semi-variance calculated above, yielding a map showing the “oceanographic distance” between each cell in our study region and the nearest monitoring asset. We define oceanographic distance as the effective distance between any location and the nearest monitoring asset, based on the similarity of oceanographic conditions that determine OA conditions between the two locations. A cell with high oceanographic distance has different acidification conditions than the nearest monitoring asset, and a cell with low oceanographic distance has similar acidification conditions to the nearest monitoring asset. 
 ```{r oceanographic distance}
 
 plot(aragvar, aragfit)
@@ -337,7 +343,7 @@ highfreqoceanographicdistance = slope * highfreqvij
 
 ```
 
-## Geographic distance
+####Geographic distance
 Determine geographic distance from the nearest monitoring point
 ```{r geographic distance}
 distance<-distanceFromPoints(oceanographicdistance, inventorycoords)
@@ -345,9 +351,8 @@ carbcompletedistance<-distanceFromPoints(carbcompleteoceanographicdistance, carb
 highfreqdistance<-distanceFromPoints(highfreqoceanographicdistance, highfreqcoords)
 ```
 
-## Temporal Variation
-This step determines the range in aragonite saturation state across the region by using max values of T and DO to find the max aragonite saturation state, and min values to find the min aragonite saturation state. The difference is the range. I also normalized this step. One problem I have here is that due to the coefficients (atr and ao2r) there are some places in the study region where using the max values of do and sst gives you are smaller value for aragonite saturation state than the min values do. This is because when you use the max values, for some raster cells the a3 term has a positive component and a negative component leading to a negative sign on the a3 term, whereas when you use the min values those raster cells have two negative components, leading to a positive sign on the a3 term. So I used the abs value of the range, but I'm not sure this makes sense, and maybe there is a better way to find the range. Using the range rasters for SST/DO is a possibility, but that method yields a really different result. 
-
+####Temporal Variation
+Here we calculate the range of aragonite saturation state at all locations, giving us a proxy for variablity in ocean acidification conditions
 ```{r temporal variation}
 
 alinaragmax <- a0 + a1 * (r_sst_max_alin-atr) + a2 * (r_do_max_alin-ao2r) + a3 * (r_sst_max_alin-atr) * (r_do_max_alin-ao2r)
@@ -372,322 +377,18 @@ aragrange <- aragrange/maxValue(aragrange)
 
 ```
 
-## Find Gaps
-Here I used the euclidean distance to combine the oceanographic distance and the geographic distance. I used a weighting factor of on the oceanographic distance, which is the max value of distance / max value of oceanographic distance, so that the two parameters combine equally. I multiplied each distance by the range of the aragonite saturation state, such that locations with equal distances will be "gappier" if their aragonite saturation state has a large range. This is to account for temporal variation. 
-
+##Find Gaps
+We used a Euclidean distance approach to combine geographic distance and oceanographic distance into a single “gap” layer. Thus, a gap in the network is a place where oceanographic conditions are different from conditions at the nearest data collection location, a place that is geographically far from the nearest data collection, or a place with both of these characteristics. When combining these two, we weighted the oceanographic distance term by multiplying it by the unitless ratio of the maximum value of geographic distance and the maximum value of the oceanographic distance. Finally, to incorporate temporal variability, we multiplied this value by the square of the aragonite saturation state range divided by the maximum range value squared, resulting in a unitless temporal variance value. 
 ```{r find gaps}
 
 #calculate gaps
 
 weight = maxValue(distance)/maxValue(oceanographicdistance)
 
-#gap<-((aragrange)^2*sqrt((distance)^2+(weight*oceanographicdistance)^2))/1000
+gap<-((aragrange)^2*sqrt((distance)^2+(weight*oceanographicdistance)^2))/1000
 
-gap<-(sqrt((distance)^2+(weight*oceanographicdistance)^2))/1000
+carbcompletegap<-((aragrange)^2*sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))/1000
 
-#carbcompletegap<-((aragrange)^2*sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))/1000
-
-carbcompletegap<-(sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))/1000
-
-#highfreqgap<-((aragrange)^2*sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))/1000
-
-highfreqgap<-(sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))/1000
-
-```
-
-## Create Figures
-Visualize gaps using tmap
-
-```{r map gaps}
-
-tmap_mode("view")
-
-setwd("/Users/raetaylor-burns/downloads")
-
-pal <- colorRampPalette(c("red", "white", "royalblue2"))
-
-aragonite <- tm_shape(arag)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = FALSE)+
-  tm_layout(main.title = "Aragonite Saturation State", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold")+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-aragonitelegend <- tm_shape(arag)+
-  tm_raster(title = "Aragonite Saturation State", palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE)+
-  tm_layout(main.title = "Aragonite Saturation State", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold", legend.only = TRUE, legend.just = "center")+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-tmap_save(aragonite, "aragonite.png", width = 3000, height = 4000, dpi = 500)
-tmap_save(aragonitelegend, "aragonitelegend.png", width = 3000, height = 4000, dpi = 500)
-
-pal <- colorRampPalette(c("royalblue1", "white", "red"))
-
-aragonitediscrepancy <- tm_shape(abs(arag-polygonarag))+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = FALSE)+
-  tm_layout(main.title = "Aragonite Saturation State Discrepancy", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold")+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
-  tm_shape(inventorycoords)+
-  tm_dots(size = 0.02)
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-aragonitediscrepancylegend <- tm_shape(abs(arag-polygonarag))+
-  tm_raster(title = "Aragonite Saturation State", palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE)+
-  tm_layout(main.title = "Aragonite Saturation State", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold", legend.only = TRUE, legend.just = "center")+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-  
-aragoniterange <- tm_shape(abs(aragrange))+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = FALSE)+
-  tm_layout(main.title = "Aragonite Saturation State Range", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold")+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
-  tm_shape(inventorycoords)+
-  tm_dots(size = 0.02)
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))  
-  
-aragoniterangelegend <- tm_shape(aragrange)+
-  tm_raster(title = "Aragonite Saturation State Range", palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE)+
-  tm_layout(main.title = "Aragonite Saturation State Range", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold", legend.only = TRUE, legend.just = "center")+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-  
-oceanographicdist <- tm_shape(oceanographicdistance)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = FALSE)+
-  tm_layout(main.title = "Oceanographic Distance", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold")+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
-  tm_shape(inventorycoords)+
-  tm_dots(size = 0.02)
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))  
-  
-oceanographicdistlegend <- tm_shape(oceanographicdistance)+
-  tm_raster(title = "Oceanographic Distance", palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE)+
-  tm_layout(main.title = "Oceanographic Distance", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold", legend.only = TRUE, legend.just = "center")+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-tmap_save(aragonitediscrepancy, "aragonitediscrepancy.png", width = 3000, height = 4000, dpi = 500)
-tmap_save(aragonitediscrepancylegend, "aragonitediscrepancylegend.png", width = 3000, height = 4000, dpi = 500)
-tmap_save(aragoniterange, "aragoniterange.png", width = 3000, height = 4000, dpi = 500)
-tmap_save(aragoniterangelegend, "aragoniterangelegend.png", width = 3000, height = 4000, dpi = 500)
-tmap_save(oceanographicdist, "oceanographicdistance.png", width = 3000, height = 4000, dpi = 500)
-tmap_save(oceanographicdistlegend, "oceanographicdistancelegend.png", width = 3000, height = 4000, dpi = 500)
-
-
-pal <- colorRampPalette(c("royalblue2", "white", "red"))
-
-fullgap <- tm_shape(gap)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
-  tm_layout(main.title = "Effective Distance to Nearest Monitoring (km)", fontfamily = "serif", fontface = "bold", main.title.size = 1)+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-channelislandfullgap <- crop(gap, ext_study_channelislands)
-
-channelislandgap <- tm_shape(channelislandfullgap)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
-  tm_layout(fontfamily = "serif", fontface = "bold")+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_shape(inventorycoords)+
-  tm_dots(size = 0.05)+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-pugetsoundfullgap <- crop(gap, ext_study_pugetsound)
-
-pugetsoundgap <- tm_shape(pugetsoundfullgap)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
-  tm_layout(fontfamily = "serif", fontface = "bold")+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_shape(inventorycoords)+
-  tm_dots(size = 0.05)+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-oregoncoastfullgap <- crop(gap, ext_study_oregoncoast)
-
-oregongap <- tm_shape(oregoncoastfullgap)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
-  tm_layout(fontfamily = "serif", fontface = "bold")+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_shape(inventorycoords)+
-  tm_dots(size = 0.05)+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-gaplegend <- tm_shape(gap)+
-  tm_raster(title = "Aragonite Saturation State", palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE)+
-  tm_layout(main.title = "Aragonite Saturation State", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold", legend.only = TRUE, legend.just = "center")+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-
-tmap_save(fullgap, "gap.png", width = 2000, height = 4000, dpi = 500)
-tmap_save(channelislandgap, "channelislandgap.png", width = 3800, height = 2500, dpi = 500)
-tmap_save(pugetsoundgap, "pugetsoundgap.png", width = 3800, height = 2500, dpi = 500)
-tmap_save(oregongap, "oregongap.png", width = 3800, height = 2500, dpi = 500)
-tmap_save(gaplegend, "gaplegend.png", width = 3000, height = 2000, dpi = 500)
-
-#carbonate complete inventory gaps 
-
-ccgap <- tm_shape(carbcompletegap)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, breaks = c(0, 150, 300, 450, 600, 750), legend.show = FALSE)+
-  tm_layout(main.title = "Effective Distance to Nearest Aragonite Monitoring (km)", fontfamily = "serif", fontface = "bold", main.title.size = 1)+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-channelislandcarbcompgap <- crop(carbcompletegap, ext_study_channelislands)
-
-channelislandccgap <- tm_shape(channelislandcarbcompgap)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
-  tm_layout()+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_shape(incompletecoords)+
-  tm_dots(size = 0.05)+
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-pugetsoundcarbcompgap <- crop(carbcompletegap, ext_study_pugetsound)
-
-pugetsoundccgap <- tm_shape(pugetsoundcarbcompgap)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
-  tm_layout()+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_shape(incompletecoords)+
-  tm_dots(size = 0.05)+
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-oregoncoastcarbcompgap <- crop(carbcompletegap, ext_study_oregoncoast)
-
-oregonccgap <- tm_shape(oregoncoastcarbcompgap)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
-  tm_layout()+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_shape(incompletecoords)+
-  tm_dots(size = 0.05)+
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-tmap_save(ccgap, "ccgaps.png", width = 3000, height = 4000, dpi = 500)
-tmap_save(channelislandccgap, "channelislandccgap.png", width = 3800, height = 2500, dpi = 500)
-tmap_save(pugetsoundccgap, "pugetsoundccgap.png", width = 3800, height = 2500, dpi = 500)
-tmap_save(oregonccgap, "oregonccgap.png", width = 3800, height = 2500, dpi = 500)
-
-# high frequency inventory gaps
-
-highfreqgap <- crop(highfreqgap, ext_study)
-
-hfgap <- tm_shape(highfreqgap)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE,  breaks = c(0, 150, 300, 450, 600, 750), legend.show = FALSE)+
-  tm_layout(main.title = "Effective Distance to Nearest Daily Monitoring (km)", fontfamily = "serif", fontface = "bold", main.title.size = 1)+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-channelislandhighfreqgap <- crop(highfreqgap, ext_study_channelislands)
-
-channelislandhfgap <- tm_shape(channelislandhighfreqgap)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
-  tm_layout()+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_shape(lowfreqcoords)+
-  tm_dots(size = 0.05)+
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-pugetsoundhighfreqgap <- crop(highfreqgap, ext_study_pugetsound)
-
-pugetsoundhfgap <- tm_shape(pugetsoundhighfreqgap)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
-  tm_layout()+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_shape(lowfreqcoords)+
-  tm_dots(size = 0.05)+
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-oregoncoasthighfreqgap <- crop(highfreqgap, ext_study_oregoncoast)
-
-oregonhfgap <- tm_shape(oregoncoasthighfreqgap)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
-  tm_layout()+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_shape(lowfreqcoords)+
-  tm_dots(size = 0.05)+
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-tmap_save(hfgap, "hfgaps.png", width = 4000, height = 4000, dpi = 500)
-tmap_save(channelislandhfgap, "channelislandhfgap.png", width = 3800, height = 2500, dpi = 500)
-tmap_save(pugetsoundhfgap, "pugetsoundhfgap.png", width = 3800, height = 2500, dpi = 500)
-tmap_save(oregonhfgap, "oregonhfgap.png", width = 3800, height = 2500, dpi = 500)
+highfreqgap<-((aragrange)^2*sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))/1000
 
 ```

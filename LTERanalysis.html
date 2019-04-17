@@ -11,7 +11,7 @@
 
 
 
-<title>LTER Time Series Analysis for Manuscript</title>
+<title>Manuscript LTER Time Series Analysis</title>
 
 <script src="site_libs/jquery-1.12.4/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -338,7 +338,7 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">LTER Time Series Analysis for Manuscript</h1>
+<h1 class="title toc-ignore">Manuscript LTER Time Series Analysis</h1>
 
 </div>
 
@@ -346,12 +346,13 @@ $(document).ready(function () {
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>In the Santa Barbara Channel sub-region of the California Current, aragonite saturation is currently monitored a relatively fine spatial and temporal scale, through the Santa Barbara Coastal Long Term Ecological Research Project (SBC LTER), run by the National Science Foundation, and housed at the University of California, Santa Barbara. The SBC LTER runs four sites that collect aragonite saturation state every twenty minutes, spread across a distance of 50 miles from the Santa Barbara Pier westward to the Gaviota Coast. These sensors are located at the Santa Barbara Pier, Mohawk Reef, Alegria Reef, and Arroyo Quemado Reef (figure 1). As part of the ongoing effort to establish a cohesive OA monitoring network, this project aims to characterize autocorrelation and covariance in the SBC LTER aragonite measurements. This analysis help gain understanding of the spatial and temporal scale of autocorrelation and establish reference points for how frequently aragonite should be measured in coastal environments and how great the distance between measurements can be without losing valuable information between data collection locations. Results help inform future management decisions in how to design an ideal OA monitoring network and how to improve the network that exists today.</p>
-<div id="htmlwidget-1aa335c5e8d96d6f6e55" style="width:576px;height:576px;" class="leaflet html-widget"></div>
-<script type="application/json" data-for="htmlwidget-1aa335c5e8d96d6f6e55">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["Esri.OceanBasemap",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addCircleMarkers","args":[[34.40934,34.39323,34.46495,34.4617],[-119.685,-119.73,-120.12,-120.29],6,null,null,{"interactive":true,"className":"","stroke":false,"color":"#03F","weight":7,"opacity":0.5,"fill":true,"fillColor":"#03F","fillOpacity":0.5},null,null,["Site:  Stearns Wharf/Santa Barbara Harbor (SBH)","Site:  Mohawk (MKO)","Site:  Arroyo Quemado Reef (ARQ)","Site:  Alegria (ALE)"],null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"setView":[[34.42,-120],10,[]],"limits":{"lat":[34.39323,34.46495],"lng":[-120.29,-119.685]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-c987a7b8ada134a17826" style="width:672px;height:480px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-c987a7b8ada134a17826">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["Esri.OceanBasemap",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addCircleMarkers","args":[[34.40934,34.39323,34.46495,34.4617],[-119.685,-119.73,-120.12,-120.29],6,null,null,{"interactive":true,"className":"","stroke":false,"color":"#03F","weight":7,"opacity":0.5,"fill":true,"fillColor":"#03F","fillOpacity":0.5},null,null,["Site:  Stearns Wharf/Santa Barbara Harbor (SBH)","Site:  Mohawk (MKO)","Site:  Arroyo Quemado Reef (ARQ)","Site:  Alegria (ALE)"],null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"setView":[[34.42,-120],10,[]],"limits":{"lat":[34.39323,34.46495],"lng":[-120.29,-119.685]}},"evals":[],"jsHooks":[]}</script>
 </div>
-<div id="setup" class="section level2">
-<h2>Setup</h2>
-<p>Load packages</p>
+<div id="step-1.-setup" class="section level2">
+<h2>Step 1. Setup</h2>
+<div id="load-packages-and-data" class="section level4">
+<h4>Load packages and data</h4>
 <pre class="r"><code>library(lubridate)
 library(dplyr)  
 library(devtools)   
@@ -365,8 +366,8 @@ arq &lt;- read_csv(&quot;data/ARQ_arag.csv&quot;)
 mko &lt;- read_csv(&quot;data/MKO_arag.csv&quot;)
 sbh &lt;- read_csv(&quot;data/SBH_arag.csv&quot;)</code></pre>
 </div>
-<div id="load-data" class="section level2">
-<h2>Load Data</h2>
+<div id="organize-and-clean-data" class="section level4">
+<h4>Organize and clean data</h4>
 <p>Data were obtained through the SBC LTER website (<a href="http://sbc.lternet.edu/" class="uri">http://sbc.lternet.edu/</a>) and imported into R Studio (version 1.1.419). Here we load LTER data and organize/clean.</p>
 <pre class="r"><code>lter &lt;- merge.data.frame(ale, arq, by = &#39;Time_stamp_UTC&#39;, all.x = T)    
 lter &lt;- merge.data.frame(lter, mko, by = &#39;Time_stamp_UTC&#39;, all.x = T)   
@@ -378,8 +379,8 @@ lter &lt;- lter[c(1, 5, 9, 13, 17)]
 
 names(lter) &lt;- c(&quot;Time_Stamp_UTC&quot;, &quot;Ale_Arag&quot;, &quot;Arq_Arag&quot;, &quot;Mko_Arag&quot;, &quot;Sbh_Arag&quot;)</code></pre>
 </div>
-<div id="remove-seasonal-trends" class="section level2">
-<h2>Remove Seasonal Trends</h2>
+<div id="remove-seasonal-trends" class="section level4">
+<h4>Remove Seasonal Trends</h4>
 <p>Here we remove the seasonal signal of aragonite saturation (i.e. seasonal upwelling trend) by aggregating data by month and calculating means of these monthly aggregates. Observations were subtracted from these monthly values, and resulting data represents the deviation from the monthly mean.</p>
 <pre class="r"><code>lter$month &lt;- month(lter$Time_Stamp_UTC)    
 
@@ -404,8 +405,8 @@ ltermerge &lt;- ltermerge[c(2, 11, 12, 13, 14)]
 
 ltermerge$Time_Stamp_UTC &lt;- as.POSIXct(ltermerge$Time_Stamp_UTC,format = &quot;%Y-%m-%dT %H:%M:%SZ&quot;) </code></pre>
 </div>
-<div id="separate-time-chunks" class="section level2">
-<h2>Separate Time Chunks</h2>
+<div id="separate-time-chunks" class="section level4">
+<h4>Separate Time Chunks</h4>
 <p>If the four inshore ocean SBC LTER sensors are functioning normally, they measure aragonite saturation state every 20 minutes. However, sensors occasionally require maintenance or replacement, meaning that large chunks of time exist where at least one of the four is not collecting data. In fact, since the sensors were deployed in 2012, there were only several months during which all four sensors were collecting data.</p>
 <p>Here, the time series data are split into separate chunks when the time gap between two measurements exceeded 20 minutes (signifying equipment malfunction). We separate the time series for each site into time chunks of continous measurement at 20 minute intervals so that the interval is consistent when calculating autocorrelation</p>
 <pre class="r"><code>#ale    
@@ -500,8 +501,11 @@ sbh4 &lt;- sbharag[c((breaks[3]+1):breaks[4]),]
 sbh5 &lt;- sbharag[c((breaks[4]+1):breaks[5]),]
 sbh6 &lt;- sbharag[c((breaks[5]+1):n),]</code></pre>
 </div>
-<div id="calculate-autocorrelation" class="section level2">
-<h2>Calculate Autocorrelation</h2>
+</div>
+<div id="step-2.-autocorrelation" class="section level2">
+<h2>Step 2. Autocorrelation</h2>
+<div id="calculate-autocorrelation" class="section level4">
+<h4>Calculate Autocorrelation</h4>
 <p>The autocorrelation is calculated for each of these subsets of the whole time series, with a maximum lag determined by 1/3 the length of the subset, meaning some of these subsets had much longer maximum lags than others. For each lag at each LTER site, the average autocorrelation was calculated with the mean of all time series subsets that were long enough to provide data at that lag – i.e. all subsets could provide information for lag 1 and lag 2, but only subsets that were at least 30 days long could provide information for lags in day 10. Thus, smaller lags are made of averages across all time series subsets, while larger lags rely on data from one or two of the time series subsets. Decorrelation time scales were determined by finding the first zero crossing of the autocorrelation value.</p>
 <pre class="r"><code>#ale
 
@@ -595,8 +599,8 @@ acf_sbh_tot &lt;- cbind.fill(acf_sbh1_df, acf_sbh2_df, acf_sbh3_df, acf_sbh4_df,
 
 acf_sbh_final &lt;- rowMeans(acf_sbh_tot, na.rm = TRUE)</code></pre>
 </div>
-<div id="plot-autocorrelation-for-all-four-sites" class="section level2">
-<h2>Plot autocorrelation for all four sites</h2>
+<div id="plot-autocorrelation-for-all-four-sites" class="section level4">
+<h4>Plot autocorrelation for all four sites</h4>
 <p>Here we see that decorrelation scales decrease towards the eastern end of the Santa Barbara Channel. Alegria Reef and Arroyo Quemado are closest to Point Conception and have the shortest decorrelation time scales, whereas Santa Barbara Harbor and Mohawk are further East in the Channel and had the longest decorrelation time scale.</p>
 <p>A main conclusion from this analysis is that the SBC LTER sites are adequately capturing temporal changes in OA with their 20 minute sampling intervals. Results from the autocorrelation analysis reveal that study sites closer to Point Conception have shorter decorrelation time scales as compared to sites further east in the Santa Barbara Channel. This may mean that the Central Coast, which is more exposed and has fewer geographic features, has shorter decorrelation time scales than the California Bight, and thus monitoring locations outside of the Bight should ideally collect OA data more frequently than locations in the Bight.</p>
 <pre class="r"><code>plot(acf_sbh_final, type = &quot;l&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;, col = &quot;orangered&quot;, xlim = c(0,720), family = &quot;serif&quot;)   
@@ -609,8 +613,11 @@ legend(350, 0.9, legend = c(&quot;Santa Barbara Harbor&quot;, &quot;Alegria Reef
 axis(1, at=72*(0:10), labels = 1*(0:10), family = &quot;serif&quot;)  </code></pre>
 <p><img src="LTERanalysis_files/figure-html/plot%20autocorrelation-1.png" width="672" /></p>
 </div>
-<div id="correlation-matrix-for-aragonite-saturation-state-at-the-four-different-sites" class="section level2">
-<h2>Correlation matrix for aragonite saturation state at the four different sites</h2>
+</div>
+<div id="step-3.-correlation-between-lter-sites" class="section level2">
+<h2>Step 3. Correlation between LTER Sites</h2>
+<div id="calculate-correlation-matrix" class="section level4">
+<h4>Calculate correlation matrix</h4>
 <p>To determine how much the OA condition co-varies between the four sites, correlation and covariance matrices were constructed on aragonite saturation state measurements. First, seasonal signals were removed in the same method as described above. Then, correlation matrices of aragonite saturation between the four sites were created. Weak relationships were observed, between all sites.</p>
 <pre class="r"><code>ltercor &lt;- ltermerge
 
@@ -618,8 +625,8 @@ names(ltercor) &lt;- c(&quot;Time&quot;, &quot;Ale&quot;, &quot;Arq&quot;, &quot
 
 aragcor &lt;- cor(ltercor[,c(2, 3, 4, 5)], use = &quot;pairwise.complete.obs&quot;)</code></pre>
 </div>
-<div id="view-correlation-matrix" class="section level2">
-<h2>View correlation matrix</h2>
+<div id="view-correlation-matrix" class="section level4">
+<h4>View correlation matrix</h4>
 <p>A main conclusion here is that the SBC LTER sites are not spatially redundant. Another important conclusion from this analysis is that the efficacy of a monitoring network cannot be determined by spatial proximity of monitoring sites alone. Mohawk Reef and Santa Barbara Harbor are geographically very close (less than 3 miles), but this analysis reveals that these two LTER sites have different oceanographic conditions, and that other sites which are much farther away from each other are more similar than Mohawk and Santa Barbara Harbor. Alegria and Arroyo Quemado Reefs are 10 miles apart from each other, and Arroyo Quemado and Mohawk Reefs are 24 miles apart from each other, and each of these pairs share stronger relationships than exists between Santa Barbara Harbor and Mohawk Reef.</p>
 <table>
 <thead>
@@ -662,6 +669,7 @@ aragcor &lt;- cor(ltercor[,c(2, 3, 4, 5)], use = &quot;pairwise.complete.obs&quo
 </tr>
 </tbody>
 </table>
+</div>
 </div>
 
 
