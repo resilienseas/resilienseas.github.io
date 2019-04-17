@@ -3,7 +3,7 @@ title: "Manuscript Gap Analysis"
 output: html_document
 ---
 
-```{r setup, include=TRUE, cache = FALSE}
+```{r setup, echo = FALSE, results = "hide", include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 

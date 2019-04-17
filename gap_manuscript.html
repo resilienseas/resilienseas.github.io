@@ -333,7 +333,6 @@ $(document).ready(function () {
 </div>
 
 
-<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE)</code></pre>
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>Given the existing monitoring network, our analysis locates the best site for the next monitoring asset, thereby filling in monitoring network gaps one asset at a time, based off the sites that already are in place. In this analysis we utilized methods that fall in the middle of the spectrum defined by other works in this realm (see Asch et al. (2003) for a more simplistic approach, and Frolov et al. 2013 for a more involved approach). These decisions were made due to the constraints of the data we used (spatial metadata as opposed to time series and satellite data) as well as the goal of working with policymakers and non-scientist end users. The result is an analysis that provides specific spatial information on relative sampling of ocean acidification on the West Coast. Monitoring networks are geographic objects, and it might seem that the ideal network would evenly spaced across the ocean. However, the ocean is not uniform: some places in the ocean are more dynamic, both spatially and temporally, than others. This effect can be illustrated with an example from the Santa Barbara Channel (see LTER analysis). Thus, where the ocean is highly dynamic, an ideal monitoring network will have more closely clustered assets than in places that are more static.</p>
@@ -427,109 +426,7 @@ r_sst_min &lt;- lyr_to_tif(
 <pre><code>## lyr_to_tif() messages...</code></pre>
 <pre><code>##   loading layer from sdmpredictors and projecting</code></pre>
 <pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 6784 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 5705 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 10704 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 20806 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 25632 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 28885 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 31256 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 33016 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 34326 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 35251 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 35842 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 36124 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 36121 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 35831 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 35234 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 34301 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 32980 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 31209 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 28823 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 25544 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 20666 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 10430 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 5729 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 6810 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 7992 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 9293 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 10701 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 12233 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 13880 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 15652 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 17560 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 19605 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 21788 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 24130 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 26625 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 29298 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 32150 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 35199 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 38460 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 41954 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 45716 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 49757 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 54127 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 58880 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 64066 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 69792 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 76179 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 83437 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 91921 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 102360 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 116947 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 57250 projected point(s) not finite</code></pre>
+## 1834961 projected point(s) not finite</code></pre>
 <pre><code>##   cropping raster to extent</code></pre>
 <pre><code>##   filling in missing (NA) values with focal window</code></pre>
 <pre><code>##   writing raster to tif</code></pre>
@@ -552,15 +449,7 @@ r_sst_max &lt;- lyr_to_tif(
 <pre><code>## lyr_to_tif() messages...</code></pre>
 <pre><code>##   loading layer from sdmpredictors and projecting</code></pre>
 <pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 277435 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 320839 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 156739 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 483618 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 596330 projected point(s) not finite</code></pre>
+## 1834961 projected point(s) not finite</code></pre>
 <pre><code>##   cropping raster to extent</code></pre>
 <pre><code>##   filling in missing (NA) values with focal window</code></pre>
 <pre><code>##   writing raster to tif</code></pre>
@@ -595,17 +484,7 @@ r_do_max &lt;- lyr_to_tif(
 <pre><code>## lyr_to_tif() messages...</code></pre>
 <pre><code>##   loading layer from sdmpredictors and projecting</code></pre>
 <pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 203614 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 317434 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 121579 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 197783 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 461389 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 533162 projected point(s) not finite</code></pre>
+## 1834961 projected point(s) not finite</code></pre>
 <pre><code>##   cropping raster to extent</code></pre>
 <pre><code>##   filling in missing (NA) values with focal window</code></pre>
 <pre><code>##   writing raster to tif</code></pre>
