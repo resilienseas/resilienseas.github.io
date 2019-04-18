@@ -346,8 +346,8 @@ $(document).ready(function () {
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>In the Santa Barbara Channel sub-region of the California Current, aragonite saturation is currently monitored a relatively fine spatial and temporal scale, through the Santa Barbara Coastal Long Term Ecological Research Project (SBC LTER), run by the National Science Foundation, and housed at the University of California, Santa Barbara. The SBC LTER runs four sites that collect aragonite saturation state every twenty minutes, spread across a distance of 50 miles from the Santa Barbara Pier westward to the Gaviota Coast. These sensors are located at the Santa Barbara Pier, Mohawk Reef, Alegria Reef, and Arroyo Quemado Reef (figure 1). As part of the ongoing effort to establish a cohesive OA monitoring network, this project aims to characterize autocorrelation and covariance in the SBC LTER aragonite measurements. This analysis help gain understanding of the spatial and temporal scale of autocorrelation and establish reference points for how frequently aragonite should be measured in coastal environments and how great the distance between measurements can be without losing valuable information between data collection locations. Results help inform future management decisions in how to design an ideal OA monitoring network and how to improve the network that exists today.</p>
-<div id="htmlwidget-c987a7b8ada134a17826" style="width:672px;height:480px;" class="leaflet html-widget"></div>
-<script type="application/json" data-for="htmlwidget-c987a7b8ada134a17826">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["Esri.OceanBasemap",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addCircleMarkers","args":[[34.40934,34.39323,34.46495,34.4617],[-119.685,-119.73,-120.12,-120.29],6,null,null,{"interactive":true,"className":"","stroke":false,"color":"#03F","weight":7,"opacity":0.5,"fill":true,"fillColor":"#03F","fillOpacity":0.5},null,null,["Site:  Stearns Wharf/Santa Barbara Harbor (SBH)","Site:  Mohawk (MKO)","Site:  Arroyo Quemado Reef (ARQ)","Site:  Alegria (ALE)"],null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"setView":[[34.42,-120],10,[]],"limits":{"lat":[34.39323,34.46495],"lng":[-120.29,-119.685]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-65dabb1ed12adb5e1799" style="width:672px;height:480px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-65dabb1ed12adb5e1799">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["Esri.OceanBasemap",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addCircleMarkers","args":[[34.40934,34.39323,34.46495,34.4617],[-119.685,-119.73,-120.12,-120.29],6,null,null,{"interactive":true,"className":"","stroke":false,"color":"#03F","weight":7,"opacity":0.5,"fill":true,"fillColor":"#03F","fillOpacity":0.5},null,null,["Site:  Stearns Wharf/Santa Barbara Harbor (SBH)","Site:  Mohawk (MKO)","Site:  Arroyo Quemado Reef (ARQ)","Site:  Alegria (ALE)"],null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"setView":[[34.42,-120],10,[]],"limits":{"lat":[34.39323,34.46495],"lng":[-120.29,-119.685]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="step-1.-setup" class="section level2">
 <h2>Step 1. Setup</h2>
@@ -603,7 +603,12 @@ acf_sbh_final &lt;- rowMeans(acf_sbh_tot, na.rm = TRUE)</code></pre>
 <h4>Plot autocorrelation for all four sites</h4>
 <p>Here we see that decorrelation scales decrease towards the eastern end of the Santa Barbara Channel. Alegria Reef and Arroyo Quemado are closest to Point Conception and have the shortest decorrelation time scales, whereas Santa Barbara Harbor and Mohawk are further East in the Channel and had the longest decorrelation time scale.</p>
 <p>A main conclusion from this analysis is that the SBC LTER sites are adequately capturing temporal changes in OA with their 20 minute sampling intervals. Results from the autocorrelation analysis reveal that study sites closer to Point Conception have shorter decorrelation time scales as compared to sites further east in the Santa Barbara Channel. This may mean that the Central Coast, which is more exposed and has fewer geographic features, has shorter decorrelation time scales than the California Bight, and thus monitoring locations outside of the Bight should ideally collect OA data more frequently than locations in the Bight.</p>
-<pre class="r"><code>plot(acf_sbh_final, type = &quot;l&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation&#39;, ylab = &#39;&#39;, col = &quot;orangered&quot;, xlim = c(0,720), family = &quot;serif&quot;)   
+<pre class="r"><code>#commands to save plots are commented out
+#png(&#39;autocorrelation.png&#39;, width = 7, height = 5, units = &#39;in&#39;, res = 500)
+#setwd(&quot;/Users/raetaylor-burns/downloads&quot;)
+#autocorrelation &lt;- 
+  
+  plot(acf_sbh_final, type = &quot;l&quot;, xaxt = &quot;n&quot;, xlab=&#39;Lag (days)&#39;, main = &#39;Autocorrelation of LTER OA measurements&#39;, ylab = &#39;&#39;, col = &quot;orangered&quot;, xlim = c(0,720), family = &quot;serif&quot;) 
 lines(acf_ale_final, col = &quot;plum&quot;)  
 lines(acf_arq_final, col = &quot;royalblue2&quot;)    
 lines(acf_mko_final, col = &quot;navyblue&quot;)  
@@ -612,6 +617,7 @@ op &lt;- par(family = &quot;serif&quot;)
 legend(350, 0.9, legend = c(&quot;Santa Barbara Harbor&quot;, &quot;Alegria Reef&quot;, &quot;Arroyo Quemado Reef&quot;, &quot;Mohawk Reef&quot;), fill = c(&quot;tomato&quot;, &quot;plum&quot;, &quot;royalblue2&quot;, &quot;navyblue&quot;))    
 axis(1, at=72*(0:10), labels = 1*(0:10), family = &quot;serif&quot;)  </code></pre>
 <p><img src="LTERanalysis_files/figure-html/plot%20autocorrelation-1.png" width="672" /></p>
+<pre class="r"><code>#dev.off()</code></pre>
 </div>
 </div>
 <div id="step-3.-correlation-between-lter-sites" class="section level2">

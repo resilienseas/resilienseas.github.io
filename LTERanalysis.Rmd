@@ -339,7 +339,12 @@ A main conclusion from this analysis is that the SBC LTER sites are adequately c
 
 ```{r plot autocorrelation}
 
-plot(acf_sbh_final, type = "l", xaxt = "n", xlab='Lag (days)', main = 'Autocorrelation', ylab = '', col = "orangered", xlim = c(0,720), family = "serif")	
+#commands to save plots are commented out
+#png('autocorrelation.png', width = 7, height = 5, units = 'in', res = 500)
+#setwd("/Users/raetaylor-burns/downloads")
+#autocorrelation <- 
+  
+  plot(acf_sbh_final, type = "l", xaxt = "n", xlab='Lag (days)', main = 'Autocorrelation of LTER OA measurements', ylab = '', col = "orangered", xlim = c(0,720), family = "serif")	
 lines(acf_ale_final, col = "plum")	
 lines(acf_arq_final, col = "royalblue2")	
 lines(acf_mko_final, col = "navyblue")	
@@ -347,6 +352,8 @@ abline(h = 0, col = "black")
 op <- par(family = "serif")	
 legend(350, 0.9, legend = c("Santa Barbara Harbor", "Alegria Reef", "Arroyo Quemado Reef", "Mohawk Reef"), fill = c("tomato", "plum", "royalblue2", "navyblue"))	
 axis(1, at=72*(0:10), labels = 1*(0:10), family = "serif")	
+
+#dev.off()
 
 ```
 
