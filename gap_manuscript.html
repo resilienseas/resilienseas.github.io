@@ -358,7 +358,9 @@ p_load(
   usdm,
   knitr,
   tmap,
-  rnaturalearth)
+  rnaturalearth, 
+  grid,
+  gridExtra)
 # custom R package: oatools
 devtools::load_all(here(&quot;../oatools&quot;)) # for developing</code></pre>
 <pre><code>## Loading oatools</code></pre>
@@ -449,15 +451,7 @@ r_sst_max &lt;- lyr_to_tif(
 <pre><code>## lyr_to_tif() messages...</code></pre>
 <pre><code>##   loading layer from sdmpredictors and projecting</code></pre>
 <pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 286674 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 314671 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 173418 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 535500 projected point(s) not finite</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 524698 projected point(s) not finite</code></pre>
+## 1834961 projected point(s) not finite</code></pre>
 <pre><code>##   cropping raster to extent</code></pre>
 <pre><code>##   filling in missing (NA) values with focal window</code></pre>
 <pre><code>##   writing raster to tif</code></pre>
@@ -739,8 +733,10 @@ aragrange &lt;- mosaic(alinaragrange, juranekaragrange, fun = mean)
 aragrange &lt;- aragrange/maxValue(aragrange)</code></pre>
 </div>
 </div>
-<div id="find-gaps" class="section level2">
-<h2>Find Gaps</h2>
+<div id="step-4.-find-gaps" class="section level2">
+<h2>Step 4. Find Gaps</h2>
+<div id="combine-ingredients" class="section level4">
+<h4>Combine ingredients</h4>
 <p>We used a Euclidean distance approach to combine geographic distance and oceanographic distance into a single “gap” layer. Thus, a gap in the network is a place where oceanographic conditions are different from conditions at the nearest data collection location, a place that is geographically far from the nearest data collection, or a place with both of these characteristics. When combining these two, we weighted the oceanographic distance term by multiplying it by the unitless ratio of the maximum value of geographic distance and the maximum value of the oceanographic distance. Finally, to incorporate temporal variability, we multiplied this value by the square of the aragonite saturation state range divided by the maximum range value squared, resulting in a unitless temporal variance value.</p>
 <pre class="r"><code>#calculate gaps
 
@@ -750,25 +746,12 @@ gap&lt;-((aragrange)^2*sqrt((distance)^2+(weight*oceanographicdistance)^2))/1000
 
 carbcompletegap&lt;-((aragrange)^2*sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))/1000
 
-highfreqgap&lt;-((aragrange)^2*sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))/1000
-
-tmap_mode(&quot;plot&quot;)</code></pre>
-<pre><code>## tmap mode set to plotting</code></pre>
-<pre class="r"><code>pal &lt;- colorRampPalette(c(&quot;royalblue2&quot;, &quot;white&quot;, &quot;red&quot;))
-
-tm_shape(carbcompletegap)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150))+
-  tm_layout(main.title = &quot;Effective Distance to Nearest Monitoring (km)&quot;, fontfamily = &quot;serif&quot;, fontface = &quot;bold&quot;, main.title.size = 1)+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_grid(projection = &quot;longlat&quot;, lwd = 0.1, n.x = 3, n.y = 6, labels.size = 0.6)+
-  tmap_options(max.raster = c(plot = 45955000, view = 45955000))</code></pre>
-<pre><code>## Warning: The argument auto.palette.mapping is deprecated. Please use
-## midpoint for numeric data and stretch.palette for categorical data to
-## control the palette mapping.</code></pre>
-<p><img src="gap_manuscript_files/figure-html/find%20gaps-1.png" width="672" /></p>
+highfreqgap&lt;-((aragrange)^2*sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))/1000</code></pre>
+</div>
+<div id="map-gaps" class="section level4">
+<h4>Map Gaps</h4>
+<p><img src="gap_manuscript_files/figure-html/map%20gaps-1.png" width="672" style="display: block; margin: auto;" /><img src="gap_manuscript_files/figure-html/map%20gaps-2.png" width="672" style="display: block; margin: auto;" /><img src="gap_manuscript_files/figure-html/map%20gaps-3.png" width="672" style="display: block; margin: auto;" /><img src="gap_manuscript_files/figure-html/map%20gaps-4.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
 </div>
 
 

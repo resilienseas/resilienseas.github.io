@@ -31,7 +31,9 @@ p_load(
   usdm,
   knitr,
   tmap,
-  rnaturalearth)
+  rnaturalearth, 
+  grid,
+  gridExtra)
 # custom R package: oatools
 devtools::load_all(here("../oatools")) # for developing
 
@@ -377,9 +379,10 @@ aragrange <- aragrange/maxValue(aragrange)
 
 ```
 
-##Find Gaps
+##Step 4. Find Gaps
+####Combine ingredients
 We used a Euclidean distance approach to combine geographic distance and oceanographic distance into a single “gap” layer. Thus, a gap in the network is a place where oceanographic conditions are different from conditions at the nearest data collection location, a place that is geographically far from the nearest data collection, or a place with both of these characteristics. When combining these two, we weighted the oceanographic distance term by multiplying it by the unitless ratio of the maximum value of geographic distance and the maximum value of the oceanographic distance. Finally, to incorporate temporal variability, we multiplied this value by the square of the aragonite saturation state range divided by the maximum range value squared, resulting in a unitless temporal variance value. 
-```{r find gaps}
+```{r find gaps, warning=FALSE, message=FALSE}
 
 #calculate gaps
 
@@ -391,18 +394,52 @@ carbcompletegap<-((aragrange)^2*sqrt((carbcompletedistance)^2+(weight*carbcomple
 
 highfreqgap<-((aragrange)^2*sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))/1000
 
+```
+
+####Map Gaps
+```{r map gaps, echo=FALSE, warning=FALSE, message=FALSE, fig.align='center', fig.show='hold'}
 tmap_mode("plot")
 
 pal <- colorRampPalette(c("royalblue2", "white", "red"))
 
-tm_shape(carbcompletegap)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150))+
-  tm_layout(main.title = "Effective Distance to Nearest Monitoring (km)", fontfamily = "serif", fontface = "bold", main.title.size = 1)+
+tm_shape(gap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 25, 50, 75, 100, 125, 150))+
+  tm_layout(main.title = "Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 1)+
   tm_shape(poly_coast)+
   tm_polygons()+
   tm_shape(Canada)+
   tm_polygons()+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.size = 0.6)+
+  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+tm_shape(carbcompletegap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 25, 50, 75, 100, 125, 150))+
+  tm_layout(main.title = "Aragonite Measurement Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 1)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+tm_shape(highfreqgap)+
+  tm_raster(palette = pal(10), colorNA = NULL, alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 25, 50, 75, 100, 125, 150))+
+  tm_layout(main.title = "Daily Monitoring Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 1)+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+tm_shape(gap)+
+  tm_raster(title = "Effective Distance to Nearest Monitoring (km)", palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE)+
+  tm_layout(main.title = "Effective Distance to Nearest Monitoring (km)", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold", legend.only = TRUE, legend.just = "center")+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.size = 0.6)
+tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 ```
