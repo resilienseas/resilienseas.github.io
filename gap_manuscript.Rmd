@@ -92,16 +92,6 @@ n_na        <- sum(is.na(raster::getValues(r_sst_min)))
 ####Create SST/DO min/max rasters from bio-oracle data
 Aragonite saturation state is the gold standard in an ocean acidification monitoring network, as this measurement has direct biological implications.9 However, the variables needed to calculate aragonite saturation state are not yet measured at a sufficient spatial-temporal resolution to identify highly variable locations across the study region. While this raw data could theoretically be replaced by a high-resolution model that would explicitly account for physical, chemical, and biological oceanographic processes, and integrate a variety of input data, such models are not yet available (although some are under development). In the absence of a model or data to describe aragonite saturation state, we used temperature and dissolved oxygen as proxies, because they are strongly positively correlated with aragonite saturation state.
 ```{r bio-Oracle}
-#sst max
-r_sst_max <- lyr_to_tif(
-  lyr = "BO_sstmax", 
-  tif = here("data/sst_min.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study, 
-  redo=T, fill_na=TRUE, fill_window=11)
-r_sst_max_alin <- crop(r_sst_max, ext_study_alin)
-r_sst_max_juranek <- crop(r_sst_max, ext_study_juranek)
 
 #do min
 r_do_min <- lyr_to_tif(
@@ -114,20 +104,10 @@ r_do_min <- lyr_to_tif(
 r_do_min_alin <- crop(r_do_min, ext_study_alin)
 r_do_min_juranek <- crop(r_do_min, ext_study_juranek)
 
-r_do_max <- lyr_to_tif(
-  lyr = "BO2_dissoxmax_bdmin", 
-  tif = here("data/do_max.tif"),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study, 
-  redo=T, fill_na=TRUE, fill_window=11)
-r_do_max_alin <- crop(r_do_max, ext_study_alin)
-r_do_max_juranek <- crop(r_do_max, ext_study_juranek)
-
 ```
 
 ####Use Juranek 2009 and Alin 2012 model to create ocean acidification layer for the study region
-At a sub-regional scale, empirically validated models have been developed that predict aragonite saturation state based on temperature and dissolved oxygen measurements. Our analysis utilized equation II from Alin et al. (2012) in the southern part of the study region and equation 3 from Juranek et al. (2009) in the northern part of the study region. We then created a “worst-case scenario” aragonite saturation state raster following equation (2) for the southern region and equation (3) for the northern region, using the minimum sea surface temperature and dissolved oxygen values from each ocean area. 
+At a sub-regional scale, empirically validated models have been developed that predict aragonite saturation state based on temperature and dissolved oxygen measurements. Our analysis utilized equation II from Alin et al. (2012) in the southern part of the study region and equation 3 from Juranek et al. (2009) in the northern part of the study region. We then created a “worst-case scenario” aragonite saturation state raster using the minimum sea surface temperature and dissolved oxygen values from each ocean area. 
 ```{r Juranek and Alin models}
 #juranek aragonite
 j0 = 9.242*10^-1
@@ -191,11 +171,8 @@ oahfocus <- subset(inventory, OAHFocus == "OA" | OAHFocus == "H" | OAHFocus == "
 
 #quantify frequencies
 unique(oahfocus$MeasFreq)
-oahfocus$MeasFreq[oahfocus$MeasFreq =="Once"] <- 0
 oahfocus$MeasFreq[oahfocus$MeasFreq == 10] <- 52560
-oahfocus$MeasFreq[oahfocus$MeasFreq =="< 6 hours"] <- 1460
 oahfocus$MeasFreq[oahfocus$MeasFreq == 60] <- 8760
-oahfocus$MeasFreq[oahfocus$MeasFreq =="Daily"] <- 365
 oahfocus$MeasFreq[oahfocus$MeasFreq ==30] <- 17520
 oahfocus$MeasFreq[oahfocus$MeasFreq == 20] <- 26280
 oahfocus$MeasFreq[oahfocus$MeasFreq == 15] <- 35040
@@ -225,6 +202,12 @@ oahfocus$MeasFreq[oahfocus$MeasFreq =="Biennial"] <- 0.5
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Weekly"] <- 52
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Triennial"] <- 0.33333
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Trimester"] <- 3
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Daily"] <- 365
+oahfocus$MeasFreq[oahfocus$MeasFreq =="< 6 hours"] <- 1460
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Once"] <- 0
+
+
+
 unique(oahfocus$MeasFreq)
 
 #remove NA coordinates
@@ -353,58 +336,34 @@ carbcompletedistance<-distanceFromPoints(carbcompleteoceanographicdistance, carb
 highfreqdistance<-distanceFromPoints(highfreqoceanographicdistance, highfreqcoords)
 ```
 
-####Temporal Variation
-Here we calculate the range of aragonite saturation state at all locations, giving us a proxy for variablity in ocean acidification conditions
-```{r temporal variation}
-
-alinaragmax <- a0 + a1 * (r_sst_max_alin-atr) + a2 * (r_do_max_alin-ao2r) + a3 * (r_sst_max_alin-atr) * (r_do_max_alin-ao2r)
-
-juranekaragmax <- j0 + j1 * (r_do_max_juranek-jo2r) + j2 * (r_do_max_juranek-jo2r) * (r_sst_max_juranek-jtr)
-
-#alinaragrange <- alinaragmax-alin_arag
-#juranekaragrange <- juranekaragmax-juranek_arag
-
-alinaragrange <- a1 * (r_sst_max-r_sst_min) + a2 * (r_do_max-r_do_min) + a3 * ( (r_sst_max-r_sst_min)*(r_do_min + r_do_min - ao2r) + (r_do_max-r_do_min)*(r_sst_min - atr)) 
-  
-alinaragrange <- crop(alinaragrange, ext_study_alin)
-
-juranekaragrange <- j1 * (r_do_max-r_do_min) + j2 * (r_do_max-r_do_min) + a3 * ( (r_sst_max-r_sst_min)*(r_do_min + r_do_min - jo2r) + (r_do_max-r_do_min)*(r_sst_min - jtr)) 
-
-juranekaragrange <- crop(juranekaragrange, ext_study_juranek)
-
-aragrange <- mosaic(alinaragrange, juranekaragrange, fun = mean)
-
-aragrange <- aragrange/maxValue(aragrange)
-
-
-```
-
 ##Step 4. Find Gaps
 ####Combine ingredients
-We used a Euclidean distance approach to combine geographic distance and oceanographic distance into a single “gap” layer. Thus, a gap in the network is a place where oceanographic conditions are different from conditions at the nearest data collection location, a place that is geographically far from the nearest data collection, or a place with both of these characteristics. When combining these two, we weighted the oceanographic distance term by multiplying it by the unitless ratio of the maximum value of geographic distance and the maximum value of the oceanographic distance. Finally, to incorporate temporal variability, we multiplied this value by the square of the aragonite saturation state range divided by the maximum range value squared, resulting in a unitless temporal variance value. 
+We used a Euclidean distance approach to combine geographic distance and oceanographic distance into a single “gap” layer. Thus, a gap in the network is a place where oceanographic conditions are different from conditions at the nearest data collection location, a place that is geographically far from the nearest data collection, or a place with both of these characteristics. When combining these two, we weighted the oceanographic distance term by multiplying it by the unitless ratio of the maximum value of geographic distance and the maximum value of the oceanographic distance. 
 ```{r find gaps, warning=FALSE, message=FALSE}
 
 #calculate gaps
 
 weight = maxValue(distance)/maxValue(oceanographicdistance)
 
-gap<-((aragrange)^2*sqrt((distance)^2+(weight*oceanographicdistance)^2))/1000
+gap<-(sqrt((distance)^2+(weight*oceanographicdistance)^2))/1000
 
-carbcompletegap<-((aragrange)^2*sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))/1000
+carbcompletegap<-(sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))/1000
 
-highfreqgap<-((aragrange)^2*sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))/1000
+highfreqgap<-(sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))/1000
 
 ```
 
-
 ####Map Gaps
 ```{r map gaps, echo=FALSE, warning=FALSE, message=FALSE, fig.show='hold', out.width = '25%', fig.height = 4, fig.width = 2}
+
+#run this rmd document and then run manuscript_maps.R to produce pngs used in manuscript. the following code produces maps on resilienses.github.io
+
 tmap_mode("plot")
 
 pal <- colorRampPalette(c("royalblue2", "white", "red"))
 
 tm_shape(gap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 150, 300, 450, 600, 750))+
   tm_layout(main.title = "Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -414,7 +373,7 @@ tm_shape(gap)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 tm_shape(carbcompletegap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
   tm_layout(main.title = "Aragonite Measurement Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -424,7 +383,7 @@ tm_shape(carbcompletegap)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 tm_shape(highfreqgap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
   tm_layout(main.title = "Daily Monitoring Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -434,7 +393,7 @@ tm_shape(highfreqgap)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 tm_shape(gap)+
-  tm_raster(title = "Effective Distance to Nearest Monitoring (km)", palette = pal(10), colorNA = 'grey87', alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE, breaks = c(0, 20, 40, 60, 80, 100))+
+  tm_raster(title = "Effective Distance to Nearest Monitoring (km)", palette = pal(10), colorNA = 'grey87', alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE, breaks = c(0, 150, 300, 450, 600, 750))+
   tm_layout(main.title = "Effective Distance to Nearest Monitoring (km)", bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold", legend.only = TRUE, legend.just = "center", legend.title.size = 0.7, legend.text.size= 0.5)+
   tm_shape(poly_coast)+
   tm_polygons()+

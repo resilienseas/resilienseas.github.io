@@ -8,7 +8,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
 ##Introduction
 In the Santa Barbara Channel sub-region of the California Current, aragonite saturation is currently monitored a relatively fine spatial and temporal scale, through the Santa Barbara Coastal Long Term Ecological Research Project (SBC LTER), run by the National Science Foundation, and housed at the University of California, Santa Barbara. The SBC LTER runs four sites that collect aragonite saturation state every twenty minutes, spread across a distance of 50 miles from the Santa Barbara Pier westward to the Gaviota Coast. These sensors are located at the Santa Barbara Pier, Mohawk Reef, Alegria Reef, and Arroyo Quemado Reef (figure 1). As part of the ongoing effort to establish a cohesive OA monitoring network, this project aims to characterize autocorrelation and covariance in the SBC LTER aragonite measurements. This analysis help gain understanding of the spatial and temporal scale of autocorrelation and establish reference points for how frequently aragonite should be measured in coastal environments and how great the distance between measurements can be without losing valuable information between data collection locations. Results help inform future management decisions in how to design an ideal OA monitoring network and how to improve the network that exists today. 
 
@@ -379,3 +378,4 @@ A main conclusion here is that the SBC LTER sites are not spatially redundant. A
 ```{r view matrix, echo=FALSE}
 kable(aragcor)
 ```
+

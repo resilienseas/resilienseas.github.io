@@ -440,25 +440,7 @@ n_na        &lt;- sum(is.na(raster::getValues(r_sst_min)))</code></pre>
 <div id="create-sstdo-minmax-rasters-from-bio-oracle-data" class="section level4">
 <h4>Create SST/DO min/max rasters from bio-oracle data</h4>
 <p>Aragonite saturation state is the gold standard in an ocean acidification monitoring network, as this measurement has direct biological implications.9 However, the variables needed to calculate aragonite saturation state are not yet measured at a sufficient spatial-temporal resolution to identify highly variable locations across the study region. While this raw data could theoretically be replaced by a high-resolution model that would explicitly account for physical, chemical, and biological oceanographic processes, and integrate a variety of input data, such models are not yet available (although some are under development). In the absence of a model or data to describe aragonite saturation state, we used temperature and dissolved oxygen as proxies, because they are strongly positively correlated with aragonite saturation state.</p>
-<pre class="r"><code>#sst max
-r_sst_max &lt;- lyr_to_tif(
-  lyr = &quot;BO_sstmax&quot;, 
-  tif = here(&quot;data/sst_min.tif&quot;),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study, 
-  redo=T, fill_na=TRUE, fill_window=11)</code></pre>
-<pre><code>## lyr_to_tif() messages...</code></pre>
-<pre><code>##   loading layer from sdmpredictors and projecting</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 1834961 projected point(s) not finite</code></pre>
-<pre><code>##   cropping raster to extent</code></pre>
-<pre><code>##   filling in missing (NA) values with focal window</code></pre>
-<pre><code>##   writing raster to tif</code></pre>
-<pre class="r"><code>r_sst_max_alin &lt;- crop(r_sst_max, ext_study_alin)
-r_sst_max_juranek &lt;- crop(r_sst_max, ext_study_juranek)
-
-#do min
+<pre class="r"><code>#do min
 r_do_min &lt;- lyr_to_tif(
   lyr = &quot;BO2_dissoxmin_bdmin&quot;, 
   tif = here(&quot;data/do_min.tif&quot;),
@@ -474,28 +456,11 @@ r_do_min &lt;- lyr_to_tif(
 <pre><code>##   filling in missing (NA) values with focal window</code></pre>
 <pre><code>##   writing raster to tif</code></pre>
 <pre class="r"><code>r_do_min_alin &lt;- crop(r_do_min, ext_study_alin)
-r_do_min_juranek &lt;- crop(r_do_min, ext_study_juranek)
-
-r_do_max &lt;- lyr_to_tif(
-  lyr = &quot;BO2_dissoxmax_bdmin&quot;, 
-  tif = here(&quot;data/do_max.tif&quot;),
-  crs = crs_study,
-  dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study, 
-  redo=T, fill_na=TRUE, fill_window=11)</code></pre>
-<pre><code>## lyr_to_tif() messages...</code></pre>
-<pre><code>##   loading layer from sdmpredictors and projecting</code></pre>
-<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 1834961 projected point(s) not finite</code></pre>
-<pre><code>##   cropping raster to extent</code></pre>
-<pre><code>##   filling in missing (NA) values with focal window</code></pre>
-<pre><code>##   writing raster to tif</code></pre>
-<pre class="r"><code>r_do_max_alin &lt;- crop(r_do_max, ext_study_alin)
-r_do_max_juranek &lt;- crop(r_do_max, ext_study_juranek)</code></pre>
+r_do_min_juranek &lt;- crop(r_do_min, ext_study_juranek)</code></pre>
 </div>
 <div id="use-juranek-2009-and-alin-2012-model-to-create-ocean-acidification-layer-for-the-study-region" class="section level4">
 <h4>Use Juranek 2009 and Alin 2012 model to create ocean acidification layer for the study region</h4>
-<p>At a sub-regional scale, empirically validated models have been developed that predict aragonite saturation state based on temperature and dissolved oxygen measurements. Our analysis utilized equation II from Alin et al. (2012) in the southern part of the study region and equation 3 from Juranek et al. (2009) in the northern part of the study region. We then created a “worst-case scenario” aragonite saturation state raster following equation (2) for the southern region and equation (3) for the northern region, using the minimum sea surface temperature and dissolved oxygen values from each ocean area.</p>
+<p>At a sub-regional scale, empirically validated models have been developed that predict aragonite saturation state based on temperature and dissolved oxygen measurements. Our analysis utilized equation II from Alin et al. (2012) in the southern part of the study region and equation 3 from Juranek et al. (2009) in the northern part of the study region. We then created a “worst-case scenario” aragonite saturation state raster using the minimum sea surface temperature and dissolved oxygen values from each ocean area.</p>
 <pre class="r"><code>#juranek aragonite
 j0 = 9.242*10^-1
 j1 = 4.492*10^-3
@@ -558,11 +523,8 @@ oahfocus &lt;- subset(inventory, OAHFocus == &quot;OA&quot; | OAHFocus == &quot;
 
 #quantify frequencies
 unique(oahfocus$MeasFreq)
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Once&quot;] &lt;- 0
 oahfocus$MeasFreq[oahfocus$MeasFreq == 10] &lt;- 52560
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;&lt; 6 hours&quot;] &lt;- 1460
 oahfocus$MeasFreq[oahfocus$MeasFreq == 60] &lt;- 8760
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Daily&quot;] &lt;- 365
 oahfocus$MeasFreq[oahfocus$MeasFreq ==30] &lt;- 17520
 oahfocus$MeasFreq[oahfocus$MeasFreq == 20] &lt;- 26280
 oahfocus$MeasFreq[oahfocus$MeasFreq == 15] &lt;- 35040
@@ -592,6 +554,12 @@ oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Biennial&quot;] &lt;- 0.5
 oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Weekly&quot;] &lt;- 52
 oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Triennial&quot;] &lt;- 0.33333
 oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Trimester&quot;] &lt;- 3
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Daily&quot;] &lt;- 365
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;&lt; 6 hours&quot;] &lt;- 1460
+oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Once&quot;] &lt;- 0
+
+
+
 unique(oahfocus$MeasFreq)
 
 #remove NA coordinates
@@ -710,43 +678,21 @@ highfreqoceanographicdistance = slope * highfreqvij</code></pre>
 carbcompletedistance&lt;-distanceFromPoints(carbcompleteoceanographicdistance, carbcompletecoords)
 highfreqdistance&lt;-distanceFromPoints(highfreqoceanographicdistance, highfreqcoords)</code></pre>
 </div>
-<div id="temporal-variation" class="section level4">
-<h4>Temporal Variation</h4>
-<p>Here we calculate the range of aragonite saturation state at all locations, giving us a proxy for variablity in ocean acidification conditions</p>
-<pre class="r"><code>alinaragmax &lt;- a0 + a1 * (r_sst_max_alin-atr) + a2 * (r_do_max_alin-ao2r) + a3 * (r_sst_max_alin-atr) * (r_do_max_alin-ao2r)
-
-juranekaragmax &lt;- j0 + j1 * (r_do_max_juranek-jo2r) + j2 * (r_do_max_juranek-jo2r) * (r_sst_max_juranek-jtr)
-
-#alinaragrange &lt;- alinaragmax-alin_arag
-#juranekaragrange &lt;- juranekaragmax-juranek_arag
-
-alinaragrange &lt;- a1 * (r_sst_max-r_sst_min) + a2 * (r_do_max-r_do_min) + a3 * ( (r_sst_max-r_sst_min)*(r_do_min + r_do_min - ao2r) + (r_do_max-r_do_min)*(r_sst_min - atr)) 
-  
-alinaragrange &lt;- crop(alinaragrange, ext_study_alin)
-
-juranekaragrange &lt;- j1 * (r_do_max-r_do_min) + j2 * (r_do_max-r_do_min) + a3 * ( (r_sst_max-r_sst_min)*(r_do_min + r_do_min - jo2r) + (r_do_max-r_do_min)*(r_sst_min - jtr)) 
-
-juranekaragrange &lt;- crop(juranekaragrange, ext_study_juranek)
-
-aragrange &lt;- mosaic(alinaragrange, juranekaragrange, fun = mean)
-
-aragrange &lt;- aragrange/maxValue(aragrange)</code></pre>
-</div>
 </div>
 <div id="step-4.-find-gaps" class="section level2">
 <h2>Step 4. Find Gaps</h2>
 <div id="combine-ingredients" class="section level4">
 <h4>Combine ingredients</h4>
-<p>We used a Euclidean distance approach to combine geographic distance and oceanographic distance into a single “gap” layer. Thus, a gap in the network is a place where oceanographic conditions are different from conditions at the nearest data collection location, a place that is geographically far from the nearest data collection, or a place with both of these characteristics. When combining these two, we weighted the oceanographic distance term by multiplying it by the unitless ratio of the maximum value of geographic distance and the maximum value of the oceanographic distance. Finally, to incorporate temporal variability, we multiplied this value by the square of the aragonite saturation state range divided by the maximum range value squared, resulting in a unitless temporal variance value.</p>
+<p>We used a Euclidean distance approach to combine geographic distance and oceanographic distance into a single “gap” layer. Thus, a gap in the network is a place where oceanographic conditions are different from conditions at the nearest data collection location, a place that is geographically far from the nearest data collection, or a place with both of these characteristics. When combining these two, we weighted the oceanographic distance term by multiplying it by the unitless ratio of the maximum value of geographic distance and the maximum value of the oceanographic distance.</p>
 <pre class="r"><code>#calculate gaps
 
 weight = maxValue(distance)/maxValue(oceanographicdistance)
 
-gap&lt;-((aragrange)^2*sqrt((distance)^2+(weight*oceanographicdistance)^2))/1000
+gap&lt;-(sqrt((distance)^2+(weight*oceanographicdistance)^2))/1000
 
-carbcompletegap&lt;-((aragrange)^2*sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))/1000
+carbcompletegap&lt;-(sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))/1000
 
-highfreqgap&lt;-((aragrange)^2*sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))/1000</code></pre>
+highfreqgap&lt;-(sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))/1000</code></pre>
 </div>
 <div id="map-gaps" class="section level4">
 <h4>Map Gaps</h4>
