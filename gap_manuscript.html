@@ -385,8 +385,8 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
 
 # extent of NE Pacific study area, for cropping rasters
 ext_study &lt;- extent(-500000, 340000, -580000, 1215000)
-ext_study_alin &lt;- extent(-6700000, 340000, -600000, 350000)
-ext_study_juranek &lt;- extent(-6700000, 340000, 150000, 1215000)
+ext_study_alin &lt;- extent(-5000000, 340000, -580000, 350000)
+ext_study_juranek &lt;- extent(-5000000, 340000, 150000, 1215000)
 crs_study &lt;- &#39;+init=EPSG:6414&#39;
 
 ext_study_channelislands &lt;- extent (0, 300000, -600000, -400000)
@@ -654,8 +654,8 @@ carbcompletevij &lt;- (arag-carbcompletepolygonarag)^2/2
 highfreqvij &lt;- (arag-highfreqpolygonarag)^2/2</code></pre>
 </div>
 </div>
-<div id="step-3.-find-gaps" class="section level2">
-<h2>Step 3. Find Gaps</h2>
+<div id="step-3.-geographic-and-oceanographic-distance" class="section level2">
+<h2>Step 3. Geographic and oceanographic distance</h2>
 <div id="oceanographic-distance" class="section level4">
 <h4>Oceanographic distance</h4>
 <p>The inverse of the linear relationship from the semi-variogram was applied to the semi-variance calculated above, yielding a map showing the “oceanographic distance” between each cell in our study region and the nearest monitoring asset. We define oceanographic distance as the effective distance between any location and the nearest monitoring asset, based on the similarity of oceanographic conditions that determine OA conditions between the two locations. A cell with high oceanographic distance has different acidification conditions than the nearest monitoring asset, and a cell with low oceanographic distance has similar acidification conditions to the nearest monitoring asset.</p>
