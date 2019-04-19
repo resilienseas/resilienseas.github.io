@@ -90,8 +90,14 @@ img {
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
+}
+summary {
+  display: list-item;
 }
 </style>
 
@@ -107,7 +113,6 @@ body {
   padding-top: 56px;
   margin-top: -56px;
 }
-
 .section h2 {
   padding-top: 56px;
   margin-top: -56px;
@@ -127,6 +132,43 @@ body {
 .section h6 {
   padding-top: 56px;
   margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
 }
 </style>
 
@@ -148,18 +190,77 @@ $(document).ready(function () {
 });
 </script>
 
-
 <div class="container-fluid main-container">
 
 <!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
 <script>
 $(document).ready(function () {
   window.buildTabsets("TOC");
 });
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
 </script>
 
 <!-- code folding -->
-
 
 
 
@@ -193,10 +294,16 @@ $(document).ready(function () {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="gaps.html">Monitoring Inventory Gap Analysis</a>
+      <a href="hotspots.html">Ocean Acidfication Hotspot and MPA Analysis for WCODP</a>
     </li>
     <li>
-      <a href="hotspots.html">Ocean Acidfication Hotspot and MPA Analysis</a>
+      <a href="gaps.html">Monitoring Inventory Gap Analysis for WCODP</a>
+    </li>
+    <li>
+      <a href="LTERanalysis.html">Manuscript LTER Analysis</a>
+    </li>
+    <li>
+      <a href="gap_manuscript.html">Manuscript Gap Analysis</a>
     </li>
   </ul>
 </li>
@@ -225,15 +332,15 @@ $(document).ready(function () {
 
 <div id="westcoastseas-gp" class="section level1">
 <h1>westcoastseas-gp</h1>
-<p>West Coast ResilienSeas Group Project</p>
-<div id="build-website" class="section level2">
-<h2>Build website</h2>
+<p>West Coast ResilienSeas Bren School Group Project on ocean acidification monitoring and hotspots. Github content at <a href="https://resilienseas.github.io" class="uri">https://resilienseas.github.io</a>.</p>
+<div id="scripts" class="section level2">
+<h2>Scripts</h2>
 <p>Using <a href="http://rmarkdown.rstudio.com/rmarkdown_websites.html">Rmarkdown websites</a> framework, website can be knitted from individual files and if menu changed in <code>_site.yml</code>, then go to Build tab in RStudio and “Build Website”.</p>
 </div>
-<div id="process" class="section level2">
-<h2>Process</h2>
-<div id="analysis" class="section level3">
-<h3>Analysis</h3>
+<div id="rmarkdown" class="section level2">
+<h2>RMarkdown</h2>
+<div id="data" class="section level3">
+<h3>Data</h3>
 <p><strong>Paths</strong>. Work in<code>scripts/*.R</code> files and reference paths using the <code>here</code> R package with the <code>here()</code> function.</p>
 <p><strong>Functions</strong>. You can pull in functions from your <code>oatools</code> library locally, using:</p>
 <pre class="r"><code>devtools::load_all(here(&quot;../oatools&quot;))</code></pre>
