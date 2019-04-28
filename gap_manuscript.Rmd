@@ -56,13 +56,17 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
 
 # extent of NE Pacific study area, for cropping rasters
 ext_study <- extent(-500000, 340000, -580000, 1215000)
-ext_study_alin <- extent(-5000000, 340000, -580000, 350000)
-ext_study_juranek <- extent(-5000000, 340000, 150000, 1215000)
 crs_study <- '+init=EPSG:6414'
 
 ext_study_channelislands <- extent (0, 300000, -600000, -400000)
 ext_study_pugetsound <- extent(-300000, -150000, 1000000, 1215000)
 ext_study_oregoncoast <- extent(-500000, -200000, 500000, 900000)
+
+# extent of larger area for voronoi polygons
+ext_study_vor <- extent(-700000, 340000, -800000, 1305000)
+ext_study_alin <- extent(-7000000, 340000, -800000, 350000)
+ext_study_juranek <- extent(-7000000, 340000, 150000, 1305000)
+
 
 # import shapefiles for cropping to coast
 poly_coast<- readOGR(dsn=path.expand("/Users/raetaylor-burns/downloads/Export_Output_2"), layer="Export_Output_2")
@@ -80,7 +84,7 @@ r_sst_min <- lyr_to_tif(
   tif = here("data/sst_min.tif"),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study, 
+  extent_crop   = ext_study_vor, 
   redo=T, fill_na=TRUE, fill_window=11)
 
 r_sst_min_alin <- crop(r_sst_min, ext_study_alin)
@@ -99,7 +103,7 @@ r_do_min <- lyr_to_tif(
   tif = here("data/do_min.tif"),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study, 
+  extent_crop   = ext_study_vor, 
   redo=T, fill_na=TRUE, fill_window=11)
 r_do_min_alin <- crop(r_do_min, ext_study_alin)
 r_do_min_juranek <- crop(r_do_min, ext_study_juranek)
@@ -137,16 +141,8 @@ arag <- mosaic(alin_arag, juranek_arag, fun = mean)
 ####Create variogram
 To quantify the relationship between changing aragonite saturation state and distance, the aragonite saturation state raster was used to create a semivariogram. The semi-variogram describes how the semi-variance  of a parameter increases with distance, revealing information on the spatial scale of decorrelation of that parameter. In this analysis, we used it to determine the relationship between variance in aragonite saturation state and distance. The semi-variogram revealed that the semi-variance in aragonite saturation state saturates (i.e. semi-variance ceases to increase as distance increases) at a distance of 2000 km, and a maximum semi-variance of 0.12 is reached at that point. We used a linear interpolation between the origin and the saturation point to relate variance in aragonite saturation state and distance. 
 ```{r variogram, eval = TRUE}
-aragdf <- as.data.frame(arag, xy = TRUE)
-aragdf <- aragdf %>% #remove N/A values
-  mutate(layer=replace(layer, layer==-999.000, NA)) %>%
-  na.omit(aragdf)
-coordinates(aragdf)<-  ~ x + y #transform into spatial points
-aragvar <- variogram(layer~1, aragdf)
-
-aragfit<-fit.variogram(aragvar,model=vgm(nugget=0, psill=0.12,range=200000,model="Exp"))
-
-plot(aragvar, aragfit)
+aragvar <- Variogram(arag, lag = 5000)
+plot(aragvar)
 ```
 
 ##Step 2. Relate aragonite saturation state trends to each monitoring site
@@ -313,27 +309,44 @@ highfreqvij <- (arag-highfreqpolygonarag)^2/2
 ##Step 3. Geographic and oceanographic distance
 ####Oceanographic distance
 The inverse of the linear relationship from the semi-variogram was applied to the semi-variance calculated above, yielding a map showing the “oceanographic distance” between each cell in our study region and the nearest monitoring asset. We define oceanographic distance as the effective distance between any location and the nearest monitoring asset, based on the similarity of oceanographic conditions that determine OA conditions between the two locations. A cell with high oceanographic distance has different acidification conditions than the nearest monitoring asset, and a cell with low oceanographic distance has similar acidification conditions to the nearest monitoring asset. 
-```{r oceanographic distance}
+```{r oceanographic distance,  message = FALSE, warning = FALSE, results = 'hide'}
 
-plot(aragvar, aragfit)
-#variogram saturates at ~0.12
-#sill = 0.12
-#range = 200000
+#variogram does not saturate: develop an equation to describe relationship using square root function...
 
-slope = 200000/0.12
+sqrootmodel <- lm(aragvar@variogram[["gamma"]] ~ 0 + I(sqrt(aragvar@variogram[["distance"]])))
 
-oceanographicdistance = slope * vij
-carbcompleteoceanographicdistance = slope * carbcompletevij
-highfreqoceanographicdistance = slope * highfreqvij
+#p value < 2e-16
+
+xbar<-aragvar@variogram[["distance"]]
+ybar<-sqrt(xbar)*sqrootmodel$coefficients[1]
+
+ggplot()+
+  geom_point(aes(aragvar@variogram[["distance"]], aragvar@variogram[["gamma"]]), color = "red")+
+  geom_point(aes(xbar, ybar), color = "blue")+
+  ylim(0, 0.15)+
+  theme_bw()+
+  ggtitle('Variogram (red) and predictive model (blue)')+
+  xlab('Distance Between Points (m)')+
+  ylab('Semivariance of Aragonite Discrepancy')+
+  theme(text = element_text(size = 10, family="serif"))
+
+#find inverse of nonlinear model:
+#semivariance = 0.0001504855 * sqrt(distance)
+#distance = (semivariance/0.0001504855)^2
+
+oceanographicdistance = (vij/0.0001504855)^2/(1000^2)
+carbcompleteoceanographicdistance = (carbcompletevij/0.0001504855)^2/(1000^2)
+highfreqoceanographicdistance = (highfreqvij/0.0001504855)^2/(1000^2)
+
 
 ```
 
 ####Geographic distance
 Determine geographic distance from the nearest monitoring point
 ```{r geographic distance}
-distance<-distanceFromPoints(oceanographicdistance, inventorycoords)
-carbcompletedistance<-distanceFromPoints(carbcompleteoceanographicdistance, carbcompletecoords)
-highfreqdistance<-distanceFromPoints(highfreqoceanographicdistance, highfreqcoords)
+distance<-distanceFromPoints(oceanographicdistance, inventorycoords)/1000
+carbcompletedistance<-distanceFromPoints(carbcompleteoceanographicdistance, carbcompletecoords)/1000
+highfreqdistance<-distanceFromPoints(highfreqoceanographicdistance, highfreqcoords)/1000
 ```
 
 ##Step 4. Find Gaps
@@ -345,11 +358,19 @@ We used a Euclidean distance approach to combine geographic distance and oceanog
 
 weight = maxValue(distance)/maxValue(oceanographicdistance)
 
-gap<-(sqrt((distance)^2+(weight*oceanographicdistance)^2))/1000
+gap<-(sqrt((distance)^2+(weight*oceanographicdistance)^2))
 
-carbcompletegap<-(sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))/1000
+carbcompletegap<-(sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))
 
-highfreqgap<-(sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))/1000
+highfreqgap<-(sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))
+
+gap <- crop(gap, ext_study)
+
+carbcompletegap <- crop(carbcompletegap, ext_study)
+
+highfreqgap <- crop(highfreqgap, ext_study)
+
+
 
 ```
 
