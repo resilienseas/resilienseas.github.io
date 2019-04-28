@@ -385,13 +385,17 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
 
 # extent of NE Pacific study area, for cropping rasters
 ext_study &lt;- extent(-500000, 340000, -580000, 1215000)
-ext_study_alin &lt;- extent(-5000000, 340000, -580000, 350000)
-ext_study_juranek &lt;- extent(-5000000, 340000, 150000, 1215000)
 crs_study &lt;- &#39;+init=EPSG:6414&#39;
 
 ext_study_channelislands &lt;- extent (0, 300000, -600000, -400000)
 ext_study_pugetsound &lt;- extent(-300000, -150000, 1000000, 1215000)
 ext_study_oregoncoast &lt;- extent(-500000, -200000, 500000, 900000)
+
+# extent of larger area for voronoi polygons
+ext_study_vor &lt;- extent(-700000, 340000, -800000, 1305000)
+ext_study_alin &lt;- extent(-7000000, 340000, -800000, 350000)
+ext_study_juranek &lt;- extent(-7000000, 340000, 150000, 1305000)
+
 
 # import shapefiles for cropping to coast
 poly_coast&lt;- readOGR(dsn=path.expand(&quot;/Users/raetaylor-burns/downloads/Export_Output_2&quot;), layer=&quot;Export_Output_2&quot;)</code></pre>
@@ -423,12 +427,144 @@ r_sst_min &lt;- lyr_to_tif(
   tif = here(&quot;data/sst_min.tif&quot;),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study, 
+  extent_crop   = ext_study_vor, 
   redo=T, fill_na=TRUE, fill_window=11)</code></pre>
 <pre><code>## lyr_to_tif() messages...</code></pre>
 <pre><code>##   loading layer from sdmpredictors and projecting</code></pre>
 <pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 1834961 projected point(s) not finite</code></pre>
+## 5306 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 4656 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 4057 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 10409 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 15796 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 18821 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 21010 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 22695 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 24032 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 25093 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 25943 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 26611 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 27109 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 27460 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 27676 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 27749 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 27703 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 27528 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 27207 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 26745 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 26123 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 25316 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 24311 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 23048 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 21460 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 19413 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 16642 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 12273 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 4647 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 4506 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 5144 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 5826 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 6564 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 7349 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 8185 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 9078 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 10019 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 11020 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 12078 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 13194 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 14373 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 15616 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 16922 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 18300 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 19750 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 21272 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 22879 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 24566 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 26341 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 28211 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 30182 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 32259 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 34459 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 36782 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 39243 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 41861 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 44654 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 47638 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 50840 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 54313 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 58091 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 62252 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 66902 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 72213 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 78509 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 86521 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 100210 projected point(s) not finite</code></pre>
 <pre><code>##   cropping raster to extent</code></pre>
 <pre><code>##   filling in missing (NA) values with focal window</code></pre>
 <pre><code>##   writing raster to tif</code></pre>
@@ -446,12 +582,24 @@ r_do_min &lt;- lyr_to_tif(
   tif = here(&quot;data/do_min.tif&quot;),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
-  extent_crop   = ext_study, 
+  extent_crop   = ext_study_vor, 
   redo=T, fill_na=TRUE, fill_window=11)</code></pre>
 <pre><code>## lyr_to_tif() messages...</code></pre>
 <pre><code>##   loading layer from sdmpredictors and projecting</code></pre>
 <pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
-## 1834961 projected point(s) not finite</code></pre>
+## 158873 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 279070 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 167562 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 100038 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 234155 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 467762 projected point(s) not finite</code></pre>
+<pre><code>## Warning in rgdal::rawTransform(projto_int, projfrom, nrow(xy), xy[, 1], :
+## 427501 projected point(s) not finite</code></pre>
 <pre><code>##   cropping raster to extent</code></pre>
 <pre><code>##   filling in missing (NA) values with focal window</code></pre>
 <pre><code>##   writing raster to tif</code></pre>
@@ -487,16 +635,8 @@ alin_arag &lt;- a0 + a1 * (r_sst_min_alin-atr) + a2 * (r_do_min_alin-ao2r) + a3 
 <div id="create-variogram" class="section level4">
 <h4>Create variogram</h4>
 <p>To quantify the relationship between changing aragonite saturation state and distance, the aragonite saturation state raster was used to create a semivariogram. The semi-variogram describes how the semi-variance of a parameter increases with distance, revealing information on the spatial scale of decorrelation of that parameter. In this analysis, we used it to determine the relationship between variance in aragonite saturation state and distance. The semi-variogram revealed that the semi-variance in aragonite saturation state saturates (i.e. semi-variance ceases to increase as distance increases) at a distance of 2000 km, and a maximum semi-variance of 0.12 is reached at that point. We used a linear interpolation between the origin and the saturation point to relate variance in aragonite saturation state and distance.</p>
-<pre class="r"><code>aragdf &lt;- as.data.frame(arag, xy = TRUE)
-aragdf &lt;- aragdf %&gt;% #remove N/A values
-  mutate(layer=replace(layer, layer==-999.000, NA)) %&gt;%
-  na.omit(aragdf)
-coordinates(aragdf)&lt;-  ~ x + y #transform into spatial points
-aragvar &lt;- variogram(layer~1, aragdf)
-
-aragfit&lt;-fit.variogram(aragvar,model=vgm(nugget=0, psill=0.12,range=200000,model=&quot;Exp&quot;))
-
-plot(aragvar, aragfit)</code></pre>
+<pre class="r"><code>aragvar &lt;- Variogram(arag, lag = 5000)
+plot(aragvar)</code></pre>
 <p><img src="gap_manuscript_files/figure-html/variogram-1.png" width="672" /></p>
 </div>
 </div>
@@ -659,24 +799,39 @@ highfreqvij &lt;- (arag-highfreqpolygonarag)^2/2</code></pre>
 <div id="oceanographic-distance" class="section level4">
 <h4>Oceanographic distance</h4>
 <p>The inverse of the linear relationship from the semi-variogram was applied to the semi-variance calculated above, yielding a map showing the “oceanographic distance” between each cell in our study region and the nearest monitoring asset. We define oceanographic distance as the effective distance between any location and the nearest monitoring asset, based on the similarity of oceanographic conditions that determine OA conditions between the two locations. A cell with high oceanographic distance has different acidification conditions than the nearest monitoring asset, and a cell with low oceanographic distance has similar acidification conditions to the nearest monitoring asset.</p>
-<pre class="r"><code>plot(aragvar, aragfit)</code></pre>
+<pre class="r"><code>#variogram does not saturate: develop an equation to describe relationship using square root function...
+
+sqrootmodel &lt;- lm(aragvar@variogram[[&quot;gamma&quot;]] ~ 0 + I(sqrt(aragvar@variogram[[&quot;distance&quot;]])))
+
+#p value &lt; 2e-16
+
+xbar&lt;-aragvar@variogram[[&quot;distance&quot;]]
+ybar&lt;-sqrt(xbar)*sqrootmodel$coefficients[1]
+
+ggplot()+
+  geom_point(aes(aragvar@variogram[[&quot;distance&quot;]], aragvar@variogram[[&quot;gamma&quot;]]), color = &quot;red&quot;)+
+  geom_point(aes(xbar, ybar), color = &quot;blue&quot;)+
+  ylim(0, 0.15)+
+  theme_bw()+
+  ggtitle(&#39;Variogram (red) and predictive model (blue)&#39;)+
+  xlab(&#39;Distance Between Points (m)&#39;)+
+  ylab(&#39;Semivariance of Aragonite Discrepancy&#39;)+
+  theme(text = element_text(size = 10, family=&quot;serif&quot;))</code></pre>
 <p><img src="gap_manuscript_files/figure-html/oceanographic%20distance-1.png" width="672" /></p>
-<pre class="r"><code>#variogram saturates at ~0.12
-#sill = 0.12
-#range = 200000
+<pre class="r"><code>#find inverse of nonlinear model:
+#semivariance = 0.0001504855 * sqrt(distance)
+#distance = (semivariance/0.0001504855)^2
 
-slope = 200000/0.12
-
-oceanographicdistance = slope * vij
-carbcompleteoceanographicdistance = slope * carbcompletevij
-highfreqoceanographicdistance = slope * highfreqvij</code></pre>
+oceanographicdistance = (vij/0.0001504855)^2/(1000^2)
+carbcompleteoceanographicdistance = (carbcompletevij/0.0001504855)^2/(1000^2)
+highfreqoceanographicdistance = (highfreqvij/0.0001504855)^2/(1000^2)</code></pre>
 </div>
 <div id="geographic-distance" class="section level4">
 <h4>Geographic distance</h4>
 <p>Determine geographic distance from the nearest monitoring point</p>
-<pre class="r"><code>distance&lt;-distanceFromPoints(oceanographicdistance, inventorycoords)
-carbcompletedistance&lt;-distanceFromPoints(carbcompleteoceanographicdistance, carbcompletecoords)
-highfreqdistance&lt;-distanceFromPoints(highfreqoceanographicdistance, highfreqcoords)</code></pre>
+<pre class="r"><code>distance&lt;-distanceFromPoints(oceanographicdistance, inventorycoords)/1000
+carbcompletedistance&lt;-distanceFromPoints(carbcompleteoceanographicdistance, carbcompletecoords)/1000
+highfreqdistance&lt;-distanceFromPoints(highfreqoceanographicdistance, highfreqcoords)/1000</code></pre>
 </div>
 </div>
 <div id="step-4.-find-gaps" class="section level2">
@@ -688,11 +843,17 @@ highfreqdistance&lt;-distanceFromPoints(highfreqoceanographicdistance, highfreqc
 
 weight = maxValue(distance)/maxValue(oceanographicdistance)
 
-gap&lt;-(sqrt((distance)^2+(weight*oceanographicdistance)^2))/1000
+gap&lt;-(sqrt((distance)^2+(weight*oceanographicdistance)^2))
 
-carbcompletegap&lt;-(sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))/1000
+carbcompletegap&lt;-(sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))
 
-highfreqgap&lt;-(sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))/1000</code></pre>
+highfreqgap&lt;-(sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))
+
+gap &lt;- crop(gap, ext_study)
+
+carbcompletegap &lt;- crop(carbcompletegap, ext_study)
+
+highfreqgap &lt;- crop(highfreqgap, ext_study)</code></pre>
 </div>
 <div id="map-gaps" class="section level4">
 <h4>Map Gaps</h4>
