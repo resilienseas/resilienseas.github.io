@@ -1,10 +1,12 @@
 ---
 title: "About Resilienseas"
-output:  
+output:
   html_document:
-    toc: true
-    toc_float: true
     code_folding: hide
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
