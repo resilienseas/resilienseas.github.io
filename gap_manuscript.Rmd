@@ -370,8 +370,6 @@ carbcompletegap <- crop(carbcompletegap, ext_study)
 
 highfreqgap <- crop(highfreqgap, ext_study)
 
-
-
 ```
 
 ####Map Gaps
