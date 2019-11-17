@@ -55,17 +55,23 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
  list<- list_layers("Bio-ORACLE")
 
 # extent of NE Pacific study area, for cropping rasters
-ext_study <- extent(-500000, 340000, -580000, 1215000)
+ext_study <- extent(-500000, 340000, -600000, 1215000)
 crs_study <- '+init=EPSG:6414'
 
-ext_study_channelislands <- extent (0, 300000, -600000, -400000)
+ext_study_socal <- extent (-43000, 280000, -600000, -380000)
+ext_study_cencal <- extent (-250000, -50000, -390000, -15000)
+ext_study_norcal <- extent (-500000, -200000, -20000, 460000)
+ext_study_orcoast <- extent(-500000, -200000, 500000, 900000)
+
+ext_study_wacoast <- extent(-500000, -150000, 900000, 1215000)
+
 ext_study_pugetsound <- extent(-300000, -150000, 1000000, 1215000)
-ext_study_oregoncoast <- extent(-500000, -200000, 500000, 900000)
+
 
 # extent of larger area for voronoi polygons
 ext_study_vor <- extent(-700000, 340000, -800000, 1305000)
 ext_study_alin <- extent(-7000000, 340000, -800000, 350000)
-ext_study_juranek <- extent(-7000000, 340000, 150000, 1305000)
+ext_study_juranek <- extent(-7000000, 340000, -100000, 1305000)
 
 
 # import shapefiles for cropping to coast
@@ -99,7 +105,7 @@ Aragonite saturation state is the gold standard in an ocean acidification monito
 
 #do min
 r_do_min <- lyr_to_tif(
-  lyr = "BO2_dissoxmin_bdmin", 
+  lyr = "BO2_dissoxltmin_ss", 
   tif = here("data/do_min.tif"),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
@@ -242,8 +248,8 @@ deduped.carbcomplete <- unique(carbcompletecoords)
 deduped.incomplete <- unique(incompletecoords)
 deduped.highfrequency <- unique(highfrequencycoords)
 deduped.lowfrequency <- unique(lowfrequencycoords)
-deduped.highfreqcarbcomplete <- unique(highfreqcarbcompletecoords
-                                       )
+deduped.highfreqcarbcomplete <- unique(highfreqcarbcompletecoords)
+
 # create spatial points objects
 inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
 inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:6414'))
@@ -257,6 +263,7 @@ lowfreqcoords <- SpatialPoints(deduped.lowfrequency, CRS("+proj=longlat +ellps=W
 lowfreqcoords <- spTransform(lowfreqcoords, CRS('+init=EPSG:6414'))
 highfreqcarbcompletecoords <- SpatialPoints(deduped.highfreqcarbcomplete, CRS("+proj=longlat +ellps=WGS84"))
 highfreqcarbcompletecoords <- spTransform(highfreqcarbcompletecoords, CRS('+init=EPSG:6414'))
+
 ```
 
 ####Create voronoi polygons and rasterize the results
@@ -269,6 +276,7 @@ carbcompletevor <- voronoi(carbcompletecoords)
 incompletevor <- voronoi(incompletecoords)
 highfreqvor <- voronoi(highfreqcoords)
 lowfreqvor <- voronoi(lowfreqcoords)
+
 # rasterize polygons
 vorraster<- rasterize(vor, r_sst_min, "id")
 carbcompletevorraster<- rasterize(carbcompletevor, r_sst_min, "id")
@@ -293,7 +301,6 @@ colnames(highfreqsitearag)<-c("id", "Arag")
 polygonarag<-subs(vorraster, sitearag, by="id", which="Arag", subsWithNA=FALSE)
 carbcompletepolygonarag <- subs(carbcompletevorraster, carbcompletesitearag, by="id", which="Arag", subsWithNA=FALSE)
 highfreqpolygonarag <- subs(highfreqvorraster, highfreqsitearag, by="id", which="Arag", subsWithNA=FALSE)
-
 ```
 
 ####Determine semivariance of aragonite discrepancy
@@ -313,12 +320,16 @@ The inverse of the linear relationship from the semi-variogram was applied to th
 
 #variogram does not saturate: develop an equation to describe relationship using square root function...
 
-sqrootmodel <- lm(aragvar@variogram[["gamma"]] ~ 0 + I(sqrt(aragvar@variogram[["distance"]])))
+model <- lm(aragvar@variogram[["gamma"]] ~ 0 + I((aragvar@variogram[["distance"]])))
+
+
+#sqrootmodel <- lm(aragvar@variogram[["gamma"]] ~ 0 + I(sqrt(aragvar@variogram[["distance"]])))
 
 #p value < 2e-16
 
 xbar<-aragvar@variogram[["distance"]]
-ybar<-sqrt(xbar)*sqrootmodel$coefficients[1]
+#ybar<-sqrt(xbar)*sqrootmodel$coefficients[1]
+ybar<-(xbar)*model$coefficients[1]
 
 ggplot()+
   geom_point(aes(aragvar@variogram[["distance"]], aragvar@variogram[["gamma"]]), color = "red")+
@@ -331,12 +342,16 @@ ggplot()+
   theme(text = element_text(size = 10, family="serif"))
 
 #find inverse of nonlinear model:
-#semivariance = 0.0001504855 * sqrt(distance)
-#distance = (semivariance/0.0001504855)^2
+#semivariance = 5.871094 e-08 * (distance)
+#distance = (semivariance/(5.871094 e-08)
 
-oceanographicdistance = (vij/0.0001504855)^2/(1000^2)
-carbcompleteoceanographicdistance = (carbcompletevij/0.0001504855)^2/(1000^2)
-highfreqoceanographicdistance = (highfreqvij/0.0001504855)^2/(1000^2)
+#oceanographicdistance = (vij/0.0001504855)^2/(1000^2)
+#carbcompleteoceanographicdistance = (carbcompletevij/0.0001504855)^2/(1000^2)
+#maxhighfreqoceanographicdistance = (highfreqvij/0.0001504855)^2/(1000^2)
+
+oceanographicdistance = (vij/(5.871094e-08))/(1000)
+carbcompleteoceanographicdistance = (carbcompletevij/(5.871094e-08))/(1000)
+highfreqoceanographicdistance = (highfreqvij/(5.871094e-08))/(1000)
 
 
 ```
@@ -359,17 +374,13 @@ We used a Euclidean distance approach to combine geographic distance and oceanog
 weight = maxValue(distance)/maxValue(oceanographicdistance)
 
 gap<-(sqrt((distance)^2+(weight*oceanographicdistance)^2))
-
 carbcompletegap<-(sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))
-
 highfreqgap<-(sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))
 
+
 gap <- crop(gap, ext_study)
-
 carbcompletegap <- crop(carbcompletegap, ext_study)
-
 highfreqgap <- crop(highfreqgap, ext_study)
-
 ```
 
 ####Map Gaps
@@ -382,7 +393,7 @@ tmap_mode("plot")
 pal <- colorRampPalette(c("royalblue2", "white", "red"))
 
 tm_shape(gap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 150, 300, 450, 600, 750))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0,50,100,300, 500))+
   tm_layout(main.title = "Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -392,7 +403,7 @@ tm_shape(gap)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 tm_shape(carbcompletegap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 30, 90, 270, 810, 2000))+
   tm_layout(main.title = "Aragonite Measurement Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -402,7 +413,7 @@ tm_shape(carbcompletegap)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 tm_shape(highfreqgap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 150, 300, 450, 600, 750))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 30, 90, 270, 810, 2000))+
   tm_layout(main.title = "Daily Monitoring Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -411,14 +422,14 @@ tm_shape(highfreqgap)+
   tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
-tm_shape(gap)+
-  tm_raster(title = "Effective Distance to Nearest Monitoring (km)", palette = pal(10), colorNA = 'grey87', alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE, breaks = c(0, 150, 300, 450, 600, 750))+
-  tm_layout(main.title = "Effective Distance to Nearest Monitoring (km)", bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold", legend.only = TRUE, legend.just = "center", legend.title.size = 0.7, legend.text.size= 0.5)+
-  tm_shape(poly_coast)+
-  tm_polygons()+
-  tm_shape(Canada)+
-  tm_polygons()+
-  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.size = 0.6)
-tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+#tm_shape(gap)+
+#  tm_raster(title = "Effective Distance to Nearest Monitoring (km)", palette = #pal(10), colorNA = 'grey87', alpha = 1, auto.palette.mapping = FALSE, #legend.show = TRUE, breaks = c(0, 100, 200, 300, 400, 500))+
+#  tm_layout(main.title = "Effective Distance to Nearest Monitoring (km)", #bg.color = "white", main.title.position = c("center", "top"), fontfamily = #"serif", fontface = "bold", legend.only = TRUE, legend.just = "center", #legend.title.size = 0.7, legend.text.size= 0.5)+
+#  tm_shape(poly_coast)+
+#  tm_polygons()+
+#  tm_shape(Canada)+
+#  tm_polygons()+
+#  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.size = #0.6)
+#tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 ```
