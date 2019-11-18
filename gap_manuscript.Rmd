@@ -75,9 +75,9 @@ ext_study_juranek <- extent(-7000000, 340000, -100000, 1305000)
 
 
 # import shapefiles for cropping to coast
-poly_coast<- readOGR(dsn=path.expand("/Users/raetaylor-burns/downloads/Export_Output_2"), layer="Export_Output_2")
-Canada<- readOGR(dsn=path.expand("/Users/raetaylor-burns/downloads/Canada"), layer="Canada")
-states<- readOGR(dsn=path.expand("/Users/raetaylor-burns/downloads/cb_2016_us_state_20m"), layer="cb_2016_us_state_20m")
+poly_coast<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/Export_Output_2"), layer="Export_Output_2")
+Canada<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/Canada"), layer="Canada")
+states<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/cb_2016_us_state_20m"), layer="cb_2016_us_state_20m")
 poly_coast <- spTransform(poly_coast, crs(crs_study))
 Canada <- spTransform(Canada, crs(crs_study))
 states <- spTransform(states, crs(crs_study))
@@ -86,15 +86,15 @@ states <- spTransform(states, crs(crs_study))
 # sea surface temperature
 # devtools::load_all(here("../oatools")) # for use while developing
 r_sst_min <- lyr_to_tif(
-  lyr = "BO_sstmin", 
+  lyr = "BO2_tempmin_ss", 
   tif = here("data/sst_min.tif"),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study_vor, 
   redo=T, fill_na=TRUE, fill_window=11)
 
-r_sst_min_alin <- crop(r_sst_min, ext_study_alin)
-r_sst_min_juranek <- crop(r_sst_min, ext_study_juranek)
+r_sst_min_alin <- crop(r_sst_min, ext_study_alin)-0.2
+r_sst_min_juranek <- crop(r_sst_min, ext_study_juranek)-0.2
 
 n_na        <- sum(is.na(raster::getValues(r_sst_min)))
 ```
@@ -105,7 +105,7 @@ Aragonite saturation state is the gold standard in an ocean acidification monito
 
 #do min
 r_do_min <- lyr_to_tif(
-  lyr = "BO2_dissoxltmin_ss", 
+  lyr = "BO2_dissoxmin_ss", 
   tif = here("data/do_min.tif"),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
@@ -113,6 +113,17 @@ r_do_min <- lyr_to_tif(
   redo=T, fill_na=TRUE, fill_window=11)
 r_do_min_alin <- crop(r_do_min, ext_study_alin)
 r_do_min_juranek <- crop(r_do_min, ext_study_juranek)
+
+
+#r_do_min <- lyr_to_tif(
+#  lyr = "BO_dissox", 
+#  tif = here("data/do_min.tif"),
+#  crs = crs_study,
+#  dir_sdm_cache = dir_sdmdata,
+#  extent_crop   = ext_study_vor, 
+#  redo=T, fill_na=TRUE, fill_window=11)
+#r_do_min_alin <- crop(r_do_min, ext_study_alin)
+#r_do_min_juranek <- crop(r_do_min, ext_study_juranek)
 
 ```
 
@@ -143,6 +154,222 @@ To reduce the effect of the abrupt change in aragonite saturation state at the b
 ```{r model comparison}
 arag <- mosaic(alin_arag, juranek_arag, fun = mean)
 ```
+
+####Evaluate aragonite
+To evaluate the map of aragonite saturation state we compared values to those taken on the NOAA OA cruise in 2013. 
+```{r evaluate aragonite map}
+
+# get coordinates from 2013 NOAA OA Cruise
+cruisedata <- read_csv(here("data/WCOAC_2013_test.csv"))
+cruisecoords <- cbind.data.frame(cruisedata$Long, cruisedata$Lat)
+cruisecoords <- SpatialPoints(cruisecoords, CRS("+proj=longlat +ellps=WGS84"))
+
+# extract aragonite saturation state from empirical models at cruise stations
+evalarag<- raster::extract(arag, cruisecoords, method='simple', df=TRUE)
+
+#create dataframe with cruise aragonite, model aragonite and depth
+colnames(evalarag) <- c("ID", "modelarag")
+evalarag$depth <- cruisedata$`Pressure (db)`
+evalarag$cruisearag <- cruisedata$OmegaAr
+
+# remove -999 values and measurements at depth from cruise
+evalarag <- subset(evalarag, cruisearag != -999)
+evalarag<- evalarag[evalarag[, 3]<5,] #filter for surface observations
+
+# plot to compare cruise and model
+plot(evalarag$cruise, evalarag$modelarag)
+
+```
+
+
+####Create mean of NOAA OA cruises
+
+```{r}
+
+# 2013
+
+aragonite_data <- read_csv(here("data/WCOAC_2013_test.csv")) #load data
+colnames(aragonite_data) <- c("Date", "Time", "Lat", "Long", "Pressure", "OmegaAr") #rename columns in dataframe
+
+aragonite_data <- aragonite_data %>% #remove N/A values
+  mutate(OmegaAr=replace(OmegaAr, OmegaAr==-999.000, NA)) %>%
+  na.omit(aragonite_data)
+
+aragonite_data<- aragonite_data[aragonite_data[, 5]<5,] #filter for surface observations
+
+coordinates(aragonite_data)<-  ~ Long + Lat #transform into spatial points
+
+zd<-zerodist(aragonite_data)
+aragonite_data<-aragonite_data[-zd[,2],] #remove observations taken at same coordinate point
+
+aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data, alpha=c(0, 45, 90, 135))
+plot(aragonite_var) #look for anisotropy and create variogram of aragonite values
+
+aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.2,psill=1,range=2,model="Exp", anis=c(0, 0.3))) #fit a model to the values based on estimated nugget, sill, and range, and anisotropy
+plot(aragonite_var,aragonite_fit)
+
+extent <- bbox(aragonite_data) #get extent of cruise observations 
+long<-seq(extent[1,1],extent[1,2],length=388) #increase ROI by one degree in each direction
+lat<-seq(extent[2,1],extent[2,2],length=1000)
+
+aragonite_grid<-expand.grid(long,lat) #create grid for interpolation surface
+colnames(aragonite_grid)<- c("long", "lat")
+coordinates(aragonite_grid) <- ~ long + lat
+gridded(aragonite_grid)=TRUE
+
+aragonitekrige<-krige(OmegaAr ~ 1, aragonite_data, newdata=aragonite_grid, model=aragonite_fit) #run kriging on interpolation grid, based on best fit model
+
+aragonite_raster<-raster(aragonitekrige, layer=1, values=TRUE) #transform krige object to raster
+projection(aragonite_raster) <- CRS("+proj=longlat +datum=WGS84") #set CRS 
+aragonite_raster_proj <- projectRaster(aragonite_raster, crs=CRS('+init=EPSG:6414'),method="ngb") #re-project to California Teale Albers Equal Area
+
+aragonite_clipped <- mask(aragonite_raster_proj, poly_coast, inverse = TRUE) #Clip continuous raster
+aragonite_clipped_2013 <- mask(aragonite_clipped, Canada, inverse = TRUE) #Clip raster layer to Canada layer
+
+
+
+
+
+#2012
+
+aragonite_data <- read_csv(here("data/WCOAC_2012_test.csv")) #load data
+colnames(aragonite_data) <- c("Date", "Time", "Lat", "Long", "Pressure", "OmegaAr") #rename columns in dataframe
+
+aragonite_data <- aragonite_data[-c(7,8)]
+
+aragonite_data <- aragonite_data %>% #remove N/A values
+  mutate(OmegaAr=replace(OmegaAr, OmegaAr==-999.000, NA)) %>%
+  na.omit(aragonite_data)
+
+aragonite_data<- aragonite_data[aragonite_data[, 5]<5,] #filter for surface observations
+
+coordinates(aragonite_data)<-  ~ Long + Lat #transform into spatial points
+
+zd<-zerodist(aragonite_data)
+aragonite_data<-aragonite_data[-zd[,2],] #remove observations taken at same coordinate point
+
+aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data, alpha=c(0, 45, 90, 135))
+plot(aragonite_var) #look for anisotropy and create variogram of aragonite values
+
+aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.2,psill=1,range=2,model="Exp", anis=c(0, 0.3))) #fit a model to the values based on estimated nugget, sill, and range, and anisotropy
+plot(aragonite_var,aragonite_fit)
+
+extent <- bbox(aragonite_data) #get extent of cruise observations 
+long<-seq(extent[1,1],extent[1,2],length=388) #increase ROI by one degree in each direction
+lat<-seq(extent[2,1],extent[2,2],length=1000)
+
+aragonite_grid<-expand.grid(long,lat) #create grid for interpolation surface
+colnames(aragonite_grid)<- c("long", "lat")
+coordinates(aragonite_grid) <- ~ long + lat
+gridded(aragonite_grid)=TRUE
+
+aragonitekrige<-krige(OmegaAr ~ 1, aragonite_data, newdata=aragonite_grid, model=aragonite_fit) #run kriging on interpolation grid, based on best fit model
+
+aragonite_raster<-raster(aragonitekrige, layer=1, values=TRUE) #transform krige object to raster
+projection(aragonite_raster) <- CRS("+proj=longlat +datum=WGS84") #set CRS 
+aragonite_raster_proj <- projectRaster(aragonite_raster, crs=CRS('+init=EPSG:6414'),method="ngb") #re-project to California Teale Albers Equal Area
+
+aragonite_clipped <- mask(aragonite_raster_proj, poly_coast, inverse = TRUE) #Clip continuous raster
+aragonite_clipped_2012 <- mask(aragonite_clipped, Canada, inverse = TRUE) #Clip raster layer to Canada layer
+
+# 2011
+
+aragonite_data <- read_csv(here("data/WCOAC_2011_test.csv")) #load data
+colnames(aragonite_data) <- c("Date", "Time", "Lat", "Long", "Pressure", "OmegaAr") #rename columns in dataframe
+
+aragonite_data <- aragonite_data %>% #remove N/A values
+  mutate(OmegaAr=replace(OmegaAr, OmegaAr==-999.000, NA)) %>%
+  na.omit(aragonite_data)
+
+aragonite_data<- aragonite_data[aragonite_data[, 5]<5,] #filter for surface observations
+
+coordinates(aragonite_data)<-  ~ Long + Lat #transform into spatial points
+
+zd<-zerodist(aragonite_data)
+aragonite_data<-aragonite_data[-zd[,2],] #remove observations taken at same coordinate point
+
+aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data, alpha=c(0, 45, 90, 135))
+plot(aragonite_var) #look for anisotropy and create variogram of aragonite values
+
+aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.2,psill=1,range=2,model="Exp", anis=c(0, 0.3))) #fit a model to the values based on estimated nugget, sill, and range, and anisotropy
+plot(aragonite_var,aragonite_fit)
+
+extent <- bbox(aragonite_data) #get extent of cruise observations 
+long<-seq(extent[1,1],extent[1,2],length=388) #increase ROI by one degree in each direction
+lat<-seq(extent[2,1],extent[2,2],length=1000)
+
+aragonite_grid<-expand.grid(long,lat) #create grid for interpolation surface
+colnames(aragonite_grid)<- c("long", "lat")
+coordinates(aragonite_grid) <- ~ long + lat
+gridded(aragonite_grid)=TRUE
+
+aragonitekrige<-krige(OmegaAr ~ 1, aragonite_data, newdata=aragonite_grid, model=aragonite_fit) #run kriging on interpolation grid, based on best fit model
+
+aragonite_raster<-raster(aragonitekrige, layer=1, values=TRUE) #transform krige object to raster
+projection(aragonite_raster) <- CRS("+proj=longlat +datum=WGS84") #set CRS 
+aragonite_raster_proj <- projectRaster(aragonite_raster, crs=CRS('+init=EPSG:6414'),method="ngb") #re-project to California Teale Albers Equal Area
+
+aragonite_clipped <- mask(aragonite_raster_proj, poly_coast, inverse = TRUE) #Clip continuous raster
+aragonite_clipped_2011 <- mask(aragonite_clipped, Canada, inverse = TRUE) #Clip raster layer to Canada layer
+
+#2007
+
+aragonite_data <- read_csv(here("data/WCOAC_2017_test.csv")) #load data
+colnames(aragonite_data) <- c("Date", "Time", "Lat", "Long", "Pressure", "OmegaAr") #rename columns in dataframe
+
+aragonite_data <- aragonite_data %>% #remove N/A values
+  mutate(OmegaAr=replace(OmegaAr, OmegaAr==-999.000, NA)) %>%
+  na.omit(aragonite_data)
+
+aragonite_data<- aragonite_data[aragonite_data[, 5]<5,] #filter for surface observations
+
+coordinates(aragonite_data)<-  ~ Long + Lat #transform into spatial points
+
+zd<-zerodist(aragonite_data)
+aragonite_data<-aragonite_data[-zd[,2],] #remove observations taken at same coordinate point
+
+aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data, alpha=c(0, 45, 90, 135))
+plot(aragonite_var) #look for anisotropy and create variogram of aragonite values
+
+aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.2,psill=1,range=2,model="Exp", anis=c(0, 0.3))) #fit a model to the values based on estimated nugget, sill, and range, and anisotropy
+plot(aragonite_var,aragonite_fit)
+
+extent <- bbox(aragonite_data) #get extent of cruise observations 
+long<-seq(extent[1,1],extent[1,2],length=388) #increase ROI by one degree in each direction
+lat<-seq(extent[2,1],extent[2,2],length=1000)
+
+aragonite_grid<-expand.grid(long,lat) #create grid for interpolation surface
+colnames(aragonite_grid)<- c("long", "lat")
+coordinates(aragonite_grid) <- ~ long + lat
+gridded(aragonite_grid)=TRUE
+
+aragonitekrige<-krige(OmegaAr ~ 1, aragonite_data, newdata=aragonite_grid, model=aragonite_fit) #run kriging on interpolation grid, based on best fit model
+
+aragonite_raster<-raster(aragonitekrige, layer=1, values=TRUE) #transform krige object to raster
+projection(aragonite_raster) <- CRS("+proj=longlat +datum=WGS84") #set CRS 
+aragonite_raster_proj <- projectRaster(aragonite_raster, crs=CRS('+init=EPSG:6414'),method="ngb") #re-project to California Teale Albers Equal Area
+
+aragonite_clipped <- mask(aragonite_raster_proj, poly_coast, inverse = TRUE) #Clip continuous raster
+aragonite_clipped_2007 <- mask(aragonite_clipped, Canada, inverse = TRUE) #Clip raster layer to Canada layer
+
+aragonitecruises <- (aragonite_clipped_2007+aragonite_clipped_2011+aragonite_clipped_2012+aragonite_clipped_2013)/4
+
+
+
+pal <- colorRampPalette(c("red", "white", "royalblue2")) 
+
+tmap_mode("view")
+
+
+tm_shape(aragonite_clipped) +
+  tm_raster(palette = pal(3),  breaks = seq(0.8,3, by=0.2),
+             title="Aragonite Saturation State") + 
+  tm_layout(basemaps = c('OpenStreetMap')) #Map of aragonite saturation state layer, showing range of values from 0.8 to 3 by 0.2 increments 
+```
+
+
+
+
 
 ####Create variogram
 To quantify the relationship between changing aragonite saturation state and distance, the aragonite saturation state raster was used to create a semivariogram. The semi-variogram describes how the semi-variance  of a parameter increases with distance, revealing information on the spatial scale of decorrelation of that parameter. In this analysis, we used it to determine the relationship between variance in aragonite saturation state and distance. The semi-variogram revealed that the semi-variance in aragonite saturation state saturates (i.e. semi-variance ceases to increase as distance increases) at a distance of 2000 km, and a maximum semi-variance of 0.12 is reached at that point. We used a linear interpolation between the origin and the saturation point to relate variance in aragonite saturation state and distance. 

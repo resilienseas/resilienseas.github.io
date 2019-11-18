@@ -9,7 +9,7 @@ pal <- colorRampPalette(c("red", "white", "royalblue2"))
 arag <- crop(arag, ext_study)
 
 aragonite <- tm_shape(arag)+
-  tm_raster(palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = FALSE)+
+  tm_raster(palette = pal(8), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8))+
   tm_layout(main.title = "Aragonite Saturation State", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold")+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -19,7 +19,7 @@ aragonite <- tm_shape(arag)+
 tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 aragonitelegend <- tm_shape(arag)+
-  tm_raster(title = "Aragonite Saturation State", palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE)+
+  tm_raster(title = "Aragonite Saturation State", palette = pal(10), colorNA = NULL, alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE, breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8))+
   tm_layout(main.title = "Aragonite Saturation State", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold", legend.only = TRUE, legend.just = "center")+
   tm_shape(poly_coast)+
   tm_polygons()+
