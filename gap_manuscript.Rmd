@@ -55,87 +55,82 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
  list<- list_layers("Bio-ORACLE")
 
 # extent of NE Pacific study area, for cropping rasters
-ext_study <- extent(-500000, 340000, -600000, 1215000)
+ext_study <- extent(-600000, 340000, -590000, 1210000)
 crs_study <- '+init=EPSG:6414'
 
-ext_study_socal <- extent (-43000, 280000, -600000, -380000)
-ext_study_cencal <- extent (-250000, -50000, -390000, -15000)
-ext_study_norcal <- extent (-500000, -200000, -20000, 460000)
-ext_study_orcoast <- extent(-500000, -200000, 500000, 900000)
-
-ext_study_wacoast <- extent(-500000, -150000, 900000, 1215000)
-
-ext_study_pugetsound <- extent(-300000, -150000, 1000000, 1215000)
-
-
 # extent of larger area for voronoi polygons
-ext_study_vor <- extent(-700000, 340000, -800000, 1305000)
-ext_study_alin <- extent(-7000000, 340000, -800000, 470000)
-ext_study_juranek <- extent(-7000000, 340000, -100000, 1305000)
-
+ext_study_vor <- extent(-800000, 340000, -800000, 1300000)
+ext_study_alin <- extent(-6000000, 340000, -600000, 430000)
+ext_study_juranek <- extent(-6000000, 340000, -900000, 1210000)
 
 # import shapefiles for cropping to coast
 poly_coast<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/Export_Output_2"), layer="Export_Output_2")
 Canada<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/Canada"), layer="Canada")
 states<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/cb_2016_us_state_20m"), layer="cb_2016_us_state_20m")
+estuaries<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/estuaries"), layer="estuaries")
+sf_puget<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/water_bodies_carto"), layer="water_bodies_carto")
+
+#load shapefiles
 poly_coast <- spTransform(poly_coast, crs(crs_study))
 Canada <- spTransform(Canada, crs(crs_study))
 states <- spTransform(states, crs(crs_study))
+estuaries <- spTransform(estuaries, crs(crs_study))
+sf_puget <- spTransform(sf_puget, crs(crs_study))
 
+
+# commenting out unused exploratory commands
+# list_datasets() %>% View()
+# list_layers()
+# list_layers("Bio-ORACLE") %>% View()
+# list_layers("MARSPEC") %>% View()
+# list_layers("WorldClim") %>% View()
+# list<- list_layers("Bio-ORACLE")
 
 # sea surface temperature
 # devtools::load_all(here("../oatools")) # for use while developing
-r_sst_min <- lyr_to_tif(
+r_sst <- lyr_to_tif(
   lyr = "BO_sstmean", 
-  tif = here("data/sst_min.tif"),
+  tif = here("data/sst_mean.tif"),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study_vor, 
   redo=T, fill_na=TRUE, fill_window=11)
 
-r_sst_min_alin <- crop(r_sst_min, ext_study_alin)-0.2
-r_sst_min_juranek <- crop(r_sst_min, ext_study_juranek)-0.2
+# r_sst_alin <- crop(r_sst, ext_study)-0.7
+# r_sst_juranek <- crop(r_sst, ext_study)-0.7
 
-n_na        <- sum(is.na(raster::getValues(r_sst_min)))
+r_sst_alin <- crop(r_sst, ext_study_alin) - 0.7
+r_sst_juranek <- crop(r_sst, ext_study_juranek) - 0.7
+
+n_na        <- sum(is.na(raster::getValues(r_sst)))
+
+
+plot(r_sst)
+
+#BO_sstmean
+#BO_dissox
 ```
 
-####Create SST/DO min/max rasters from bio-oracle data
+####Create SST/DO rasters from bio-oracle data
 Aragonite saturation state is the gold standard in an ocean acidification monitoring network, as this measurement has direct biological implications.9 However, the variables needed to calculate aragonite saturation state are not yet measured at a sufficient spatial-temporal resolution to identify highly variable locations across the study region. While this raw data could theoretically be replaced by a high-resolution model that would explicitly account for physical, chemical, and biological oceanographic processes, and integrate a variety of input data, such models are not yet available (although some are under development). In the absence of a model or data to describe aragonite saturation state, we used temperature and dissolved oxygen as proxies, because they are strongly positively correlated with aragonite saturation state.
 ```{r bio-Oracle}
 
-#from PISCES, units in micromol/m3
-#r_do_min <- lyr_to_tif(
-#  lyr = "BO2_dissoxmean_ss", 
-#  tif = here("data/do_min.tif"),
-#  crs = crs_study,
-#  dir_sdm_cache = dir_sdmdata,
-#  extent_crop   = ext_study_vor, 
-#  redo=T, fill_na=TRUE, fill_window=11)
-# units to micromol/kg 
-#r_do_min <- r_do_min
-
-#r_do_min_alin <- crop(r_do_min, ext_study_alin)
-#r_do_min_juranek <- crop(r_do_min, ext_study_juranek)
-
 # from observations, units in ml/l
-r_do_min <- lyr_to_tif(
+r_do <- lyr_to_tif(
   lyr = "BO_dissox", 
-  tif = here("data/do_min.tif"),
+  tif = here("data/do_mean.tif"),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study_vor, 
   redo=T, fill_na=TRUE, fill_window=11)
+
 #units to micromol/kg
-r_do_min <- r_do_min*(1000/(0.022391*1027))
+ r_do <- r_do*(1000/(0.022391*1027))
 
+r_do_alin <- crop(r_do, ext_study_alin)
+r_do_juranek <- crop(r_do, ext_study_juranek)
 
-r_do_min_alin <- crop(r_do_min, ext_study_alin)
-r_do_min_juranek <- crop(r_do_min, ext_study_juranek)
-
-
-
-
-
+plot(r_sst_alin)
 ```
 
 ####Use Juranek 2009 and Alin 2012 model to create ocean acidification layer for the study region
@@ -147,7 +142,7 @@ j1 = 4.492*10^-3
 j2 = 9.40 * 10^-4
 jo2r = 140
 jtr = 8
-juranek_arag <- j0 + j1 * (r_do_min_juranek-jo2r) + j2 * (r_do_min_juranek-jo2r) * (r_sst_min_juranek-jtr)
+juranek_arag <- j0 + j1 * (r_do_juranek-jo2r) + j2 * (r_do_juranek-jo2r) * (r_sst_juranek-jtr)
 
 #alin aragonite
 a0 = 1.112
@@ -157,276 +152,43 @@ a3 = 5.91*10^-4
 ao2r = 138.46
 atr = 10.28
 
-alin_arag <- a0 + a1 * (r_sst_min_alin-atr) + a2 * (r_do_min_alin-ao2r) + a3 * (r_sst_min_alin-atr) * (r_do_min_alin-ao2r)
-
-
-
-
-
-#juranek aragonite
-j0 = 9.242*10^-1
-j1 = 4.492*10^-3
-j2 = 9.40 * 10^-4
-jo2r = 140
-jtr = 8
-juranek_arag <- j0 + j1 * (r_do_min-jo2r) + j2 * (r_do_min-jo2r) * (r_sst_min-jtr)
-
-#alin aragonite
-a0 = 1.112
-a1 = 9.59*10^-2
-a2 = 3.54*10^-3
-a3 = 5.91*10^-4
-ao2r = 138.46
-atr = 10.28
-
-alin_arag <- a0 + a1 * (r_sst_min-atr) + a2 * (r_do_min-ao2r) + a3 * (r_sst_min-atr) * (r_do_min-ao2r)
-
+alin_arag <- a0 + a1 * (r_sst_alin-atr) + a2 * (r_do_alin-ao2r) + a3 * (r_sst_alin-atr) * (r_do_alin-ao2r)
 
 ```
 
 ####Combine model outputs
 To reduce the effect of the abrupt change in aragonite saturation state at the boundary between the two models, the mean of the two model outputs was used to predict aragonite saturation state in waters between Eureka and Fort Bragg, a distance of about 100 miles.
 ```{r model comparison}
+
+# 2 arag models, mean in between
+
 arag <- mosaic(alin_arag, juranek_arag, fun = mean)
-```
 
-####Evaluate aragonite
-To evaluate the map of aragonite saturation state we compared values to those taken on the NOAA OA cruise in 2013. 
-```{r evaluate aragonite map}
+midhigh <- extent(-6000000, 340000, 260000, 1210000)
+midhigh <- crop(juranek_arag, midhigh)
 
-# get coordinates from 2013 NOAA OA Cruise
-cruisedata <- read_csv(here("data/WCOAC_2013_test.csv"))
-cruisecoords <- cbind.data.frame(cruisedata$Long, cruisedata$Lat)
-cruisecoords <- SpatialPoints(cruisecoords, CRS("+proj=longlat +ellps=WGS84"))
+midlow <- extent(-6000000, 340000, -600000, 110000)
+midlow <- crop(alin_arag, midlow)
 
-# extract aragonite saturation state from empirical models at cruise stations
-evalarag<- raster::extract(arag, cruisecoords, method='simple', df=TRUE)
+arag <- mosaic(arag, midhigh, fun = mean)
 
-#create dataframe with cruise aragonite, model aragonite and depth
-colnames(evalarag) <- c("ID", "modelarag")
-evalarag$depth <- cruisedata$`Pressure (db)`
-evalarag$cruisearag <- cruisedata$OmegaAr
+arag <- mosaic(arag, midlow, fun = mean)
+arag <- crop(arag, ext_study)
 
-# remove -999 values and measurements at depth from cruise
-evalarag <- subset(evalarag, cruisearag != -999)
+arag_clipped <- mask(arag, poly_coast, inverse = TRUE) #Clip continuous raster
+arag_clipped <- mask(arag_clipped, estuaries, inverse = TRUE) #Clip continuous raster
+arag_clipped <- mask(arag_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
 
-#filter for surface observations
-evalarag<- evalarag[evalarag[, 3]<5,] 
 
-# filter for low observations due hotspots
-# evalarag <- evalarag[evalarag$cruisearag>1.5,]
 
-# plot to compare cruise and model
-plot(evalarag$modelarag, evalarag$cruise)
-
-modeleval <- lm(evalarag$cruise ~ evalarag$modelarag)
-summary(modeleval)
-
+plot(arag_clipped)
 
 ```
-
-
-####Create mean of NOAA OA cruises
-
-```{r}
-
-# 2011
-
-aragonite_data <- read_csv(here("data/WCOAC_2011_test.csv")) #load data
-colnames(aragonite_data) <- c("Date", "Time", "Lat", "Long", "Pressure", "OmegaAr") #rename columns in dataframe
-
-aragonite_data <- aragonite_data[-c(7)]
-
-aragonite_data <- aragonite_data %>% #remove N/A values
-  mutate(OmegaAr=replace(OmegaAr, OmegaAr==-999.000, NA)) %>%
-  na.omit(aragonite_data)
-
-aragonite_data<- aragonite_data[aragonite_data[, 5]<5,] #filter for surface observations
-
-coordinates(aragonite_data)<-  ~ Long + Lat #transform into spatial points
-
-zd<-zerodist(aragonite_data)
-aragonite_data<-aragonite_data[-zd[,2],] #remove observations taken at same coordinate point
-
-aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data, alpha=c(0, 45, 90, 135))
-plot(aragonite_var) #look for anisotropy and create variogram of aragonite values
-
-aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.1,psill=0.5,range=4,model="Exp", anis=c(0, 0.3))) #fit a model to the values based on estimated nugget, sill, and range, and anisotropy
-plot(aragonite_var,aragonite_fit)
-
-
-extent <- bbox(aragonite_data) #get extent of cruise observations 
-long<-seq(extent[1,1],extent[1,2],length=388) #increase ROI by one degree in each direction
-lat<-seq(extent[2,1],extent[2,2],length=1000)
-
-
-aragonite_grid<-expand.grid(long,lat) #create grid for interpolation surface
-colnames(aragonite_grid)<- c("long", "lat")
-coordinates(aragonite_grid) <- ~ long + lat
-gridded(aragonite_grid)=TRUE
-
-aragonitekrige<-krige(OmegaAr ~ 1, aragonite_data, newdata=aragonite_grid, model=aragonite_fit) #run kriging on interpolation grid, based on best fit model
-
-aragonite_raster<-raster(aragonitekrige, layer=1, values=TRUE) #transform krige object to raster
-projection(aragonite_raster) <- CRS("+proj=longlat +datum=WGS84") #set CRS 
-aragonite_raster_proj_2011 <- projectRaster(aragonite_raster, crs=CRS('+init=EPSG:6414'),method="ngb") #re-project to California Teale Albers Equal Area
-
-#2012
-
-aragonite_data <- read_csv(here("data/WCOAC_2012_test.csv")) #load data
-colnames(aragonite_data) <- c("Date", "Time", "Lat", "Long", "Pressure", "OmegaAr") #rename columns in dataframe
-
-aragonite_data <- aragonite_data[-c(7,8)]
-
-aragonite_data <- aragonite_data %>% #remove N/A values
-  mutate(OmegaAr=replace(OmegaAr, OmegaAr==-999.000, NA)) %>%
-  na.omit(aragonite_data)
-
-aragonite_data<- aragonite_data[aragonite_data[, 5]<5,] #filter for surface observations
-
-coordinates(aragonite_data)<-  ~ Long + Lat #transform into spatial points
-
-zd<-zerodist(aragonite_data)
-
-aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data, alpha=c(0, 45, 90, 135))
-plot(aragonite_var) #look for anisotropy and create variogram of aragonite values
-
-aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.5,psill=0.3,range=2,model="Exp", anis=c(0, 0.3))) #fit a model to the values based on estimated nugget, sill, and range, and anisotropy
-plot(aragonite_var,aragonite_fit)
-
-aragonite_grid<-expand.grid(long,lat) #create grid for interpolation surface
-colnames(aragonite_grid)<- c("long", "lat")
-coordinates(aragonite_grid) <- ~ long + lat
-gridded(aragonite_grid)=TRUE
-
-aragonitekrige<-krige(OmegaAr ~ 1, aragonite_data, newdata=aragonite_grid, model=aragonite_fit) #run kriging on interpolation grid, based on best fit model
-
-aragonite_raster<-raster(aragonitekrige, layer=1, values=TRUE) #transform krige object to raster
-projection(aragonite_raster) <- CRS("+proj=longlat +datum=WGS84") #set CRS 
-aragonite_raster_proj_2012 <- projectRaster(aragonite_raster, crs=CRS('+init=EPSG:6414'),method="ngb") #re-project to California Teale Albers Equal Area
-
-
-#2007
-
-aragonite_data <- read_csv(here("data/WCOAC_2007_test.csv")) #load data
-colnames(aragonite_data) <- c("Date", "Time", "Lat", "Long", "Pressure", "OmegaAr") #rename columns in dataframe
-
-aragonite_data <- aragonite_data[-c(7, 8, 9)]
-
-aragonite_data <- aragonite_data %>% #remove N/A values
-  mutate(OmegaAr=replace(OmegaAr, OmegaAr==-999.000, NA)) %>%
-  na.omit(aragonite_data)
-
-aragonite_data<- aragonite_data[aragonite_data[, 5]<5,] #filter for surface observations
-
-coordinates(aragonite_data)<-  ~ Long + Lat #transform into spatial points
-
-zd<-zerodist(aragonite_data)
-
-aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data, alpha=c(0, 45, 90, 135))
-plot(aragonite_var) #look for anisotropy and create variogram of aragonite values
-
-aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.2,psill=1,range=2,model="Exp", anis=c(0, 0.3))) #fit a model to the values based on estimated nugget, sill, and range, and anisotropy
-plot(aragonite_var,aragonite_fit)
-
-aragonite_grid<-expand.grid(long,lat) #create grid for interpolation surface
-colnames(aragonite_grid)<- c("long", "lat")
-coordinates(aragonite_grid) <- ~ long + lat
-gridded(aragonite_grid)=TRUE
-
-aragonitekrige<-krige(OmegaAr ~ 1, aragonite_data, newdata=aragonite_grid, model=aragonite_fit) #run kriging on interpolation grid, based on best fit model
-
-aragonite_raster<-raster(aragonitekrige, layer=1, values=TRUE) #transform krige object to raster
-projection(aragonite_raster) <- CRS("+proj=longlat +datum=WGS84") #set CRS 
-aragonite_raster_proj_2007 <- projectRaster(aragonite_raster, crs=CRS('+init=EPSG:6414'),method="ngb") #re-project to California Teale Albers Equal Area
-
-# 2013
-
-aragonite_data <- read_csv(here("data/WCOAC_2013_test.csv")) #load data
-colnames(aragonite_data) <- c("Date", "Time", "Lat", "Long", "Pressure", "OmegaAr") #rename columns in dataframe
-
-aragonite_data <- aragonite_data %>% #remove N/A values
-  mutate(OmegaAr=replace(OmegaAr, OmegaAr==-999.000, NA)) %>%
-  na.omit(aragonite_data)
-
-aragonite_data<- aragonite_data[aragonite_data[, 5]<5,] #filter for surface observations
-
-coordinates(aragonite_data)<-  ~ Long + Lat #transform into spatial points
-
-zd<-zerodist(aragonite_data)
-aragonite_data<-aragonite_data[-zd[,2],] #remove observations taken at same coordinate point
-
-aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data, alpha=c(0, 45, 90, 135))
-plot(aragonite_var) #look for anisotropy and create variogram of aragonite values
-
-aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.2,psill=1,range=2,model="Exp", anis=c(0, 0.3))) #fit a model to the values based on estimated nugget, sill, and range, and anisotropy
-plot(aragonite_var,aragonite_fit)
-
-aragonite_grid<-expand.grid(long,lat) #create grid for interpolation surface
-colnames(aragonite_grid)<- c("long", "lat")
-coordinates(aragonite_grid) <- ~ long + lat
-gridded(aragonite_grid)=TRUE
-
-aragonitekrige<-krige(OmegaAr ~ 1, aragonite_data, newdata=aragonite_grid, model=aragonite_fit) #run kriging on interpolation grid, based on best fit model
-
-aragonite_raster<-raster(aragonitekrige, layer=1, values=TRUE) #transform krige object to raster
-projection(aragonite_raster) <- CRS("+proj=longlat +datum=WGS84") #set CRS 
-aragonite_raster_proj_2013 <- projectRaster(aragonite_raster, crs=CRS('+init=EPSG:6414'),method="ngb") #re-project to California Teale Albers Equal Area
-
-aragonitecruises <- (aragonite_raster_proj_2007+aragonite_raster_proj_2011+aragonite_raster_proj_2012+aragonite_raster_proj_2013)/4
-
-aragonitecruises <- mask(aragonitecruises, poly_coast, inverse = TRUE) #Clip continuous raster
-aragonitecruises <- mask(aragonitecruises, Canada, inverse = TRUE) #Clip raster layer to Canada layer
-
-
-
-arag_crop <- mask(arag, poly_coast, inverse = TRUE) #Clip continuous raster
-arag_crop <- mask(arag_crop, Canada, inverse = TRUE) #Clip raster layer to Canada layer
-
-juranek_arag_crop <- mask(juranek_arag, poly_coast, inverse = TRUE) #Clip continuous raster
-juranek_arag_crop <- mask(juranek_arag_crop, Canada, inverse = TRUE) #Clip raster layer to Canada layer
-
-alin_arag_crop <- mask(alin_arag, poly_coast, inverse = TRUE) #Clip continuous raster
-alin_arag_crop <- mask(alin_arag_crop, Canada, inverse = TRUE) #Clip raster layer to Canada layer
-
-
-
-pal <- colorRampPalette(c("red", "white", "royalblue2")) 
-
-tmap_mode("view")
-
-
-tm_shape(aragonitecruises) +
-  tm_raster(palette = pal(3),  breaks = seq(1.6,2.4, by=0.1),
-             title="Aragonite Saturation State") + 
-  tm_layout(basemaps = c('OpenStreetMap')) #Map of aragonite saturation state layer, showing range of values from 0.8 to 3 by 0.2 increments 
-
-tm_shape(arag_crop) +
-  tm_raster(palette = pal(3),  breaks = seq(1.0,2.8, by=0.1),
-             title="Aragonite Saturation State") + 
-  tm_layout(basemaps = c('OpenStreetMap')) #Map of aragonite saturation state layer, showing range of values from 0.8 to 3 by 0.2 increments 
-
-
-  
-do_crop <- mask(r_do_min, poly_coast, inverse = TRUE) #Clip continuous raster
-do_crop <- mask(do_crop, Canada, inverse = TRUE) #Clip raster layer to Canada layer
-
-tm_shape(do_crop) +
-  tm_raster(palette = pal(3),
-             title="Dissolved Oxygen") + 
-  tm_layout(basemaps = c('OpenStreetMap')) #Map of aragonite saturation state layer, showing range of values from 0.8 to 3 by 0.2 increments 
-
-```
-
-
-
-
-
 
 ####Create variogram
 To quantify the relationship between changing aragonite saturation state and distance, the aragonite saturation state raster was used to create a semivariogram. The semi-variogram describes how the semi-variance  of a parameter increases with distance, revealing information on the spatial scale of decorrelation of that parameter. In this analysis, we used it to determine the relationship between variance in aragonite saturation state and distance. The semi-variogram revealed that the semi-variance in aragonite saturation state saturates (i.e. semi-variance ceases to increase as distance increases) at a distance of 2000 km, and a maximum semi-variance of 0.12 is reached at that point. We used a linear interpolation between the origin and the saturation point to relate variance in aragonite saturation state and distance. 
 ```{r variogram, eval = TRUE}
-aragvar <- Variogram(arag, lag = 5000)
+aragvar <- Variogram(arag_clipped, cutoff = 500000)
 plot(aragvar)
 ```
 
@@ -444,7 +206,7 @@ inventory <- read_csv(here("data/inventory.csv"))
 3. Remove NA coordinate entries from gliders
 4. Transform latitude and longitude to numeric
 5. Create subsets of data
-```{r tidy inventory, message = FALSE, warning = FALSE, results = 'hide'}
+```{r tidy inventory, message = FALSE, warning = FALSE, results = 'hide', include = FALSE}
 
 #remove non OAH focus entries
 
@@ -466,7 +228,7 @@ oahfocus$MeasFreq[oahfocus$MeasFreq == 3] <- 175200
 oahfocus$MeasFreq[oahfocus$MeasFreq == 1] <- 525600
 oahfocus$MeasFreq[oahfocus$MeasFreq == 120] <- 2920
 oahfocus$MeasFreq[oahfocus$MeasFreq == 360] <- 1460
-oahfocus$MeasFreq[oahfocus$MeasFreq == 720] <- 730
+oahfocus$MeasFreq[oahfocus$MeasFreq == 720] <- 720
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Quarterly"] <- 4
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Annual"] <- 1
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Monthly"] <- 12
@@ -487,9 +249,9 @@ oahfocus$MeasFreq[oahfocus$MeasFreq =="Daily"] <- 365
 oahfocus$MeasFreq[oahfocus$MeasFreq =="< 6 hours"] <- 1460
 oahfocus$MeasFreq[oahfocus$MeasFreq =="Once"] <- 0
 
-
-
 unique(oahfocus$MeasFreq)
+
+oahfocus$MeasFreq <- as.numeric(as.character(oahfocus$MeasFreq))
 
 #remove NA coordinates
 oahfocus <- oahfocus[!is.na(oahfocus$Latitude), ]
@@ -504,10 +266,16 @@ oahfocus$Latitude<-as.numeric(oahfocus$Latitude)
 
 #subsets
 carbcomplete<-subset(oahfocus, DisCrbPmtr>1 | ISCrbPmtr > 1)
-incomplete <- subset(oahfocus, DisCrbPmtr<2 & ISCrbPmtr < 2 & EndYr == "Present")
-highfrequency<-subset(oahfocus, MeasFreq > 364)
+incomplete <- subset(oahfocus, DisCrbPmtr<2 & EndYr == "Present" | ISCrbPmtr < 2 & EndYr == "Present")
+  
+highfrequency <-  subset(oahfocus, MeasFreq > 364)
+
 highfreqcarbcomplete<-subset(oahfocus, MeasFreq > 364 & DisCrbPmtr>1 | MeasFreq > 364 & ISCrbPmtr > 1)
-lowfrequency <- subset(oahfocus, MeasFreq < 365 & EndYr == "Present" & AssetType == "Shoreside Sensor" | AssetType == "Mooring" | AssetType == "Sample Site" | AssetType == "Shoresidesensor")
+
+lowfrequency <- subset(oahfocus, MeasFreq < 365 & EndYr == "Present" & AssetType == "Shoreside Sensor" |MeasFreq < 365 & EndYr == "Present" &  AssetType == "Mooring" | MeasFreq < 365 & EndYr == "Present" & AssetType == "Sample Site" | MeasFreq < 365 & EndYr == "Present" & AssetType == "Shoresidesensor")
+
+
+calcofi <- subset(oahfocus, ProjectID == "CalCOFI")
 
 ```
 
@@ -521,6 +289,8 @@ highfrequencycoords <- cbind.data.frame(highfrequency$Longitude, highfrequency$L
 lowfrequencycoords <- cbind.data.frame(lowfrequency$Longitude, lowfrequency$Latitude)
 highfreqcarbcompletecoords <- cbind.data.frame(highfreqcarbcomplete$Longitude, highfreqcarbcomplete$Latitude)
 
+calcoficoords <- cbind.data.frame(calcofi$Longitude, calcofi$Latitude)
+
 # remove duplicate locations
 deduped.coords<-unique(coords)
 deduped.carbcomplete <- unique(carbcompletecoords)
@@ -532,17 +302,33 @@ deduped.highfreqcarbcomplete <- unique(highfreqcarbcompletecoords)
 # create spatial points objects
 inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
 inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:6414'))
+
 carbcompletecoords <- SpatialPoints(deduped.carbcomplete, CRS("+proj=longlat +ellps=WGS84"))
 carbcompletecoords <- spTransform(carbcompletecoords, CRS('+init=EPSG:6414'))
-incompletecoords <- SpatialPoints(deduped.incomplete, CRS("+proj=longlat +ellps=WGS84"))
-incompletecoords <- spTransform(incompletecoords, CRS('+init=EPSG:6414'))
 highfreqcoords <- SpatialPoints(deduped.highfrequency, CRS("+proj=longlat +ellps=WGS84"))
 highfreqcoords <- spTransform(highfreqcoords, CRS('+init=EPSG:6414'))
+
+calcoficoords <- SpatialPoints(calcoficoords, CRS("+proj=longlat +ellps=WGS84"))
+calcoficoords <- spTransform(calcoficoords, CRS('+init=EPSG:6414'))
+
 lowfreqcoords <- SpatialPoints(deduped.lowfrequency, CRS("+proj=longlat +ellps=WGS84"))
 lowfreqcoords <- spTransform(lowfreqcoords, CRS('+init=EPSG:6414'))
+
 highfreqcarbcompletecoords <- SpatialPoints(deduped.highfreqcarbcomplete, CRS("+proj=longlat +ellps=WGS84"))
 highfreqcarbcompletecoords <- spTransform(highfreqcarbcompletecoords, CRS('+init=EPSG:6414'))
 
+incompletecoords <- SpatialPoints(deduped.incomplete, CRS("+proj=longlat +ellps=WGS84"))
+incompletecoords <- spTransform(incompletecoords, CRS('+init=EPSG:6414'))
+
+calcofiarag <- raster::extract(arag, calcoficoords, method='simple', df=TRUE)
+meancalcofi <- mean(calcofiarag$layer, na.rm= TRUE)
+
+relerr <- (meancalcofi-2.2425)/2.2425
+
+# account for uncertainty 
+arag_max <- arag*(1+relerr)
+
+arag_min <- arag*(1-relerr)
 ```
 
 ####Create voronoi polygons and rasterize the results
@@ -557,11 +343,11 @@ highfreqvor <- voronoi(highfreqcoords)
 lowfreqvor <- voronoi(lowfreqcoords)
 
 # rasterize polygons
-vorraster<- rasterize(vor, r_sst_min, "id")
-carbcompletevorraster<- rasterize(carbcompletevor, r_sst_min, "id")
-incompletevorraster<- rasterize(incompletevor, r_sst_min, "id")
-highfreqvorraster<- rasterize(highfreqvor, r_sst_min, "id")
-lowfreqvorraster<- rasterize(lowfreqvor, r_sst_min, "id")
+vorraster<- rasterize(vor, r_sst, "id")
+carbcompletevorraster<- rasterize(carbcompletevor, r_sst, "id")
+incompletevorraster<- rasterize(incompletevor, r_sst, "id")
+highfreqvorraster<- rasterize(highfreqvor, r_sst, "id")
+lowfreqvorraster<- rasterize(lowfreqvor, r_sst, "id")
 
 ```
 
@@ -569,17 +355,31 @@ lowfreqvorraster<- rasterize(lowfreqvor, r_sst_min, "id")
 We assigned the parameter value of all locations with the same polygon identification number (i.e. nearest to the same monitoring asset) to the measured value of the cell containing the monitoring asset associated with that same polygon identification number. This step resulted in a map of aragonite saturation state across the West Coast estimated by the empirical model output at each monitoring site. Thus, a monitoring network with 20 assets would result in a map made up of 20 chunks of area, each with different values of aragonite saturation state based on the estimated value at the nearest monitoring asset. 
 ```{r polygons}
 #extract aragonite saturation state value for each monitoring site
-sitearag<- raster::extract(arag, inventorycoords, method='simple', df=TRUE)
-carbcompletesitearag<- raster::extract(arag, carbcompletecoords, method='simple', df=TRUE)
-highfreqsitearag<- raster::extract(arag, highfreqcoords, method='simple', df=TRUE)
+sitearag_max<- raster::extract(arag_max, inventorycoords, method='simple', df=TRUE)
+carbcompletesitearag_max<- raster::extract(arag_max, carbcompletecoords, method='simple', df=TRUE)
+highfreqsitearag_max<- raster::extract(arag_max, highfreqcoords, method='simple', df=TRUE)
 # rename column names of sitesstrange
-colnames(sitearag)<-c("id", "Arag")
-colnames(carbcompletesitearag)<-c("id", "Arag")
-colnames(highfreqsitearag)<-c("id", "Arag")
+colnames(sitearag_max)<-c("id", "Arag")
+colnames(carbcompletesitearag_max)<-c("id", "Arag")
+colnames(highfreqsitearag_max)<-c("id", "Arag")
 # substitute polygon id for monitoring site sea surface temerature of that polygon
-polygonarag<-subs(vorraster, sitearag, by="id", which="Arag", subsWithNA=FALSE)
-carbcompletepolygonarag <- subs(carbcompletevorraster, carbcompletesitearag, by="id", which="Arag", subsWithNA=FALSE)
-highfreqpolygonarag <- subs(highfreqvorraster, highfreqsitearag, by="id", which="Arag", subsWithNA=FALSE)
+polygonarag_max<-subs(vorraster, sitearag_max, by="id", which="Arag", subsWithNA=FALSE)
+carbcompletepolygonarag_max <- subs(carbcompletevorraster, carbcompletesitearag_max, by="id", which="Arag", subsWithNA=FALSE)
+highfreqpolygonarag_max <- subs(highfreqvorraster, highfreqsitearag_max, by="id", which="Arag", subsWithNA=FALSE)
+
+sitearag_min<- raster::extract(arag_min, inventorycoords, method='simple', df=TRUE)
+carbcompletesitearag_min<- raster::extract(arag_min, carbcompletecoords, method='simple', df=TRUE)
+highfreqsitearag_min<- raster::extract(arag_min, highfreqcoords, method='simple', df=TRUE)
+# rename column names of sitesstrange
+colnames(sitearag_min)<-c("id", "Arag")
+colnames(carbcompletesitearag_min)<-c("id", "Arag")
+colnames(highfreqsitearag_min)<-c("id", "Arag")
+# substitute polygon id for monitoring site sea surface temerature of that polygon
+polygonarag_min<-subs(vorraster, sitearag_min, by="id", which="Arag", subsWithNA=FALSE)
+carbcompletepolygonarag_min <- subs(carbcompletevorraster, carbcompletesitearag_min, by="id", which="Arag", subsWithNA=FALSE)
+highfreqpolygonarag_min <- subs(highfreqvorraster, highfreqsitearag_min, by="id", which="Arag", subsWithNA=FALSE)
+
+
 ```
 
 ####Determine semivariance of aragonite discrepancy
@@ -587,9 +387,43 @@ We then used the empirical model outputs created using the continuous environmen
 ```{r semivariance}
 #vij = (xi-xj)^2/2
 
-vij<- (arag-polygonarag)^2/2
-carbcompletevij <- (arag-carbcompletepolygonarag)^2/2
-highfreqvij <- (arag-highfreqpolygonarag)^2/2
+discrepancy_1 = abs((arag_min)-(polygonarag_max))
+discrepancy_2 =abs((arag_max)-(polygonarag_min))
+discrepancy = mosaic(discrepancy_1, discrepancy_2, fun = min)
+discrepancy[discrepancy < 0] = 0
+
+ccdiscrepancy_1 = (arag_min)-(carbcompletepolygonarag_max)
+ccdiscrepancy_2 = (arag_max)-(carbcompletepolygonarag_min)
+ccdiscrepancy = mosaic(ccdiscrepancy_1, ccdiscrepancy_2, fun = min)
+ccdiscrepancy[ccdiscrepancy < 0] = 0
+
+
+hfdiscrepancy_1 = (arag_min)-(highfreqpolygonarag_max)
+hfdiscrepancy_2 = (arag_max)-(highfreqpolygonarag_min)
+hfdiscrepancy = mosaic(hfdiscrepancy_1, hfdiscrepancy_2, fun = min)
+hfdiscrepancy[hfdiscrepancy < 0] = 0
+
+
+discrepancy <- mask(discrepancy, poly_coast, inverse = TRUE) #Clip continuous raster
+discrepancy <- mask(discrepancy, estuaries, inverse = TRUE) #Clip continuous raster
+discrepancy <- mask(discrepancy, sf_puget, inverse = TRUE) #Clip continuous raster
+
+ccdiscrepancy <- mask(ccdiscrepancy, poly_coast, inverse = TRUE) #Clip continuous raster
+ccdiscrepancy <- mask(ccdiscrepancy, estuaries, inverse = TRUE) #Clip continuous raster
+ccdiscrepancy <- mask(ccdiscrepancy, sf_puget, inverse = TRUE) #Clip continuous raster
+
+hfdiscrepancy <- mask(hfdiscrepancy, poly_coast, inverse = TRUE) #Clip continuous raster
+hfdiscrepancy <- mask(hfdiscrepancy, estuaries, inverse = TRUE) #Clip continuous raster
+hfdiscrepancy <- mask(hfdiscrepancy, sf_puget, inverse = TRUE) #Clip continuous raster
+
+plot(discrepancy)
+plot(ccdiscrepancy)
+plot(hfdiscrepancy)
+
+vij<- (discrepancy)^2/2
+carbcompletevij <- (ccdiscrepancy)^2/2
+highfreqvij <- (hfdiscrepancy)^2/2
+
 ```
 
 ##Step 3. Geographic and oceanographic distance
@@ -600,38 +434,35 @@ The inverse of the linear relationship from the semi-variogram was applied to th
 #variogram does not saturate: develop an equation to describe relationship using square root function...
 
 model <- lm(aragvar@variogram[["gamma"]] ~ 0 + I((aragvar@variogram[["distance"]])))
+summary(model)
 
-
-#sqrootmodel <- lm(aragvar@variogram[["gamma"]] ~ 0 + I(sqrt(aragvar@variogram[["distance"]])))
-
-#p value < 2e-16
+summary(model)
 
 xbar<-aragvar@variogram[["distance"]]
-#ybar<-sqrt(xbar)*sqrootmodel$coefficients[1]
 ybar<-(xbar)*model$coefficients[1]
 
 ggplot()+
   geom_point(aes(aragvar@variogram[["distance"]], aragvar@variogram[["gamma"]]), color = "red")+
   geom_point(aes(xbar, ybar), color = "blue")+
-  ylim(0, 0.15)+
   theme_bw()+
   ggtitle('Variogram (red) and predictive model (blue)')+
   xlab('Distance Between Points (m)')+
   ylab('Semivariance of Aragonite Discrepancy')+
   theme(text = element_text(size = 10, family="serif"))
 
-#find inverse of nonlinear model:
-#semivariance = 5.871094 e-08 * (distance)
-#distance = (semivariance/(5.871094 e-08)
+oceanographicdistance = (vij/(4.472e-08  ))/(1000)
+carbcompleteoceanographicdistance = (carbcompletevij/(4.472e-08  ))/(1000)
+highfreqoceanographicdistance = (highfreqvij/(4.472e-08 ))/(1000)
 
-#oceanographicdistance = (vij/0.0001504855)^2/(1000^2)
-#carbcompleteoceanographicdistance = (carbcompletevij/0.0001504855)^2/(1000^2)
-#maxhighfreqoceanographicdistance = (highfreqvij/0.0001504855)^2/(1000^2)
+plot(oceanographicdistance)
+plot(carbcompleteoceanographicdistance)
+plot(highfreqoceanographicdistance)
 
-oceanographicdistance = (vij/(5.871094e-08))/(1000)
-carbcompleteoceanographicdistance = (carbcompletevij/(5.871094e-08))/(1000)
-highfreqoceanographicdistance = (highfreqvij/(5.871094e-08))/(1000)
+od_clipped <- mask(oceanographicdistance, poly_coast, inverse = TRUE) #Clip continuous raster
+od_clipped <- mask(od_clipped, estuaries, inverse = TRUE) #Clip continuous raster
+od_clipped <- mask(od_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
 
+plot(od_clipped)
 
 ```
 
@@ -639,8 +470,28 @@ highfreqoceanographicdistance = (highfreqvij/(5.871094e-08))/(1000)
 Determine geographic distance from the nearest monitoring point
 ```{r geographic distance}
 distance<-distanceFromPoints(oceanographicdistance, inventorycoords)/1000
+
+distance_clipped <- mask(distance, poly_coast, inverse = TRUE) #Clip continuous raster
+distance_clipped <- mask(distance_clipped, estuaries, inverse = TRUE) #Clip continuous raster
+distance_clipped <- mask(distance_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
+
+plot(distance_clipped)
+
 carbcompletedistance<-distanceFromPoints(carbcompleteoceanographicdistance, carbcompletecoords)/1000
+
+carbcompletedistance_clipped <- mask(carbcompletedistance, poly_coast, inverse = TRUE) #Clip continuous raster
+carbcompletedistance_clipped <- mask(carbcompletedistance_clipped, estuaries, inverse = TRUE) #Clip continuous raster
+carbcompletedistance_clipped <- mask(carbcompletedistance_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
+
+plot(carbcompletedistance_clipped)
+
 highfreqdistance<-distanceFromPoints(highfreqoceanographicdistance, highfreqcoords)/1000
+
+highfreqdistance_clipped <- mask(highfreqdistance, poly_coast, inverse = TRUE) #Clip continuous raster
+highfreqdistance_clipped <- mask(highfreqdistance_clipped, estuaries, inverse = TRUE) #Clip continuous raster
+highfreqdistance_clipped <- mask(highfreqdistance_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
+
+plot(highfreqdistance_clipped)
 ```
 
 ##Step 4. Find Gaps
@@ -650,16 +501,24 @@ We used a Euclidean distance approach to combine geographic distance and oceanog
 
 #calculate gaps
 
-weight = maxValue(distance)/maxValue(oceanographicdistance)
+weight = maxValue(od_clipped)/maxValue(distance_clipped)
 
-gap<-(sqrt((distance)^2+(weight*oceanographicdistance)^2))
-carbcompletegap<-(sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))
-highfreqgap<-(sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))
+gap<-(sqrt((weight*distance_clipped)^2+(oceanographicdistance)^2))
 
+carbcompletegap<-(sqrt((weight*carbcompletedistance_clipped)^2+(carbcompleteoceanographicdistance)^2))
+
+carbcompletegap<-(sqrt((carbcompletedistance_clipped)^2+(carbcompleteoceanographicdistance)^2))
+
+highfreqgap<-(sqrt((weight*highfreqdistance_clipped)^2+(highfreqoceanographicdistance)^2))
 
 gap <- crop(gap, ext_study)
 carbcompletegap <- crop(carbcompletegap, ext_study)
 highfreqgap <- crop(highfreqgap, ext_study)
+
+plot(gap)
+plot(carbcompletegap)
+plot(highfreqgap)
+
 ```
 
 ####Map Gaps
@@ -672,43 +531,39 @@ tmap_mode("plot")
 pal <- colorRampPalette(c("royalblue2", "white", "red"))
 
 tm_shape(gap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0,50,100,300, 500))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325))+
   tm_layout(main.title = "Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+
   tm_shape(Canada)+
   tm_polygons()+
+  tm_shape(inventorycoords)+
+  tm_dots()+
   tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 tm_shape(carbcompletegap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 30, 90, 270, 810, 2000))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325))+
   tm_layout(main.title = "Aragonite Measurement Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+
   tm_shape(Canada)+
-  tm_polygons()+
+  tm_polygons()+  
+  tm_shape(incompletecoords)+
+  tm_dots()+
   tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 tm_shape(highfreqgap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,  breaks = c(0, 30, 90, 270, 810, 2000))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325))+
   tm_layout(main.title = "Daily Monitoring Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+
   tm_shape(Canada)+
   tm_polygons()+
+  tm_shape(highfreqcoords)+
+  tm_dots()+
   tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
-
-#tm_shape(gap)+
-#  tm_raster(title = "Effective Distance to Nearest Monitoring (km)", palette = #pal(10), colorNA = 'grey87', alpha = 1, auto.palette.mapping = FALSE, #legend.show = TRUE, breaks = c(0, 100, 200, 300, 400, 500))+
-#  tm_layout(main.title = "Effective Distance to Nearest Monitoring (km)", #bg.color = "white", main.title.position = c("center", "top"), fontfamily = #"serif", fontface = "bold", legend.only = TRUE, legend.just = "center", #legend.title.size = 0.7, legend.text.size= 0.5)+
-#  tm_shape(poly_coast)+
-#  tm_polygons()+
-#  tm_shape(Canada)+
-#  tm_polygons()+
-#  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.size = #0.6)
-#tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 ```
