@@ -1,0 +1,419 @@
+---
+title: "Gap Analysis: Hauri Model"
+output: html_document
+---
+
+```{r setup, echo = FALSE, results = "hide", include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Introduction
+
+Given the existing monitoring network, our analysis locates the best site for the next monitoring asset, thereby filling in monitoring network gaps one asset at a time, based off the sites that already are in place. In this analysis we utilized methods that fall in the middle of the spectrum defined by other works in this realm (see Asch et al. (2003) for a more simplistic approach, and Frolov et al. 2013 for a more involved approach). These decisions were made due to the constraints of the data we used (spatial metadata as opposed to time series and satellite data) as well as the goal of working with policymakers and non-scientist end users. The result is an analysis that provides specific spatial information on relative sampling of ocean acidification on the West Coast. 
+Monitoring networks are geographic objects, and it might seem that the ideal network would evenly spaced across the ocean. However, the ocean is not uniform: some places in the ocean are more dynamic, both spatially and temporally, than others. This effect can be illustrated with an example from the Santa Barbara Channel (see LTER analysis). Thus, where the ocean is highly dynamic, an ideal monitoring network will have more closely clustered assets than in places that are more static.
+
+##Step 1. Manipulate sea surface temperature and dissolved oxygen estimate make aragonite saturation state
+#### Setup
+Load packages, set cache, define study area
+```{r packages / cache}
+if (!require(pacman)) install.packages("pacman")
+library(pacman)
+p_load(
+  tidyverse, here, glue,
+  raster,
+  sdmpredictors, dismo, 
+  deldir, 
+  mapview,
+  tmap,
+  ggplot2,
+  rgdal,
+  gstat,
+  usdm,
+  knitr,
+  tmap,
+  rnaturalearth, 
+  grid,
+  gridExtra,
+  chron,
+  RColorBrewer,
+  lattice,
+  ncdf4,
+  reshape)
+# custom R package: oatools
+devtools::load_all(here("../oatools")) # for developing
+
+#library(oatools) # devtools::install_github("resilinseas/oatools") # for eventual production
+# paths & variables ----
+dir_data        <- here("data")
+dir_sdmdata_old <- here("data/sdmpredictors")
+dir_cache       <- here("cache")
+dir_sdmdata     <- here("cache/sdmpredictors")
+SST_tif <- here("data/sst_mean.tif")
+DO_tif  <- here("data/do_mean.tif")
+
+# reorganize dirs so "cache" is always local and ignored by git, vs all in "data" tracked by git & pushed to github
+if (!dir.exists(dir_data))    dir.create(dir_data)
+if (!dir.exists(dir_cache))   dir.create(dir_cache)
+if (!dir.exists(dir_sdmdata) & dir.exists(dir_sdmdata_old))
+  file.rename(dir_sdmdata_old, dir_sdmdata)
+if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
+ list<- list_layers("Bio-ORACLE")
+
+# extent of NE Pacific study area, for cropping rasters
+# ext_study <- extent(-130, -118, 32.5, 50)
+
+# import shapefiles for cropping to coast
+poly_coast<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/Export_Output_2"), layer="Export_Output_2")
+Canada<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/Canada"), layer="Canada")
+states<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/cb_2016_us_state_20m"), layer="cb_2016_us_state_20m")
+estuaries<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/estuaries"), layer="estuaries")
+sf_puget<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/water_bodies_carto"), layer="water_bodies_carto")
+
+#load shapefiles
+poly_coast <- spTransform(poly_coast, crs('+init=EPSG:4326'))
+Canada <- spTransform(Canada, crs('+init=EPSG:4326'))
+states <- spTransform(states, crs('+init=EPSG:4326'))
+estuaries <- spTransform(estuaries, crs('+init=EPSG:4326'))
+sf_puget <- spTransform(sf_puget, crs('+init=EPSG:4326'))
+
+ref_grid<-extent(-130, -118, 32.5, 48)
+ref_grid<-raster(ref_grid)
+res(ref_grid)<-0.1
+values(ref_grid)<-1#dummy values
+projection(ref_grid)<-CRS("+proj=longlat +datum=WGS84 +no_defs    +ellps=WGS84 +towgs84=0,0,0")
+
+```
+
+####Hauri model outputs
+```{r}
+
+# set path and filenames import netcdf
+ncpath <- "/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/"
+ncname <- "RaeTaylorBurns_2018"  
+ncfname <- paste(ncpath, ncname, ".nc", sep="")
+dname <- "arag"  # note: tmp means temperature (not temporary)
+ncin <- nc_open(ncfname)
+
+print(ncin)
+
+#rasters from lat lon and arag
+lon <- raster(ncfname,varname="lon_rho")
+lat <- raster(ncfname,varname="lat_rho")
+arag <- raster(ncfname, varname = "omega_arag", fun = "mean")
+
+#plot arag to check
+plot(arag)
+
+#create table from lat lon and arag rasters
+remap.tbl <- data.frame(coordinates(lon),
+                        lon=as.vector(lon),lat=as.vector(lat), arag = as.vector(arag))
+remap.tbl <- remap.tbl[-c(1:2)]
+
+####test <- SpatialPoints(remap.tbl$lon, remap.tbl$lat, CRS("+proj=longlat +ellps=WGS84"))
+
+# transform lat and lon entries into coords
+data_sp <- remap.tbl
+coordinates(data_sp) = ~lon + lat
+
+str(data_sp)
+
+hauri_vor <-voronoi(data_sp)
+
+plot(hauri_vor)
+plot(ref_grid, add = TRUE)
+
+hauri_raster<- rasterize(hauri_vor, ref_grid, "arag", update = TRUE)
+
+hauri_raster[hauri_raster < 0] <- NA
+
+plot(hauri_raster)
+
+hauri_clipped <- mask(hauri_raster, poly_coast, inverse = TRUE) #Clip continuous raster
+hauri_clipped <- mask(hauri_clipped, estuaries, inverse = TRUE) #Clip continuous raster
+hauri_clipped <- mask(hauri_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
+
+
+plot(hauri_clipped)
+
+fill.na <- function(x) {
+        i <- (fill_window * floor(fill_window / 2))  + ceiling(fill_window / 2)
+        if( is.na(x)[i] ) {
+          # browser() # uncomment to stop execution and inspect values
+          # return( round(mean(x, na.rm=FALSE),0) )
+          return(mean(x, na.rm=FALSE),0)
+
+        } else {
+          return( x[i] )
+        }
+      }
+
+fill_window = 11
+
+hauri_fill <- focal(
+        hauri_clipped, w = matrix(1, fill_window, fill_window), fun = fill.na, pad=T, na.rm=F)
+
+plot(hauri_fill)
+
+arag <- hauri_fill
+
+plot(arag)
+
+
+```
+
+####Create variogram
+To quantify the relationship between changing aragonite saturation state and distance, the aragonite saturation state raster was used to create a semivariogram. The semi-variogram describes how the semi-variance  of a parameter increases with distance, revealing information on the spatial scale of decorrelation of that parameter. In this analysis, we used it to determine the relationship between variance in aragonite saturation state and distance. The semi-variogram revealed that the semi-variance in aragonite saturation state saturates (i.e. semi-variance ceases to increase as distance increases) at a distance of 2000 km, and a maximum semi-variance of 0.12 is reached at that point. We used a linear interpolation between the origin and the saturation point to relate variance in aragonite saturation state and distance. 
+```{r variogram, eval = TRUE}
+
+aragvar <- Variogram(arag)
+plot(aragvar)
+```
+
+##Step 2. Relate aragonite saturation state trends to each monitoring site
+####Load inventory
+This step can be done locally when updated versions of the monitoring inventory are available
+```{r prep inventory, message = FALSE, warning = FALSE, results = 'hide'}
+# import inventory
+inventory <- read_csv(here("data/inventory.csv"))
+```
+
+####Tidy Inventory
+1. Isolate OAH Focus Data Collection
+2. Quantify Data Collection Frequency (measurements/year)
+3. Remove NA coordinate entries from gliders
+4. Transform latitude and longitude to numeric
+5. Create subsets of data
+```{r tidy inventory, message = FALSE, warning = FALSE, results = 'hide', include = FALSE}
+
+#remove non OAH focus entries
+
+oahfocus <- subset(inventory, OAHFocus == "OA" | OAHFocus == "H" | OAHFocus == "OAH")
+
+#quantify frequencies
+unique(oahfocus$MeasFreq)
+oahfocus$MeasFreq[oahfocus$MeasFreq == 10] <- 52560
+oahfocus$MeasFreq[oahfocus$MeasFreq == 60] <- 8760
+oahfocus$MeasFreq[oahfocus$MeasFreq ==30] <- 17520
+oahfocus$MeasFreq[oahfocus$MeasFreq == 20] <- 26280
+oahfocus$MeasFreq[oahfocus$MeasFreq == 15] <- 35040
+oahfocus$MeasFreq[oahfocus$MeasFreq == 5] <- 105120
+oahfocus$MeasFreq[oahfocus$MeasFreq == 6] <- 87600
+oahfocus$MeasFreq[oahfocus$MeasFreq == 180] <- 2920
+oahfocus$MeasFreq[oahfocus$MeasFreq == 2] <- 262800
+oahfocus$MeasFreq[oahfocus$MeasFreq == 0.25] <- 2102400
+oahfocus$MeasFreq[oahfocus$MeasFreq == 3] <- 175200
+oahfocus$MeasFreq[oahfocus$MeasFreq == 1] <- 525600
+oahfocus$MeasFreq[oahfocus$MeasFreq == 120] <- 2920
+oahfocus$MeasFreq[oahfocus$MeasFreq == 360] <- 1460
+oahfocus$MeasFreq[oahfocus$MeasFreq == 720] <- 720
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Quarterly"] <- 4
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Annual"] <- 1
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Monthly"] <- 12
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Semi-annual"] <- 2
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Bi-weekly"] <- 26
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Seasonally"] <- 1
+oahfocus$MeasFreq[oahfocus$MeasFreq =="1/4 second"] <- 126144000
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Bi-monthly"] <- 6
+oahfocus$MeasFreq[oahfocus$MeasFreq =="5  Years"] <- 0.2
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Bi-weekly"] <- 26
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Variable"] <- 0
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Decadal"] <- 0.1
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Biennial"] <- 0.5
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Weekly"] <- 52
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Triennial"] <- 0.33333
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Trimester"] <- 3
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Daily"] <- 365
+oahfocus$MeasFreq[oahfocus$MeasFreq =="< 6 hours"] <- 1460
+oahfocus$MeasFreq[oahfocus$MeasFreq =="Once"] <- 0
+
+unique(oahfocus$MeasFreq)
+
+oahfocus$MeasFreq <- as.numeric(as.character(oahfocus$MeasFreq))
+
+#remove NA coordinates
+oahfocus <- oahfocus[!is.na(oahfocus$Latitude), ]
+oahfocus <- oahfocus[!is.na(oahfocus$Longitude), ]
+
+#remove spaces and transform to numeric
+gsub(" ", "", oahfocus$Latitude)
+gsub(" ", "", oahfocus$Longitude)
+gsub("'<ca>'", "", oahfocus$Longitude)
+oahfocus$Longitude<-as.numeric(oahfocus$Longitude)
+oahfocus$Latitude<-as.numeric(oahfocus$Latitude)
+```
+
+####Make spatial points object from inventory coordinates and its subsets
+```{r make spatial objects from iventory, message = FALSE, warning = FALSE, results = 'hide'}
+# isolate coordinate columns
+coords <- cbind.data.frame(oahfocus$Longitude, oahfocus$Latitude)
+
+# remove duplicate locations
+deduped.coords<-unique(coords)
+
+# create spatial points objects
+inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
+inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:4326'))
+
+inventory_inside = inventorycoords[poly_coast,]
+sp = over(inventorycoords, poly_coast)
+inventory_outside = inventory[is.na(sp),]
+
+
+inventorycoords2<- inventorycoords[is.na(poly_coast),]
+
+plot(inventorycoords, col = "red")
+plot(inventory_outside, add = TRUE)
+
+
+inventorycoords2<- point.in.polygon(inventorycoords, poly_coast) #Clip continuous raster
+
+
+inventorycoords2 <- over(inventorycoords2, estuaries, inverse = TRUE) #Clip continuous raster
+hauri_clipped <- mask(hauri_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
+
+```
+
+####Create voronoi polygons and rasterize the results
+We used Voronoi polygons to divide the ocean into regions based on spatial proximity to each monitoring asset.23 We assigned a polygon identification number to each polygon and then gridded the Voronoi polygons, while maintaining the polygon identification numbers. 
+```{r voronoi,  message = FALSE, warning = FALSE, results = 'hide'}
+
+# create voronoi polygons
+
+vor <-voronoi(inventorycoords)
+vorraster<- rasterize(vor, ref_grid, "id")
+
+plot(vorraster)
+plot(inventorycoords, add = TRUE)
+
+plot(arag)
+plot(inventorycoords, add = TRUE)
+
+```
+
+####Create OA layer
+We assigned the parameter value of all locations with the same polygon identification number (i.e. nearest to the same monitoring asset) to the measured value of the cell containing the monitoring asset associated with that same polygon identification number. This step resulted in a map of aragonite saturation state across the West Coast estimated by the empirical model output at each monitoring site. Thus, a monitoring network with 20 assets would result in a map made up of 20 chunks of area, each with different values of aragonite saturation state based on the estimated value at the nearest monitoring asset. 
+```{r polygons}
+#extract aragonite saturation state value for each monitoring site
+
+# create spatial points objects
+inventorycoords <- SpatialPoints(deduped.coords, CRS("+proj=longlat +ellps=WGS84"))
+inventorycoords <- spTransform(inventorycoords, CRS('+init=EPSG:4326'))
+
+sitearag<- raster::extract(arag, inventorycoords, method='simple', df=TRUE)
+
+colnames(sitearag)<-c("id", "Arag")
+
+polygonarag<-subs(vorraster, sitearag, by="id", which="Arag", subsWithNA=FALSE)
+
+plot(polygonarag)
+plot(inventorycoords, add = TRUE)
+
+arag_uncertainty <- arag
+polygonarag_uncertainty <-polygonarag
+
+```
+
+####Determine semivariance of aragonite discrepancy
+We then used the empirical model outputs created using the continuous environmental layers to find the difference between the empirical model outputs at every location in the ocean and the empirical model outputs for the nearest monitoring asset. The result is an aragonite saturation state discrepancy value that describes how different acidification conditions are at any point on the West Coast as compared to these conditions at the nearest data collection location. In places where this value is high, a monitoring asset is not describing OA conditions well. In places where this value is low, a monitoring asset describes OA conditions very well. In the future, when aragonite saturation state models are available on a regional scale, outputs from such models could replace our empirical model outputs.  
+```{r semivariance}
+#vij = (xi-xj)^2/2
+
+discrepancy = (arag)-(polygonarag)
+#discrepancy[discrepancy < 0] <- 0
+discrepancy = abs(discrepancy)
+
+vij<- (discrepancy)^2/2
+
+# clip hauri raster to coast
+vij_clipped <- mask(vij, poly_coast, inverse = TRUE) #Clip continuous raster
+vij_clipped <- mask(vij_clipped, estuaries, inverse = TRUE) #Clip continuous raster
+vij_clipped <- mask(vij_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
+
+vij <- vij_clipped
+
+
+```
+
+##Step 3. Geographic and oceanographic distance
+####Oceanographic distance
+The inverse of the linear relationship from the semi-variogram was applied to the semi-variance calculated above, yielding a map showing the “oceanographic distance” between each cell in our study region and the nearest monitoring asset. We define oceanographic distance as the effective distance between any location and the nearest monitoring asset, based on the similarity of oceanographic conditions that determine OA conditions between the two locations. A cell with high oceanographic distance has different acidification conditions than the nearest monitoring asset, and a cell with low oceanographic distance has similar acidification conditions to the nearest monitoring asset. 
+```{r oceanographic distance,  message = FALSE, warning = FALSE, results = 'hide'}
+
+#variogram does not saturate: develop an equation to describe relationship using square root function...
+
+model <- lm(aragvar@variogram[["gamma"]] ~ 0 + I((aragvar@variogram[["distance"]])))
+summary(model)
+
+xbar<-aragvar@variogram[["distance"]]
+ybar<-(xbar)*model$coefficients[1]
+
+ggplot()+
+  geom_point(aes(aragvar@variogram[["distance"]], aragvar@variogram[["gamma"]]), color = "red")+
+  geom_point(aes(xbar, ybar), color = "blue")+
+  theme_bw()+
+  ggtitle('Variogram (red) and predictive model (blue)')+
+  xlab('Distance Between Points (decimal degrees)')+
+  ylab('Semivariance of Aragonite Discrepancy')+
+  theme(text = element_text(size = 10, family="serif"))
+
+summary(model)
+
+oceanographicdistance = (vij/(5.377e-8))/(1000)
+
+
+plot(oceanographicdistance)
+
+
+```
+
+####Geographic distance
+Determine geographic distance from the nearest monitoring point
+```{r geographic distance}
+distance<-distanceFromPoints(oceanographicdistance, inventorycoords)/1000
+
+distance_clipped <- mask(distance, poly_coast, inverse = TRUE) #Clip continuous raster
+distance_clipped <- mask(distance_clipped, estuaries, inverse = TRUE) #Clip continuous raster
+distance_clipped <- mask(distance_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
+
+```
+
+##Step 4. Find Gaps
+####Combine ingredients
+We used a Euclidean distance approach to combine geographic distance and oceanographic distance into a single “gap” layer. Thus, a gap in the network is a place where oceanographic conditions are different from conditions at the nearest data collection location, a place that is geographically far from the nearest data collection, or a place with both of these characteristics. When combining these two, we weighted the oceanographic distance term by multiplying it by the unitless ratio of the maximum value of geographic distance and the maximum value of the oceanographic distance. 
+```{r find gaps, warning=FALSE, message=FALSE}
+
+#calculate gaps
+
+weight = maxValue(oceanographicdistance)/maxValue(distance_clipped)
+
+gap<-(sqrt((weight*distance)^2+(oceanographicdistance)^2))
+
+
+plot(gap)
+
+#gap2018hauri <- crop(gap, ext_study)
+
+```
+
+####Map Gaps
+```{r map gaps, echo=FALSE, warning=FALSE, message=FALSE, fig.show='hold', out.width = '25%', fig.height = 4, fig.width = 2}
+
+#run this rmd document and then run manuscript_maps.R to produce pngs used in manuscript. the following code produces maps on resilienses.github.io
+
+tmap_mode("plot")
+
+pal <- colorRampPalette(c("royalblue2", "white", "red"))
+
+tm_shape(gap)+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, legend.show = FALSE)+
+  tm_layout(main.title = "Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
+  tm_shape(poly_coast)+
+  tm_polygons()+
+  tm_shape(Canada)+
+  tm_polygons()+
+  tm_shape(inventorycoords)+
+  tm_dots()+
+  tm_grid(projection = "longlat", lwd = 0.1, n.x = 3, n.y = 6, labels.inside.frame = FALSE, labels.size = 0.6)+
+  tmap_options(max.raster = c(plot = 45955000, view = 45955000))
+
+```

@@ -61,7 +61,7 @@ pal <- colorRampPalette(c("royalblue2", "white", "red"))
 pal <- colorRampPalette(c("royalblue1", "white", "red"))
 
 oceanographicdist <- tm_shape(oceanographicdistance)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 1, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 1, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250))+
   tm_layout(main.title = "Oceanographic Distance (km)", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold")+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -73,7 +73,7 @@ oceanographicdist <- tm_shape(oceanographicdistance)+
 tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 oceanographicdistlegend <- tm_shape(oceanographicdistance)+
-  tm_raster(title = "Aragonite Saturation State", palette = pal(10), colorNA = 'grey87', alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400))+
+  tm_raster(title = "Aragonite Saturation State", palette = pal(10), colorNA = 'grey87', alpha = 1, auto.palette.mapping = FALSE, legend.show = TRUE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250))+
   tm_layout(main.title = "Oceanographic Distance (km)", main.title.size = 1, bg.color = "white", main.title.position = c("center", "top"), fontfamily = "serif", fontface = "bold", legend.only = TRUE, legend.just = "center")+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -88,7 +88,7 @@ tmap_save(oceanographicdistlegend, "oceanographicdistancelegend.png", width = 30
 pal <- colorRampPalette(c("royalblue2", "white", "red"))
 
 fullgap <- tm_shape(gap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250))+
   tm_layout(main.title = "Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -100,7 +100,7 @@ fullgap <- tm_shape(gap)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 fullgaplegend <- tm_shape(gap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250))+
   tm_layout(main.title = "Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05), legend.only = TRUE)+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -118,7 +118,7 @@ tmap_save(fullgaplegend, "gaplegend.png", width = 3000, height = 2000, dpi = 500
 #carbonate complete inventory gaps 
 
 ccgap <- tm_shape(carbcompletegap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250))+
   tm_layout(main.title = "Aragonite Measurement Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -130,7 +130,7 @@ ccgap <- tm_shape(carbcompletegap)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 ccgaplegend <- tm_shape(carbcompletegap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250))+
   tm_layout(main.title = "Aragonite Measurement Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05), legend.only =  TRUE)+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -149,7 +149,7 @@ tmap_save(ccgaplegend, "cclegend.png", width = 3000, height = 2000, dpi = 500)
 # high frequency inventory gaps
 
 hfgap <- tm_shape(highfreqgap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250))+
   tm_layout(main.title = "Daily Monitoring Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -162,7 +162,7 @@ hfgap <- tm_shape(highfreqgap)+
 
 
 hfgaplegend <- tm_shape(highfreqgap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250))+
   tm_layout(main.title = "Daily Monitoring Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05), legend.only = TRUE)+
   tm_shape(poly_coast)+
   tm_polygons()+

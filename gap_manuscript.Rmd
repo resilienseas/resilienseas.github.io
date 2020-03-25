@@ -64,11 +64,11 @@ ext_study_alin <- extent(-6000000, 340000, -600000, 430000)
 ext_study_juranek <- extent(-6000000, 340000, -900000, 1210000)
 
 # import shapefiles for cropping to coast
-poly_coast<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/Export_Output_2"), layer="Export_Output_2")
-Canada<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/Canada"), layer="Canada")
-states<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/cb_2016_us_state_20m"), layer="cb_2016_us_state_20m")
-estuaries<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/estuaries"), layer="estuaries")
-sf_puget<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gap_analysis_manuscript/water_bodies_carto"), layer="water_bodies_carto")
+poly_coast<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/Export_Output_2"), layer="Export_Output_2")
+Canada<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/Canada"), layer="Canada")
+states<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/cb_2016_us_state_20m"), layer="cb_2016_us_state_20m")
+estuaries<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/estuaries"), layer="estuaries")
+sf_puget<- readOGR(dsn=path.expand("/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/water_bodies_carto"), layer="water_bodies_carto")
 
 #load shapefiles
 poly_coast <- spTransform(poly_coast, crs(crs_study))
@@ -387,21 +387,26 @@ We then used the empirical model outputs created using the continuous environmen
 ```{r semivariance}
 #vij = (xi-xj)^2/2
 
-discrepancy_1 = abs((arag_min)-(polygonarag_max))
-discrepancy_2 =abs((arag_max)-(polygonarag_min))
+discrepancy_1 = (arag_min)-(polygonarag_max)
+discrepancy_1[discrepancy_1 < 0] = 0
+discrepancy_2 =(arag_max)-(polygonarag_min)
+discrepancy_2[discrepancy_2 < 0] = 0
 discrepancy = mosaic(discrepancy_1, discrepancy_2, fun = min)
-discrepancy[discrepancy < 0] = 0
+
 
 ccdiscrepancy_1 = (arag_min)-(carbcompletepolygonarag_max)
+ccdiscrepancy_1[ccdiscrepancy_1 < 0] = 0
 ccdiscrepancy_2 = (arag_max)-(carbcompletepolygonarag_min)
+ccdiscrepancy_2[ccdiscrepancy_2 < 0] = 0
 ccdiscrepancy = mosaic(ccdiscrepancy_1, ccdiscrepancy_2, fun = min)
-ccdiscrepancy[ccdiscrepancy < 0] = 0
 
 
 hfdiscrepancy_1 = (arag_min)-(highfreqpolygonarag_max)
+hfdiscrepancy_1[hfdiscrepancy_1 < 0] = 0
 hfdiscrepancy_2 = (arag_max)-(highfreqpolygonarag_min)
+hfdiscrepancy_2[hfdiscrepancy_2 < 0] = 0
 hfdiscrepancy = mosaic(hfdiscrepancy_1, hfdiscrepancy_2, fun = min)
-hfdiscrepancy[hfdiscrepancy < 0] = 0
+
 
 
 discrepancy <- mask(discrepancy, poly_coast, inverse = TRUE) #Clip continuous raster
@@ -450,9 +455,9 @@ ggplot()+
   ylab('Semivariance of Aragonite Discrepancy')+
   theme(text = element_text(size = 10, family="serif"))
 
-oceanographicdistance = (vij/(4.472e-08  ))/(1000)
-carbcompleteoceanographicdistance = (carbcompletevij/(4.472e-08  ))/(1000)
-highfreqoceanographicdistance = (highfreqvij/(4.472e-08 ))/(1000)
+oceanographicdistance = (vij/(4.303e-08  ))/(1000)
+carbcompleteoceanographicdistance = (carbcompletevij/(4.303e-08 ))/(1000)
+highfreqoceanographicdistance = (highfreqvij/(4.303e-08))/(1000)
 
 plot(oceanographicdistance)
 plot(carbcompleteoceanographicdistance)
@@ -531,7 +536,7 @@ tmap_mode("plot")
 pal <- colorRampPalette(c("royalblue2", "white", "red"))
 
 tm_shape(gap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 50, 100, 150, 200, 250, 300, 350))+
   tm_layout(main.title = "Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -543,7 +548,7 @@ tm_shape(gap)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 tm_shape(carbcompletegap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE,breaks = c(0, 50, 100, 150, 200, 250, 300, 350))+
   tm_layout(main.title = "Aragonite Measurement Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+
@@ -555,7 +560,7 @@ tm_shape(carbcompletegap)+
   tmap_options(max.raster = c(plot = 45955000, view = 45955000))
 
 tm_shape(highfreqgap)+
-  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325))+
+  tm_raster(palette = pal(10), colorNA = 'grey87', alpha = 0.8, auto.palette.mapping = FALSE, legend.show = FALSE, breaks = c(0, 50, 100, 150, 200, 250, 300, 350))+
   tm_layout(main.title = "Daily Monitoring Gaps", fontfamily = "serif", fontface = "bold", main.title.size = 0.7, main.title.position = "center", outer.margins = c(0.05, 0.05, 0.05, 0.05))+
   tm_shape(poly_coast)+
   tm_polygons()+

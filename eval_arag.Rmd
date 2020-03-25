@@ -1,0 +1,352 @@
+---
+title: "Arag Evaluation"
+author: "Rae Taylor-Burns"
+date: "12/12/2019"
+output: html_document
+---
+
+####Evaluate aragonite
+To evaluate the map of aragonite saturation state we compared values to those taken on the NOAA OA cruise in 2013. 
+```{r evaluate aragonite map}
+
+#2013
+
+# get coordinates from NOAA OA Cruises
+cruisedata <- read_csv(here("data/WCOAC_2013_test.csv"))
+cruisecoords <- cbind.data.frame(cruisedata$Long, cruisedata$Lat)
+cruisecoords <- SpatialPoints(cruisecoords, CRS("+proj=longlat +ellps=WGS84"))
+
+# extract aragonite saturation state from empirical models at cruise stations
+evalarag<- raster::extract(arag, cruisecoords, method='simple', df=TRUE)
+
+#create dataframe with cruise aragonite, model aragonite and depth
+colnames(evalarag) <- c("ID", "modelarag")
+evalarag$depth <- cruisedata$`Pressure (db)`
+evalarag$cruisearag <- cruisedata$OmegaAr
+
+# remove -999 values and measurements at depth from cruise
+evalarag <- subset(evalarag, cruisearag != -999)
+
+#filter for surface observations
+evalarag<- evalarag[evalarag[, 3] < 40,] 
+evalarag<- evalarag[evalarag[, 3] > 30,] 
+
+
+# filter for low observations due hotspots
+# evalarag <- evalarag[evalarag$cruisearag>1.5,]
+
+# plot to compare cruise and model
+plot(evalarag$cruise, evalarag$modelarag)
+
+modeleval <- lm(evalarag$cruise ~ evalarag$modelarag)
+summary(modeleval)
+
+# ggplot(evalarag, aes(x=ID, y=modelarag), col = "red") + 
+# geom_pointrange(aes(ymin=modelarag-0.5, ymax=modelarag+0.5), col = "red")+
+#   geom_point(aes(y = cruisearag), col = "blue")
+
+
+ggplot(evalarag, aes(cruisearag, modelarag))+
+    geom_point()+
+    theme_bw()+
+    geom_ribbon(data=evalarag,aes(ymin=modelarag-0.5,ymax=modelarag+0.5),alpha=0.3)+
+#    geom_point(aes(y = cruisearag), col = "red")+  
+    ggtitle('Comparison of aragonite from empirical models and observational data')+
+    xlab('Cruise Aragonite Saturation State')+
+    ylab('Empirical Model Araonite Saturation State')+
+    theme(text = element_text(size = 10, family="serif"))+
+   geom_abline()
+
+```
+
+```{r}
+
+lter_eval <- data.frame("site"= c("ale", "arq", "mko", "sbh", "hog"), "aragmean" = c(2.326861, 2.367274, 2.052420, 2.183340, 1.88), "arag0" = c(0.22, 0.99, -0.01, 0.58, 0), "arag25" = c(2.14, 2.27, 1.86, 1.81, 0), "arag75" = c(2.57, 2.56, 2.29, 2.61, 0), "arag100" = c(4.14, 3.15, 3.11, 10.86, 0), "sd" = c(0.3639543, 0.3165248, 0.3648639, 0.5685839, 0.44), "lon" = c(-120.29, -120.1196, -119.7301, -119.6854, -122.9351), "lat" = c(34.4618, 34.465, 34.3932, 34.41, 38.1971))
+
+ltercoords <- cbind.data.frame(lter_eval$lon, lter_eval$lat)
+ltercoords <- SpatialPoints(ltercoords, CRS("+proj=longlat +ellps=WGS84"))
+
+# extract aragonite saturation state from empirical models at cruise stations
+lterevalarag<- raster::extract(arag, ltercoords, method='simple', df=TRUE)
+
+lterevaluncertainty <- raster::extract(uncertainty, ltercoords, method='simple', df=TRUE)
+
+lter_eval$modeluncertainty <- lterevaluncertainty$layer
+lter_eval$modelarag <- lterevalarag$layer
+
+#lter_eval$sd_from_mean <- (lter_eval$modelarag-lter_eval$arag)/(lter_eval$sd)
+
+
+# filter for low observations due hotspots
+# evalarag <- evalarag[evalarag$cruisearag>1.5,]
+
+# plot to compare cruise and model
+plot(lter_eval$modelarag, lter_eval$arag)
+
+
+ggplot(lter_eval, aes(aragmean, modelarag))+
+    geom_point()+
+    theme_bw()+
+    geom_ribbon(data=lter_eval,aes(ymin=modelarag-modeluncertainty,ymax=modelarag+modeluncertainty),alpha=0.3)+
+    geom_ribbon(data=lter_eval,aes(ymin=modelarag-sd,ymax=modelarag+sd), fill = "blue", alpha=0.3)+
+
+#    geom_point(aes(y = cruisearag), col = "red")+  
+    ggtitle('Comparison of aragonite from empirical models and observational data')+
+    xlab('Measured Aragonite Saturation State')+
+    ylab('Empirical Model Araonite Saturation State')+
+    theme(text = element_text(size = 10, family="serif"))+
+   geom_abline()
+
+modeleval <- lm(lter_eval$modelarag ~ lter_eval$modelarag)
+summary(modeleval)
+
+
+
+
+```
+
+
+
+
+####Create mean of NOAA OA cruises
+
+```{r}
+
+# 2011
+
+aragonite_data <- read_csv(here("data/WCOAC_2011_test.csv")) #load data
+colnames(aragonite_data) <- c("Date", "Time", "Lat", "Long", "Pressure", "OmegaAr") #rename columns in dataframe
+
+aragonite_data <- aragonite_data[-c(7)]
+
+aragonite_data <- aragonite_data %>% #remove N/A values
+  mutate(OmegaAr=replace(OmegaAr, OmegaAr==-999.000, NA)) %>%
+  na.omit(aragonite_data)
+
+#filter for surface observations
+evalarag<- evalarag[evalarag[, 3] < 40,] 
+evalarag<- evalarag[evalarag[, 3] > 30,]  #filter for surface observations
+
+coordinates(aragonite_data)<-  ~ Long + Lat #transform into spatial points
+
+zd<-zerodist(aragonite_data)
+aragonite_data<-aragonite_data[-zd[,2],] #remove observations taken at same coordinate point
+
+aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data, alpha=c(0, 45, 90, 135))
+plot(aragonite_var) #look for anisotropy and create variogram of aragonite values
+
+aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.1,psill=0.5,range=4,model="Exp", anis=c(0, 0.3))) #fit a model to the values based on estimated nugget, sill, and range, and anisotropy
+plot(aragonite_var,aragonite_fit)
+
+
+extent <- bbox(aragonite_data) #get extent of cruise observations 
+long<-seq(extent[1,1],extent[1,2],length=388) #increase ROI by one degree in each direction
+lat<-seq(extent[2,1],extent[2,2],length=1000)
+
+
+aragonite_grid<-expand.grid(long,lat) #create grid for interpolation surface
+colnames(aragonite_grid)<- c("long", "lat")
+coordinates(aragonite_grid) <- ~ long + lat
+gridded(aragonite_grid)=TRUE
+
+aragonitekrige<-krige(OmegaAr ~ 1, aragonite_data, newdata=aragonite_grid, model=aragonite_fit) #run kriging on interpolation grid, based on best fit model
+
+aragonite_raster<-raster(aragonitekrige, layer=1, values=TRUE) #transform krige object to raster
+projection(aragonite_raster) <- CRS("+proj=longlat +datum=WGS84")
+
+aragonite_raster_proj_2011 <- projectRaster(aragonite_raster, crs='+init=EPSG:6414',method="ngb") #re-project to California Teale Albers Equal Area
+
+plot(aragonite_raster_proj_2011)
+
+#2012
+
+aragonite_data <- read_csv(here("data/WCOAC_2012_test.csv")) #load data
+colnames(aragonite_data) <- c("Date", "Time", "Lat", "Long", "Pressure", "OmegaAr") #rename columns in dataframe
+
+aragonite_data <- aragonite_data[-c(7,8)]
+
+aragonite_data <- aragonite_data %>% #remove N/A values
+  mutate(OmegaAr=replace(OmegaAr, OmegaAr==-999.000, NA)) %>%
+  na.omit(aragonite_data)
+
+#filter for surface observations
+aragonite_data<- aragonite_data[aragonite_data[, 5] < 40,] 
+aragonite_data<- aragonite_data[aragonite_data[, 5] > 30,] #filter for surface observations
+
+coordinates(aragonite_data)<-  ~ Long + Lat #transform into spatial points
+
+zd<-zerodist(aragonite_data)
+
+aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data, alpha=c(0, 45, 90, 135))
+plot(aragonite_var) #look for anisotropy and create variogram of aragonite values
+
+aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.5,psill=0.3,range=2,model="Exp", anis=c(0, 0.3))) #fit a model to the values based on estimated nugget, sill, and range, and anisotropy
+plot(aragonite_var,aragonite_fit)
+
+aragonite_grid<-expand.grid(long,lat) #create grid for interpolation surface
+colnames(aragonite_grid)<- c("long", "lat")
+coordinates(aragonite_grid) <- ~ long + lat
+gridded(aragonite_grid)=TRUE
+
+aragonitekrige<-krige(OmegaAr ~ 1, aragonite_data, newdata=aragonite_grid, model=aragonite_fit) #run kriging on interpolation grid, based on best fit model
+
+aragonite_raster<-raster(aragonitekrige, layer=1, values=TRUE) #transform krige object to raster
+projection(aragonite_raster) <- CRS("+proj=longlat +datum=WGS84") #set CRS 
+aragonite_raster_proj_2012 <- projectRaster(aragonite_raster, crs=crs_study,method="ngb") #re-project to California Teale Albers Equal Area
+
+
+#2007
+
+aragonite_data <- read_csv(here("data/WCOAC_2007_test.csv")) #load data
+colnames(aragonite_data) <- c("Date", "Time", "Lat", "Long", "Pressure", "OmegaAr") #rename columns in dataframe
+
+aragonite_data <- aragonite_data[-c(7, 8, 9)]
+
+aragonite_data <- aragonite_data %>% #remove N/A values
+  mutate(OmegaAr=replace(OmegaAr, OmegaAr==-999.000, NA)) %>%
+  na.omit(aragonite_data)
+
+#filter for surface observations
+evalarag<- evalarag[evalarag[, 3] < 40,] 
+evalarag<- evalarag[evalarag[, 3] > 30,]  #filter for surface observations
+
+coordinates(aragonite_data)<-  ~ Long + Lat #transform into spatial points
+
+zd<-zerodist(aragonite_data)
+
+aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data, alpha=c(0, 45, 90, 135))
+plot(aragonite_var) #look for anisotropy and create variogram of aragonite values
+
+aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.2,psill=1,range=2,model="Exp", anis=c(0, 0.3))) #fit a model to the values based on estimated nugget, sill, and range, and anisotropy
+plot(aragonite_var,aragonite_fit)
+
+aragonite_grid<-expand.grid(long,lat) #create grid for interpolation surface
+colnames(aragonite_grid)<- c("long", "lat")
+coordinates(aragonite_grid) <- ~ long + lat
+gridded(aragonite_grid)=TRUE
+
+aragonitekrige<-krige(OmegaAr ~ 1, aragonite_data, newdata=aragonite_grid, model=aragonite_fit) #run kriging on interpolation grid, based on best fit model
+
+aragonite_raster<-raster(aragonitekrige, layer=1, values=TRUE) #transform krige object to raster
+projection(aragonite_raster) <- CRS("+proj=longlat +datum=WGS84") #set CRS 
+aragonite_raster_proj_2007 <- projectRaster(aragonite_raster, crs=crs_study,method="ngb") #re-project to California Teale Albers Equal Area
+
+# 2013
+
+aragonite_data <- read_csv(here("data/WCOAC_2013_test.csv")) #load data
+colnames(aragonite_data) <- c("Date", "Time", "Lat", "Long", "Pressure", "OmegaAr") #rename columns in dataframe
+
+aragonite_data <- aragonite_data %>% #remove N/A values
+  mutate(OmegaAr=replace(OmegaAr, OmegaAr==-999.000, NA)) %>%
+  na.omit(aragonite_data)
+
+#filter for surface observations
+evalarag<- evalarag[evalarag[, 3] < 40,] 
+evalarag<- evalarag[evalarag[, 3] > 30,]  #filter for surface observations
+
+coordinates(aragonite_data)<-  ~ Long + Lat #transform into spatial points
+
+zd<-zerodist(aragonite_data)
+aragonite_data<-aragonite_data[-zd[,2],] #remove observations taken at same coordinate point
+
+aragonite_var<-variogram(OmegaAr ~1, data=aragonite_data, alpha=c(0, 45, 90, 135))
+plot(aragonite_var) #look for anisotropy and create variogram of aragonite values
+
+aragonite_fit<-fit.variogram(aragonite_var,model=vgm(nugget=0.2,psill=1,range=2,model="Exp", anis=c(0, 0.3))) #fit a model to the values based on estimated nugget, sill, and range, and anisotropy
+plot(aragonite_var,aragonite_fit)
+
+aragonite_grid<-expand.grid(long,lat) #create grid for interpolation surface
+colnames(aragonite_grid)<- c("long", "lat")
+coordinates(aragonite_grid) <- ~ long + lat
+gridded(aragonite_grid)=TRUE
+
+aragonitekrige<-krige(OmegaAr ~ 1, aragonite_data, newdata=aragonite_grid, model=aragonite_fit) #run kriging on interpolation grid, based on best fit model
+
+aragonite_raster<-raster(aragonitekrige, layer=1, values=TRUE) #transform krige object to raster
+projection(aragonite_raster) <- CRS("+proj=longlat +datum=WGS84") #set CRS 
+aragonite_raster_proj_2013 <- projectRaster(aragonite_raster, crs=crs_study,method="ngb") #re-project to California Teale Albers Equal Area
+
+aragonitecruises <- (aragonite_raster_proj_2007+aragonite_raster_proj_2011+aragonite_raster_proj_2012+aragonite_raster_proj_2013)/4
+
+#combine coords from all
+
+cruisedata2013 <- read_csv(here("data/WCOAC_2013_test.csv"))
+cruisedata2012 <- read_csv(here("data/WCOAC_2013_test.csv"))
+cruisedata2011 <- read_csv(here("data/WCOAC_2013_test.csv"))
+cruisedata2007 <- read_csv(here("data/WCOAC_2013_test.csv"))
+
+totalcruise <- rbind(cruisedata2013, cruisedata2012)
+totalcruise <- rbind(totalcruise, cruisedata2011)
+cruisedata <- rbind(totalcruise, cruisedata2007)
+
+cruisedata <- cruisedata2013
+
+cruisecoords <- cbind.data.frame(cruisedata$Long, cruisedata$Lat)
+cruisecoords <- SpatialPoints(cruisecoords, CRS("+proj=longlat +ellps=WGS84"))
+
+# extract aragonite saturation state from empirical models at cruise stations
+evalarag<- raster::extract(arag, cruisecoords, method='simple', df=TRUE)
+
+#create dataframe with cruise aragonite, model aragonite and depth
+colnames(evalarag) <- c("ID", "modelarag")
+evalarag$depth <- cruisedata$`Pressure (db)`
+
+cruisearag <- raster::extract(aragonitecruises, cruisecoords, method='simple', df=TRUE)
+
+evalarag <- merge(evalarag, cruisearag)
+colnames(evalarag) <- c("ID", "modelarag", "depth", "cruisearag")
+
+# remove -999 values and measurements at depth from cruise
+evalarag <- subset(evalarag, cruisearag != -999)
+
+#filter for surface observations
+evalarag<- evalarag[evalarag[, 3]<5,] 
+
+# filter for low observations due hotspots
+# evalarag <- evalarag[evalarag$cruisearag>1.5,]
+
+# plot to compare cruise and model
+plot(evalarag$cruise, evalarag$modelarag)
+
+modeleval <- lm(evalarag$cruisearag ~ evalarag$modelarag)
+summary(modeleval)
+
+
+
+aragonitecruise_clipped <- mask(aragonitecruises, poly_coast, inverse = TRUE) #Clip continuous raster
+aragonitecruise_clipped <- mask(aragonitecruise_clipped, estuaries, inverse = TRUE) #Clip continuous raster
+aragonitecruise_clipped <- mask(aragonitecruise_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
+
+aragonitecruise_clipped
+
+plot(aragonitecruises)
+
+
+ggplot(evalarag, aes(cruisearag, modelarag))+
+    geom_point()+
+    theme_bw()+
+    geom_ribbon(data=evalarag,aes(ymin=modelarag-0.5,ymax=modelarag+0.5),alpha=0.3)+
+    ggtitle('Comparison of aragonite from empirical models and observational data')+
+    xlab('Cruise Aragonite Saturation State')+
+    ylab('Empirical Model Araonite Saturation State')+
+    theme(text = element_text(size = 10, family="serif"))+
+#    expand_limits(x = 0, y = 0)+
+   geom_abline()
+
+ggplot(evalarag, aes(ID, modelarag))+
+    geom_point()+
+    theme_bw()+
+    geom_ribbon(data=evalarag,aes(ymin=modelarag-0.5,ymax=modelarag+0.5),alpha=0.3)+
+    geom_point(aes(y = cruisearag), col = "red")+  
+    ggtitle('Comparison of aragonite from empirical models and mean of interpolations of cruise data')+
+    xlab('Cruise Stations')+
+    ylab('Araonite Saturation State')+
+    theme(text = element_text(size = 10, family="serif"), axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+
+
+
+
+```
+

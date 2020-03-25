@@ -56,7 +56,7 @@ ggplot(data=ale, aes(x = date.time, y = aragonite)) +
   #geom_hline(yintercept = 2, color="light pink", linetype = "dashed") +
   labs(title="Ocean Acidification in the Santa Barbara Channel", subtitle = "June 2011 - December 2013\n", x="", y = "") +
   theme_linedraw() +
-  theme(text=element_text(family="Spectral"), plot.title = element_text(size = 26, hjust = 0.5), plot.subtitle=element_text(size = 20, hjust=0.5), axis.title = element_text(size = 18), axis.text = element_text(size = 16), panel.grid.major = element_blank(),
+  theme(text=element_text(family="serif"), plot.title = element_text(size = 26, hjust = 0.5), plot.subtitle=element_text(size = 20, hjust=0.5), axis.title = element_text(size = 18), axis.text = element_text(size = 16), panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), axis.text.y = element_blank()) + 
         #axis.ticks.y = element_blank()) +
   #theme(plot.margin=unit(c(5,10,5,5),"mm")) +

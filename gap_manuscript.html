@@ -7,6 +7,7 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
@@ -71,9 +72,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type = "text/css">
 .main-container {
@@ -87,7 +86,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -192,8 +190,6 @@ $(document).ready(function () {
 });
 </script>
 
-<div class="container-fluid main-container">
-
 <!-- tabsets -->
 
 <style type="text/css">
@@ -250,20 +246,17 @@ $(document).ready(function () {
 }
 </style>
 
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
 <!-- code folding -->
 
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
 
 
 
@@ -384,47 +377,63 @@ if (!dir.exists(dir_sdmdata)) dir.create(dir_sdmdata)
  list&lt;- list_layers(&quot;Bio-ORACLE&quot;)
 
 # extent of NE Pacific study area, for cropping rasters
-ext_study &lt;- extent(-500000, 340000, -580000, 1215000)
+ext_study &lt;- extent(-600000, 340000, -590000, 1210000)
 crs_study &lt;- &#39;+init=EPSG:6414&#39;
 
-ext_study_channelislands &lt;- extent (0, 300000, -600000, -400000)
-ext_study_pugetsound &lt;- extent(-300000, -150000, 1000000, 1215000)
-ext_study_oregoncoast &lt;- extent(-500000, -200000, 500000, 900000)
-
 # extent of larger area for voronoi polygons
-ext_study_vor &lt;- extent(-700000, 340000, -800000, 1305000)
-ext_study_alin &lt;- extent(-7000000, 340000, -800000, 350000)
-ext_study_juranek &lt;- extent(-7000000, 340000, 150000, 1305000)
-
+ext_study_vor &lt;- extent(-800000, 340000, -800000, 1300000)
+ext_study_alin &lt;- extent(-6000000, 340000, -600000, 430000)
+ext_study_juranek &lt;- extent(-6000000, 340000, -900000, 1210000)
 
 # import shapefiles for cropping to coast
-poly_coast&lt;- readOGR(dsn=path.expand(&quot;/Users/raetaylor-burns/downloads/Export_Output_2&quot;), layer=&quot;Export_Output_2&quot;)</code></pre>
+poly_coast&lt;- readOGR(dsn=path.expand(&quot;/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/Export_Output_2&quot;), layer=&quot;Export_Output_2&quot;)</code></pre>
 <pre><code>## OGR data source with driver: ESRI Shapefile 
-## Source: &quot;/Users/raetaylor-burns/Downloads/Export_Output_2&quot;, layer: &quot;Export_Output_2&quot;
+## Source: &quot;/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/Export_Output_2&quot;, layer: &quot;Export_Output_2&quot;
 ## with 52 features
 ## It has 55 fields
 ## Integer64 fields read as strings:  OBJECTID POPULATION POP2010 WHITE BLACK AMERI_ES ASIAN HAWN_PI HISPANIC OTHER MULT_RACE MALES FEMALES AGE_UNDER5 AGE_5_9 AGE_10_14 AGE_15_19 AGE_20_24 AGE_25_34 AGE_35_44 AGE_45_54 AGE_55_64 AGE_65_74 AGE_75_84 AGE_85_UP HOUSEHOLDS HSEHLD_1_M HSEHLD_1_F MARHH_CHD MARHH_NO_C MHH_CHILD FHH_CHILD FAMILIES HSE_UNITS VACANT OWNER_OCC RENTER_OCC</code></pre>
-<pre class="r"><code>Canada&lt;- readOGR(dsn=path.expand(&quot;/Users/raetaylor-burns/downloads/Canada&quot;), layer=&quot;Canada&quot;)</code></pre>
+<pre class="r"><code>Canada&lt;- readOGR(dsn=path.expand(&quot;/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/Canada&quot;), layer=&quot;Canada&quot;)</code></pre>
 <pre><code>## OGR data source with driver: ESRI Shapefile 
-## Source: &quot;/Users/raetaylor-burns/Downloads/Canada&quot;, layer: &quot;Canada&quot;
+## Source: &quot;/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/Canada&quot;, layer: &quot;Canada&quot;
 ## with 13 features
 ## It has 2 fields</code></pre>
-<pre class="r"><code>states&lt;- readOGR(dsn=path.expand(&quot;/Users/raetaylor-burns/downloads/cb_2016_us_state_20m&quot;), layer=&quot;cb_2016_us_state_20m&quot;)</code></pre>
+<pre class="r"><code>states&lt;- readOGR(dsn=path.expand(&quot;/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/cb_2016_us_state_20m&quot;), layer=&quot;cb_2016_us_state_20m&quot;)</code></pre>
 <pre><code>## OGR data source with driver: ESRI Shapefile 
-## Source: &quot;/Users/raetaylor-burns/Downloads/cb_2016_us_state_20m&quot;, layer: &quot;cb_2016_us_state_20m&quot;
+## Source: &quot;/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/cb_2016_us_state_20m&quot;, layer: &quot;cb_2016_us_state_20m&quot;
 ## with 52 features
 ## It has 9 fields
 ## Integer64 fields read as strings:  ALAND AWATER</code></pre>
-<pre class="r"><code>poly_coast &lt;- spTransform(poly_coast, crs(crs_study))
+<pre class="r"><code>estuaries&lt;- readOGR(dsn=path.expand(&quot;/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/estuaries&quot;), layer=&quot;estuaries&quot;)</code></pre>
+<pre><code>## OGR data source with driver: ESRI Shapefile 
+## Source: &quot;/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/estuaries&quot;, layer: &quot;estuaries&quot;
+## with 931 features
+## It has 1 fields</code></pre>
+<pre class="r"><code>sf_puget&lt;- readOGR(dsn=path.expand(&quot;/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/water_bodies_carto&quot;), layer=&quot;water_bodies_carto&quot;)</code></pre>
+<pre><code>## OGR data source with driver: ESRI Shapefile 
+## Source: &quot;/Users/raetaylor-burns/Desktop/RTB/gapanalysismanuscript/water_bodies_carto&quot;, layer: &quot;water_bodies_carto&quot;
+## with 1918 features
+## It has 1 fields</code></pre>
+<pre class="r"><code>#load shapefiles
+poly_coast &lt;- spTransform(poly_coast, crs(crs_study))
 Canada &lt;- spTransform(Canada, crs(crs_study))
 states &lt;- spTransform(states, crs(crs_study))
+estuaries &lt;- spTransform(estuaries, crs(crs_study))
+sf_puget &lt;- spTransform(sf_puget, crs(crs_study))
 
+
+# commenting out unused exploratory commands
+# list_datasets() %&gt;% View()
+# list_layers()
+# list_layers(&quot;Bio-ORACLE&quot;) %&gt;% View()
+# list_layers(&quot;MARSPEC&quot;) %&gt;% View()
+# list_layers(&quot;WorldClim&quot;) %&gt;% View()
+# list&lt;- list_layers(&quot;Bio-ORACLE&quot;)
 
 # sea surface temperature
 # devtools::load_all(here(&quot;../oatools&quot;)) # for use while developing
-r_sst_min &lt;- lyr_to_tif(
-  lyr = &quot;BO_sstmin&quot;, 
-  tif = here(&quot;data/sst_min.tif&quot;),
+r_sst &lt;- lyr_to_tif(
+  lyr = &quot;BO_sstmean&quot;, 
+  tif = here(&quot;data/sst_mean.tif&quot;),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study_vor, 
@@ -436,18 +445,27 @@ r_sst_min &lt;- lyr_to_tif(
 <pre><code>##   cropping raster to extent</code></pre>
 <pre><code>##   filling in missing (NA) values with focal window</code></pre>
 <pre><code>##   writing raster to tif</code></pre>
-<pre class="r"><code>r_sst_min_alin &lt;- crop(r_sst_min, ext_study_alin)
-r_sst_min_juranek &lt;- crop(r_sst_min, ext_study_juranek)
+<pre class="r"><code># r_sst_alin &lt;- crop(r_sst, ext_study)-0.7
+# r_sst_juranek &lt;- crop(r_sst, ext_study)-0.7
 
-n_na        &lt;- sum(is.na(raster::getValues(r_sst_min)))</code></pre>
+r_sst_alin &lt;- crop(r_sst, ext_study_alin) - 0.7
+r_sst_juranek &lt;- crop(r_sst, ext_study_juranek) - 0.7
+
+n_na        &lt;- sum(is.na(raster::getValues(r_sst)))
+
+
+plot(r_sst)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/packages%20/%20cache-1.png" width="672" /></p>
+<pre class="r"><code>#BO_sstmean
+#BO_dissox</code></pre>
 </div>
-<div id="create-sstdo-minmax-rasters-from-bio-oracle-data" class="section level4">
-<h4>Create SST/DO min/max rasters from bio-oracle data</h4>
+<div id="create-sstdo-rasters-from-bio-oracle-data" class="section level4">
+<h4>Create SST/DO rasters from bio-oracle data</h4>
 <p>Aragonite saturation state is the gold standard in an ocean acidification monitoring network, as this measurement has direct biological implications.9 However, the variables needed to calculate aragonite saturation state are not yet measured at a sufficient spatial-temporal resolution to identify highly variable locations across the study region. While this raw data could theoretically be replaced by a high-resolution model that would explicitly account for physical, chemical, and biological oceanographic processes, and integrate a variety of input data, such models are not yet available (although some are under development). In the absence of a model or data to describe aragonite saturation state, we used temperature and dissolved oxygen as proxies, because they are strongly positively correlated with aragonite saturation state.</p>
-<pre class="r"><code>#do min
-r_do_min &lt;- lyr_to_tif(
-  lyr = &quot;BO2_dissoxmin_bdmin&quot;, 
-  tif = here(&quot;data/do_min.tif&quot;),
+<pre class="r"><code># from observations, units in ml/l
+r_do &lt;- lyr_to_tif(
+  lyr = &quot;BO_dissox&quot;, 
+  tif = here(&quot;data/do_mean.tif&quot;),
   crs = crs_study,
   dir_sdm_cache = dir_sdmdata,
   extent_crop   = ext_study_vor, 
@@ -459,8 +477,14 @@ r_do_min &lt;- lyr_to_tif(
 <pre><code>##   cropping raster to extent</code></pre>
 <pre><code>##   filling in missing (NA) values with focal window</code></pre>
 <pre><code>##   writing raster to tif</code></pre>
-<pre class="r"><code>r_do_min_alin &lt;- crop(r_do_min, ext_study_alin)
-r_do_min_juranek &lt;- crop(r_do_min, ext_study_juranek)</code></pre>
+<pre class="r"><code>#units to micromol/kg
+ r_do &lt;- r_do*(1000/(0.022391*1027))
+
+r_do_alin &lt;- crop(r_do, ext_study_alin)
+r_do_juranek &lt;- crop(r_do, ext_study_juranek)
+
+plot(r_sst_alin)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/bio-Oracle-1.png" width="672" /></p>
 </div>
 <div id="use-juranek-2009-and-alin-2012-model-to-create-ocean-acidification-layer-for-the-study-region" class="section level4">
 <h4>Use Juranek 2009 and Alin 2012 model to create ocean acidification layer for the study region</h4>
@@ -471,7 +495,7 @@ j1 = 4.492*10^-3
 j2 = 9.40 * 10^-4
 jo2r = 140
 jtr = 8
-juranek_arag &lt;- j0 + j1 * (r_do_min_juranek-jo2r) + j2 * (r_do_min_juranek-jo2r) * (r_sst_min_juranek-jtr)
+juranek_arag &lt;- j0 + j1 * (r_do_juranek-jo2r) + j2 * (r_do_juranek-jo2r) * (r_sst_juranek-jtr)
 
 #alin aragonite
 a0 = 1.112
@@ -481,17 +505,39 @@ a3 = 5.91*10^-4
 ao2r = 138.46
 atr = 10.28
 
-alin_arag &lt;- a0 + a1 * (r_sst_min_alin-atr) + a2 * (r_do_min_alin-ao2r) + a3 * (r_sst_min_alin-atr) * (r_do_min_alin-ao2r)</code></pre>
+alin_arag &lt;- a0 + a1 * (r_sst_alin-atr) + a2 * (r_do_alin-ao2r) + a3 * (r_sst_alin-atr) * (r_do_alin-ao2r)</code></pre>
 </div>
 <div id="combine-model-outputs" class="section level4">
 <h4>Combine model outputs</h4>
 <p>To reduce the effect of the abrupt change in aragonite saturation state at the boundary between the two models, the mean of the two model outputs was used to predict aragonite saturation state in waters between Eureka and Fort Bragg, a distance of about 100 miles.</p>
-<pre class="r"><code>arag &lt;- mosaic(alin_arag, juranek_arag, fun = mean)</code></pre>
+<pre class="r"><code># 2 arag models, mean in between
+
+arag &lt;- mosaic(alin_arag, juranek_arag, fun = mean)
+
+midhigh &lt;- extent(-6000000, 340000, 260000, 1210000)
+midhigh &lt;- crop(juranek_arag, midhigh)
+
+midlow &lt;- extent(-6000000, 340000, -600000, 110000)
+midlow &lt;- crop(alin_arag, midlow)
+
+arag &lt;- mosaic(arag, midhigh, fun = mean)
+
+arag &lt;- mosaic(arag, midlow, fun = mean)
+arag &lt;- crop(arag, ext_study)
+
+arag_clipped &lt;- mask(arag, poly_coast, inverse = TRUE) #Clip continuous raster
+arag_clipped &lt;- mask(arag_clipped, estuaries, inverse = TRUE) #Clip continuous raster
+arag_clipped &lt;- mask(arag_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
+
+
+
+plot(arag_clipped)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/model%20comparison-1.png" width="672" /></p>
 </div>
 <div id="create-variogram" class="section level4">
 <h4>Create variogram</h4>
 <p>To quantify the relationship between changing aragonite saturation state and distance, the aragonite saturation state raster was used to create a semivariogram. The semi-variogram describes how the semi-variance of a parameter increases with distance, revealing information on the spatial scale of decorrelation of that parameter. In this analysis, we used it to determine the relationship between variance in aragonite saturation state and distance. The semi-variogram revealed that the semi-variance in aragonite saturation state saturates (i.e. semi-variance ceases to increase as distance increases) at a distance of 2000 km, and a maximum semi-variance of 0.12 is reached at that point. We used a linear interpolation between the origin and the saturation point to relate variance in aragonite saturation state and distance.</p>
-<pre class="r"><code>aragvar &lt;- Variogram(arag, lag = 5000)
+<pre class="r"><code>aragvar &lt;- Variogram(arag_clipped, cutoff = 500000)
 plot(aragvar)</code></pre>
 <p><img src="gap_manuscript_files/figure-html/variogram-1.png" width="672" /></p>
 </div>
@@ -513,68 +559,6 @@ inventory &lt;- read_csv(here(&quot;data/inventory.csv&quot;))</code></pre>
 <li>Transform latitude and longitude to numeric</li>
 <li>Create subsets of data</li>
 </ol>
-<pre class="r"><code>#remove non OAH focus entries
-
-oahfocus &lt;- subset(inventory, OAHFocus == &quot;OA&quot; | OAHFocus == &quot;H&quot; | OAHFocus == &quot;OAH&quot;)
-
-#quantify frequencies
-unique(oahfocus$MeasFreq)
-oahfocus$MeasFreq[oahfocus$MeasFreq == 10] &lt;- 52560
-oahfocus$MeasFreq[oahfocus$MeasFreq == 60] &lt;- 8760
-oahfocus$MeasFreq[oahfocus$MeasFreq ==30] &lt;- 17520
-oahfocus$MeasFreq[oahfocus$MeasFreq == 20] &lt;- 26280
-oahfocus$MeasFreq[oahfocus$MeasFreq == 15] &lt;- 35040
-oahfocus$MeasFreq[oahfocus$MeasFreq == 5] &lt;- 105120
-oahfocus$MeasFreq[oahfocus$MeasFreq == 6] &lt;- 87600
-oahfocus$MeasFreq[oahfocus$MeasFreq == 180] &lt;- 2920
-oahfocus$MeasFreq[oahfocus$MeasFreq == 2] &lt;- 262800
-oahfocus$MeasFreq[oahfocus$MeasFreq == 0.25] &lt;- 2102400
-oahfocus$MeasFreq[oahfocus$MeasFreq == 3] &lt;- 175200
-oahfocus$MeasFreq[oahfocus$MeasFreq == 1] &lt;- 525600
-oahfocus$MeasFreq[oahfocus$MeasFreq == 120] &lt;- 2920
-oahfocus$MeasFreq[oahfocus$MeasFreq == 360] &lt;- 1460
-oahfocus$MeasFreq[oahfocus$MeasFreq == 720] &lt;- 730
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Quarterly&quot;] &lt;- 4
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Annual&quot;] &lt;- 1
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Monthly&quot;] &lt;- 12
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Semi-annual&quot;] &lt;- 2
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Bi-weekly&quot;] &lt;- 26
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Seasonally&quot;] &lt;- 1
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;1/4 second&quot;] &lt;- 126144000
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Bi-monthly&quot;] &lt;- 6
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;5  Years&quot;] &lt;- 0.2
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Bi-weekly&quot;] &lt;- 26
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Variable&quot;] &lt;- 0
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Decadal&quot;] &lt;- 0.1
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Biennial&quot;] &lt;- 0.5
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Weekly&quot;] &lt;- 52
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Triennial&quot;] &lt;- 0.33333
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Trimester&quot;] &lt;- 3
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Daily&quot;] &lt;- 365
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;&lt; 6 hours&quot;] &lt;- 1460
-oahfocus$MeasFreq[oahfocus$MeasFreq ==&quot;Once&quot;] &lt;- 0
-
-
-
-unique(oahfocus$MeasFreq)
-
-#remove NA coordinates
-oahfocus &lt;- oahfocus[!is.na(oahfocus$Latitude), ]
-oahfocus &lt;- oahfocus[!is.na(oahfocus$Longitude), ]
-
-#remove spaces and transform to numeric
-gsub(&quot; &quot;, &quot;&quot;, oahfocus$Latitude)
-gsub(&quot; &quot;, &quot;&quot;, oahfocus$Longitude)
-gsub(&quot;&#39;&lt;ca&gt;&#39;&quot;, &quot;&quot;, oahfocus$Longitude)
-oahfocus$Longitude&lt;-as.numeric(oahfocus$Longitude)
-oahfocus$Latitude&lt;-as.numeric(oahfocus$Latitude)
-
-#subsets
-carbcomplete&lt;-subset(oahfocus, DisCrbPmtr&gt;1 | ISCrbPmtr &gt; 1)
-incomplete &lt;- subset(oahfocus, DisCrbPmtr&lt;2 &amp; ISCrbPmtr &lt; 2 &amp; EndYr == &quot;Present&quot;)
-highfrequency&lt;-subset(oahfocus, MeasFreq &gt; 364)
-highfreqcarbcomplete&lt;-subset(oahfocus, MeasFreq &gt; 364 &amp; DisCrbPmtr&gt;1 | MeasFreq &gt; 364 &amp; ISCrbPmtr &gt; 1)
-lowfrequency &lt;- subset(oahfocus, MeasFreq &lt; 365 &amp; EndYr == &quot;Present&quot; &amp; AssetType == &quot;Shoreside Sensor&quot; | AssetType == &quot;Mooring&quot; | AssetType == &quot;Sample Site&quot; | AssetType == &quot;Shoresidesensor&quot;)</code></pre>
 </div>
 <div id="make-spatial-points-object-from-inventory-coordinates-and-its-subsets" class="section level4">
 <h4>Make spatial points object from inventory coordinates and its subsets</h4>
@@ -586,27 +570,46 @@ highfrequencycoords &lt;- cbind.data.frame(highfrequency$Longitude, highfrequenc
 lowfrequencycoords &lt;- cbind.data.frame(lowfrequency$Longitude, lowfrequency$Latitude)
 highfreqcarbcompletecoords &lt;- cbind.data.frame(highfreqcarbcomplete$Longitude, highfreqcarbcomplete$Latitude)
 
+calcoficoords &lt;- cbind.data.frame(calcofi$Longitude, calcofi$Latitude)
+
 # remove duplicate locations
 deduped.coords&lt;-unique(coords)
 deduped.carbcomplete &lt;- unique(carbcompletecoords)
 deduped.incomplete &lt;- unique(incompletecoords)
 deduped.highfrequency &lt;- unique(highfrequencycoords)
 deduped.lowfrequency &lt;- unique(lowfrequencycoords)
-deduped.highfreqcarbcomplete &lt;- unique(highfreqcarbcompletecoords
-                                       )
+deduped.highfreqcarbcomplete &lt;- unique(highfreqcarbcompletecoords)
+
 # create spatial points objects
 inventorycoords &lt;- SpatialPoints(deduped.coords, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
 inventorycoords &lt;- spTransform(inventorycoords, CRS(&#39;+init=EPSG:6414&#39;))
+
 carbcompletecoords &lt;- SpatialPoints(deduped.carbcomplete, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
 carbcompletecoords &lt;- spTransform(carbcompletecoords, CRS(&#39;+init=EPSG:6414&#39;))
-incompletecoords &lt;- SpatialPoints(deduped.incomplete, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
-incompletecoords &lt;- spTransform(incompletecoords, CRS(&#39;+init=EPSG:6414&#39;))
 highfreqcoords &lt;- SpatialPoints(deduped.highfrequency, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
 highfreqcoords &lt;- spTransform(highfreqcoords, CRS(&#39;+init=EPSG:6414&#39;))
+
+calcoficoords &lt;- SpatialPoints(calcoficoords, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+calcoficoords &lt;- spTransform(calcoficoords, CRS(&#39;+init=EPSG:6414&#39;))
+
 lowfreqcoords &lt;- SpatialPoints(deduped.lowfrequency, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
 lowfreqcoords &lt;- spTransform(lowfreqcoords, CRS(&#39;+init=EPSG:6414&#39;))
+
 highfreqcarbcompletecoords &lt;- SpatialPoints(deduped.highfreqcarbcomplete, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
-highfreqcarbcompletecoords &lt;- spTransform(highfreqcarbcompletecoords, CRS(&#39;+init=EPSG:6414&#39;))</code></pre>
+highfreqcarbcompletecoords &lt;- spTransform(highfreqcarbcompletecoords, CRS(&#39;+init=EPSG:6414&#39;))
+
+incompletecoords &lt;- SpatialPoints(deduped.incomplete, CRS(&quot;+proj=longlat +ellps=WGS84&quot;))
+incompletecoords &lt;- spTransform(incompletecoords, CRS(&#39;+init=EPSG:6414&#39;))
+
+calcofiarag &lt;- raster::extract(arag, calcoficoords, method=&#39;simple&#39;, df=TRUE)
+meancalcofi &lt;- mean(calcofiarag$layer, na.rm= TRUE)
+
+relerr &lt;- (meancalcofi-2.2425)/2.2425
+
+# account for uncertainty 
+arag_max &lt;- arag*(1+relerr)
+
+arag_min &lt;- arag*(1-relerr)</code></pre>
 </div>
 <div id="create-voronoi-polygons-and-rasterize-the-results" class="section level4">
 <h4>Create voronoi polygons and rasterize the results</h4>
@@ -617,37 +620,102 @@ carbcompletevor &lt;- voronoi(carbcompletecoords)
 incompletevor &lt;- voronoi(incompletecoords)
 highfreqvor &lt;- voronoi(highfreqcoords)
 lowfreqvor &lt;- voronoi(lowfreqcoords)
+
 # rasterize polygons
-vorraster&lt;- rasterize(vor, r_sst_min, &quot;id&quot;)
-carbcompletevorraster&lt;- rasterize(carbcompletevor, r_sst_min, &quot;id&quot;)
-incompletevorraster&lt;- rasterize(incompletevor, r_sst_min, &quot;id&quot;)
-highfreqvorraster&lt;- rasterize(highfreqvor, r_sst_min, &quot;id&quot;)
-lowfreqvorraster&lt;- rasterize(lowfreqvor, r_sst_min, &quot;id&quot;)</code></pre>
+vorraster&lt;- rasterize(vor, r_sst, &quot;id&quot;)
+carbcompletevorraster&lt;- rasterize(carbcompletevor, r_sst, &quot;id&quot;)
+incompletevorraster&lt;- rasterize(incompletevor, r_sst, &quot;id&quot;)
+highfreqvorraster&lt;- rasterize(highfreqvor, r_sst, &quot;id&quot;)
+lowfreqvorraster&lt;- rasterize(lowfreqvor, r_sst, &quot;id&quot;)</code></pre>
 </div>
 <div id="create-oa-layer" class="section level4">
 <h4>Create OA layer</h4>
 <p>We assigned the parameter value of all locations with the same polygon identification number (i.e. nearest to the same monitoring asset) to the measured value of the cell containing the monitoring asset associated with that same polygon identification number. This step resulted in a map of aragonite saturation state across the West Coast estimated by the empirical model output at each monitoring site. Thus, a monitoring network with 20 assets would result in a map made up of 20 chunks of area, each with different values of aragonite saturation state based on the estimated value at the nearest monitoring asset.</p>
 <pre class="r"><code>#extract aragonite saturation state value for each monitoring site
-sitearag&lt;- raster::extract(arag, inventorycoords, method=&#39;simple&#39;, df=TRUE)
-carbcompletesitearag&lt;- raster::extract(arag, carbcompletecoords, method=&#39;simple&#39;, df=TRUE)
-highfreqsitearag&lt;- raster::extract(arag, highfreqcoords, method=&#39;simple&#39;, df=TRUE)
+sitearag_max&lt;- raster::extract(arag_max, inventorycoords, method=&#39;simple&#39;, df=TRUE)
+carbcompletesitearag_max&lt;- raster::extract(arag_max, carbcompletecoords, method=&#39;simple&#39;, df=TRUE)
+highfreqsitearag_max&lt;- raster::extract(arag_max, highfreqcoords, method=&#39;simple&#39;, df=TRUE)
 # rename column names of sitesstrange
-colnames(sitearag)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
-colnames(carbcompletesitearag)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
-colnames(highfreqsitearag)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
+colnames(sitearag_max)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
+colnames(carbcompletesitearag_max)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
+colnames(highfreqsitearag_max)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
 # substitute polygon id for monitoring site sea surface temerature of that polygon
-polygonarag&lt;-subs(vorraster, sitearag, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)
-carbcompletepolygonarag &lt;- subs(carbcompletevorraster, carbcompletesitearag, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)
-highfreqpolygonarag &lt;- subs(highfreqvorraster, highfreqsitearag, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)</code></pre>
+polygonarag_max&lt;-subs(vorraster, sitearag_max, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)
+carbcompletepolygonarag_max &lt;- subs(carbcompletevorraster, carbcompletesitearag_max, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)
+highfreqpolygonarag_max &lt;- subs(highfreqvorraster, highfreqsitearag_max, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)
+
+sitearag_min&lt;- raster::extract(arag_min, inventorycoords, method=&#39;simple&#39;, df=TRUE)
+carbcompletesitearag_min&lt;- raster::extract(arag_min, carbcompletecoords, method=&#39;simple&#39;, df=TRUE)
+highfreqsitearag_min&lt;- raster::extract(arag_min, highfreqcoords, method=&#39;simple&#39;, df=TRUE)
+# rename column names of sitesstrange
+colnames(sitearag_min)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
+colnames(carbcompletesitearag_min)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
+colnames(highfreqsitearag_min)&lt;-c(&quot;id&quot;, &quot;Arag&quot;)
+# substitute polygon id for monitoring site sea surface temerature of that polygon
+polygonarag_min&lt;-subs(vorraster, sitearag_min, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)
+carbcompletepolygonarag_min &lt;- subs(carbcompletevorraster, carbcompletesitearag_min, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)
+highfreqpolygonarag_min &lt;- subs(highfreqvorraster, highfreqsitearag_min, by=&quot;id&quot;, which=&quot;Arag&quot;, subsWithNA=FALSE)</code></pre>
 </div>
 <div id="determine-semivariance-of-aragonite-discrepancy" class="section level4">
 <h4>Determine semivariance of aragonite discrepancy</h4>
 <p>We then used the empirical model outputs created using the continuous environmental layers to find the difference between the empirical model outputs at every location in the ocean and the empirical model outputs for the nearest monitoring asset. The result is an aragonite saturation state discrepancy value that describes how different acidification conditions are at any point on the West Coast as compared to these conditions at the nearest data collection location. In places where this value is high, a monitoring asset is not describing OA conditions well. In places where this value is low, a monitoring asset describes OA conditions very well. In the future, when aragonite saturation state models are available on a regional scale, outputs from such models could replace our empirical model outputs.</p>
 <pre class="r"><code>#vij = (xi-xj)^2/2
 
-vij&lt;- (arag-polygonarag)^2/2
-carbcompletevij &lt;- (arag-carbcompletepolygonarag)^2/2
-highfreqvij &lt;- (arag-highfreqpolygonarag)^2/2</code></pre>
+discrepancy_1 = (arag_min)-(polygonarag_max)</code></pre>
+<pre><code>## Warning in (arag_min) - (polygonarag_max): Raster objects have different
+## extents. Result for their intersection is returned</code></pre>
+<pre class="r"><code>discrepancy_1[discrepancy_1 &lt; 0] = 0
+discrepancy_2 =(arag_max)-(polygonarag_min)</code></pre>
+<pre><code>## Warning in (arag_max) - (polygonarag_min): Raster objects have different
+## extents. Result for their intersection is returned</code></pre>
+<pre class="r"><code>discrepancy_2[discrepancy_2 &lt; 0] = 0
+discrepancy = mosaic(discrepancy_1, discrepancy_2, fun = min)
+
+
+ccdiscrepancy_1 = (arag_min)-(carbcompletepolygonarag_max)</code></pre>
+<pre><code>## Warning in (arag_min) - (carbcompletepolygonarag_max): Raster objects have
+## different extents. Result for their intersection is returned</code></pre>
+<pre class="r"><code>ccdiscrepancy_1[ccdiscrepancy_1 &lt; 0] = 0
+ccdiscrepancy_2 = (arag_max)-(carbcompletepolygonarag_min)</code></pre>
+<pre><code>## Warning in (arag_max) - (carbcompletepolygonarag_min): Raster objects have
+## different extents. Result for their intersection is returned</code></pre>
+<pre class="r"><code>ccdiscrepancy_2[ccdiscrepancy_2 &lt; 0] = 0
+ccdiscrepancy = mosaic(ccdiscrepancy_1, ccdiscrepancy_2, fun = min)
+
+
+hfdiscrepancy_1 = (arag_min)-(highfreqpolygonarag_max)</code></pre>
+<pre><code>## Warning in (arag_min) - (highfreqpolygonarag_max): Raster objects have
+## different extents. Result for their intersection is returned</code></pre>
+<pre class="r"><code>hfdiscrepancy_1[hfdiscrepancy_1 &lt; 0] = 0
+hfdiscrepancy_2 = (arag_max)-(highfreqpolygonarag_min)</code></pre>
+<pre><code>## Warning in (arag_max) - (highfreqpolygonarag_min): Raster objects have
+## different extents. Result for their intersection is returned</code></pre>
+<pre class="r"><code>hfdiscrepancy_2[hfdiscrepancy_2 &lt; 0] = 0
+hfdiscrepancy = mosaic(hfdiscrepancy_1, hfdiscrepancy_2, fun = min)
+
+
+
+discrepancy &lt;- mask(discrepancy, poly_coast, inverse = TRUE) #Clip continuous raster
+discrepancy &lt;- mask(discrepancy, estuaries, inverse = TRUE) #Clip continuous raster
+discrepancy &lt;- mask(discrepancy, sf_puget, inverse = TRUE) #Clip continuous raster
+
+ccdiscrepancy &lt;- mask(ccdiscrepancy, poly_coast, inverse = TRUE) #Clip continuous raster
+ccdiscrepancy &lt;- mask(ccdiscrepancy, estuaries, inverse = TRUE) #Clip continuous raster
+ccdiscrepancy &lt;- mask(ccdiscrepancy, sf_puget, inverse = TRUE) #Clip continuous raster
+
+hfdiscrepancy &lt;- mask(hfdiscrepancy, poly_coast, inverse = TRUE) #Clip continuous raster
+hfdiscrepancy &lt;- mask(hfdiscrepancy, estuaries, inverse = TRUE) #Clip continuous raster
+hfdiscrepancy &lt;- mask(hfdiscrepancy, sf_puget, inverse = TRUE) #Clip continuous raster
+
+plot(discrepancy)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/semivariance-1.png" width="672" /></p>
+<pre class="r"><code>plot(ccdiscrepancy)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/semivariance-2.png" width="672" /></p>
+<pre class="r"><code>plot(hfdiscrepancy)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/semivariance-3.png" width="672" /></p>
+<pre class="r"><code>vij&lt;- (discrepancy)^2/2
+carbcompletevij &lt;- (ccdiscrepancy)^2/2
+highfreqvij &lt;- (hfdiscrepancy)^2/2</code></pre>
 </div>
 </div>
 <div id="step-3.-geographic-and-oceanographic-distance" class="section level2">
@@ -657,37 +725,67 @@ highfreqvij &lt;- (arag-highfreqpolygonarag)^2/2</code></pre>
 <p>The inverse of the linear relationship from the semi-variogram was applied to the semi-variance calculated above, yielding a map showing the “oceanographic distance” between each cell in our study region and the nearest monitoring asset. We define oceanographic distance as the effective distance between any location and the nearest monitoring asset, based on the similarity of oceanographic conditions that determine OA conditions between the two locations. A cell with high oceanographic distance has different acidification conditions than the nearest monitoring asset, and a cell with low oceanographic distance has similar acidification conditions to the nearest monitoring asset.</p>
 <pre class="r"><code>#variogram does not saturate: develop an equation to describe relationship using square root function...
 
-sqrootmodel &lt;- lm(aragvar@variogram[[&quot;gamma&quot;]] ~ 0 + I(sqrt(aragvar@variogram[[&quot;distance&quot;]])))
+model &lt;- lm(aragvar@variogram[[&quot;gamma&quot;]] ~ 0 + I((aragvar@variogram[[&quot;distance&quot;]])))
+summary(model)
 
-#p value &lt; 2e-16
+summary(model)
 
 xbar&lt;-aragvar@variogram[[&quot;distance&quot;]]
-ybar&lt;-sqrt(xbar)*sqrootmodel$coefficients[1]
+ybar&lt;-(xbar)*model$coefficients[1]
 
 ggplot()+
   geom_point(aes(aragvar@variogram[[&quot;distance&quot;]], aragvar@variogram[[&quot;gamma&quot;]]), color = &quot;red&quot;)+
   geom_point(aes(xbar, ybar), color = &quot;blue&quot;)+
-  ylim(0, 0.15)+
   theme_bw()+
   ggtitle(&#39;Variogram (red) and predictive model (blue)&#39;)+
   xlab(&#39;Distance Between Points (m)&#39;)+
   ylab(&#39;Semivariance of Aragonite Discrepancy&#39;)+
   theme(text = element_text(size = 10, family=&quot;serif&quot;))</code></pre>
 <p><img src="gap_manuscript_files/figure-html/oceanographic%20distance-1.png" width="672" /></p>
-<pre class="r"><code>#find inverse of nonlinear model:
-#semivariance = 0.0001504855 * sqrt(distance)
-#distance = (semivariance/0.0001504855)^2
+<pre class="r"><code>oceanographicdistance = (vij/(4.303e-08  ))/(1000)
+carbcompleteoceanographicdistance = (carbcompletevij/(4.303e-08 ))/(1000)
+highfreqoceanographicdistance = (highfreqvij/(4.303e-08))/(1000)
 
-oceanographicdistance = (vij/0.0001504855)^2/(1000^2)
-carbcompleteoceanographicdistance = (carbcompletevij/0.0001504855)^2/(1000^2)
-highfreqoceanographicdistance = (highfreqvij/0.0001504855)^2/(1000^2)</code></pre>
+plot(oceanographicdistance)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/oceanographic%20distance-2.png" width="672" /></p>
+<pre class="r"><code>plot(carbcompleteoceanographicdistance)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/oceanographic%20distance-3.png" width="672" /></p>
+<pre class="r"><code>plot(highfreqoceanographicdistance)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/oceanographic%20distance-4.png" width="672" /></p>
+<pre class="r"><code>od_clipped &lt;- mask(oceanographicdistance, poly_coast, inverse = TRUE) #Clip continuous raster
+od_clipped &lt;- mask(od_clipped, estuaries, inverse = TRUE) #Clip continuous raster
+od_clipped &lt;- mask(od_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
+
+plot(od_clipped)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/oceanographic%20distance-5.png" width="672" /></p>
 </div>
 <div id="geographic-distance" class="section level4">
 <h4>Geographic distance</h4>
 <p>Determine geographic distance from the nearest monitoring point</p>
 <pre class="r"><code>distance&lt;-distanceFromPoints(oceanographicdistance, inventorycoords)/1000
-carbcompletedistance&lt;-distanceFromPoints(carbcompleteoceanographicdistance, carbcompletecoords)/1000
-highfreqdistance&lt;-distanceFromPoints(highfreqoceanographicdistance, highfreqcoords)/1000</code></pre>
+
+distance_clipped &lt;- mask(distance, poly_coast, inverse = TRUE) #Clip continuous raster
+distance_clipped &lt;- mask(distance_clipped, estuaries, inverse = TRUE) #Clip continuous raster
+distance_clipped &lt;- mask(distance_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
+
+plot(distance_clipped)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/geographic%20distance-1.png" width="672" /></p>
+<pre class="r"><code>carbcompletedistance&lt;-distanceFromPoints(carbcompleteoceanographicdistance, carbcompletecoords)/1000
+
+carbcompletedistance_clipped &lt;- mask(carbcompletedistance, poly_coast, inverse = TRUE) #Clip continuous raster
+carbcompletedistance_clipped &lt;- mask(carbcompletedistance_clipped, estuaries, inverse = TRUE) #Clip continuous raster
+carbcompletedistance_clipped &lt;- mask(carbcompletedistance_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
+
+plot(carbcompletedistance_clipped)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/geographic%20distance-2.png" width="672" /></p>
+<pre class="r"><code>highfreqdistance&lt;-distanceFromPoints(highfreqoceanographicdistance, highfreqcoords)/1000
+
+highfreqdistance_clipped &lt;- mask(highfreqdistance, poly_coast, inverse = TRUE) #Clip continuous raster
+highfreqdistance_clipped &lt;- mask(highfreqdistance_clipped, estuaries, inverse = TRUE) #Clip continuous raster
+highfreqdistance_clipped &lt;- mask(highfreqdistance_clipped, sf_puget, inverse = TRUE) #Clip continuous raster
+
+plot(highfreqdistance_clipped)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/geographic%20distance-3.png" width="672" /></p>
 </div>
 </div>
 <div id="step-4.-find-gaps" class="section level2">
@@ -697,23 +795,30 @@ highfreqdistance&lt;-distanceFromPoints(highfreqoceanographicdistance, highfreqc
 <p>We used a Euclidean distance approach to combine geographic distance and oceanographic distance into a single “gap” layer. Thus, a gap in the network is a place where oceanographic conditions are different from conditions at the nearest data collection location, a place that is geographically far from the nearest data collection, or a place with both of these characteristics. When combining these two, we weighted the oceanographic distance term by multiplying it by the unitless ratio of the maximum value of geographic distance and the maximum value of the oceanographic distance.</p>
 <pre class="r"><code>#calculate gaps
 
-weight = maxValue(distance)/maxValue(oceanographicdistance)
+weight = maxValue(od_clipped)/maxValue(distance_clipped)
 
-gap&lt;-(sqrt((distance)^2+(weight*oceanographicdistance)^2))
+gap&lt;-(sqrt((weight*distance_clipped)^2+(oceanographicdistance)^2))
 
-carbcompletegap&lt;-(sqrt((carbcompletedistance)^2+(weight*carbcompleteoceanographicdistance)^2))
+carbcompletegap&lt;-(sqrt((weight*carbcompletedistance_clipped)^2+(carbcompleteoceanographicdistance)^2))
 
-highfreqgap&lt;-(sqrt((highfreqdistance)^2+(weight*highfreqoceanographicdistance)^2))
+carbcompletegap&lt;-(sqrt((carbcompletedistance_clipped)^2+(carbcompleteoceanographicdistance)^2))
+
+highfreqgap&lt;-(sqrt((weight*highfreqdistance_clipped)^2+(highfreqoceanographicdistance)^2))
 
 gap &lt;- crop(gap, ext_study)
-
 carbcompletegap &lt;- crop(carbcompletegap, ext_study)
+highfreqgap &lt;- crop(highfreqgap, ext_study)
 
-highfreqgap &lt;- crop(highfreqgap, ext_study)</code></pre>
+plot(gap)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/find%20gaps-1.png" width="672" /></p>
+<pre class="r"><code>plot(carbcompletegap)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/find%20gaps-2.png" width="672" /></p>
+<pre class="r"><code>plot(highfreqgap)</code></pre>
+<p><img src="gap_manuscript_files/figure-html/find%20gaps-3.png" width="672" /></p>
 </div>
 <div id="map-gaps" class="section level4">
 <h4>Map Gaps</h4>
-<p><img src="gap_manuscript_files/figure-html/map%20gaps-1.png" width="25%" /><img src="gap_manuscript_files/figure-html/map%20gaps-2.png" width="25%" /><img src="gap_manuscript_files/figure-html/map%20gaps-3.png" width="25%" /><img src="gap_manuscript_files/figure-html/map%20gaps-4.png" width="25%" /></p>
+<p><img src="gap_manuscript_files/figure-html/map%20gaps-1.png" width="25%" /><img src="gap_manuscript_files/figure-html/map%20gaps-2.png" width="25%" /><img src="gap_manuscript_files/figure-html/map%20gaps-3.png" width="25%" /></p>
 </div>
 </div>
 
@@ -734,6 +839,23 @@ $(document).ready(function () {
 
 
 </script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
